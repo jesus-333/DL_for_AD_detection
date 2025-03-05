@@ -23,6 +23,7 @@ def get_all_files_from_path(path_to_explore : str) :
     return file_path_list
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Function specific for me code repository
 
 def convert_3D_matrix_to_image(data, path_to_save : str, file_name : str, axis_to_save : int, min_idx_to_save : int = 0, max_idx_to_save : int = -1) :
     """
@@ -48,3 +49,18 @@ def convert_3D_matrix_to_image(data, path_to_save : str, file_name : str, axis_t
         
         final_path = path_to_save + '{}_{}.png'.format(file_name, i) 
         cv.imwrite(final_path, data_to_save) 
+
+
+def get_labels_from_path_list(file_paths_list : str) :
+    """
+    This function is specific for me, due to how I saved the data.
+    Each class of the dataset (AD, CN, MCI) has its own subfolder. 
+    So from the list with all the paths, for each path, I can extract the subfolder and use it as a label for the corresponding path
+    """
+    
+    labels_list = []
+    for file_path in file_paths_list :
+        label = file_path.split('/')[3]
+        labels_list.append(label)
+
+    return labels_list
