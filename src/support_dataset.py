@@ -22,6 +22,20 @@ def get_all_files_from_path(path_to_explore : str) :
 
     return file_path_list
 
+def convert_label_from_str_to_int(labels_str_list : list, convert_MCI_to_AD : bool = False) :
+    tmp_array = np.asarray(labels_str_list)
+
+    labels_int_list = np.zeros(len(tmp_array))
+    labels_int_list[tmp_array == 'CN'] = 0
+    labels_int_list[tmp_array == 'AD'] = 1
+
+    if convert_MCI_to_AD : labels_int_list[tmp_array == 'MCI'] = 1
+    else : labels_int_list[tmp_array == 'MCI'] = 2
+
+    return labels_int_list
+
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Function specific for me code repository
 
