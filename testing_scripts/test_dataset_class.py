@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from src import support_dataset, dataset
+from src.model import published_model
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -31,8 +32,13 @@ label_list = support_dataset.convert_label_from_str_to_int(label_list, convert_M
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+# Create model
+model, preprocess_functions = published_model.get_vgg_nets(version = 16, batch_normalization = True, pretrained = True)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 # Create the dataset
-MRI_dataset = dataset.MRI_2D_dataset(file_path_list, label_list, load_data_in_memory = False)
+MRI_dataset = dataset.MRI_2D_dataset(file_path_list, label_list, load_data_in_memory = False, preprocess_functions = preprocess_functions)
 
 # Get a random index
 idx_random = np.random.randint(0, len(MRI_dataset))
