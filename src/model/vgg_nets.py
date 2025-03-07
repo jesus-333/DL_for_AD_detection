@@ -11,7 +11,7 @@ from . import download_published_model
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
-class vgg(torch.nn.Module):
+class VGG(torch.nn.Module):
     
     def __init__(self, model, num_classes : int, use_single_channel_input : bool = False) :
         """
@@ -35,7 +35,7 @@ class vgg(torch.nn.Module):
 
         """
 
-        super(vgg, self).__init__()
+        super(VGG, self).__init__()
 
         # Modify the last layer to have the correct number of classes
         model.classifier[6] = torch.nn.Linear(4096, num_classes)
@@ -44,7 +44,9 @@ class vgg(torch.nn.Module):
         if use_single_channel_input :
             model.features[0] = torch.nn.Conv2d(1, 64, kernel_size = (3, 3), stride = (1, 1), padding = (1, 1))
 
-        self.model = model
+        self.features = model.features
+        self.avgpool = model.avgpool
+        self.classifier = model.classifier
         self.use_single_channel_input = use_single_channel_input
 
     def forward(self, x) :
@@ -64,28 +66,31 @@ class vgg(torch.nn.Module):
         """
 
         if finetuning_type == 0 :
-            for param in self.model.parameters() :
-                param.requires_grad = True
+            for param in self.features.parameters() : param.requires_grad = True
+            for param in self.classifier.parameters() : param.requires_grad = True
 
         elif finetuning_type == 1 :
-            for param in self.model.parameters() :
-                param.requires_grad = False
+            self.freeze_model()
 
-            for param in self.model.classifier[6].parameters() :
+            for param in self.classifier[6].parameters() :
                 param.requires_grad = True
 
         elif finetuning_type == 2 :
             if not self.use_single_channel_input :
                 raise ValueError('The finetuning_type 2 is valid only if use_single_channel_input is True')
 
-            for param in self.model.parameters() :
-                param.requires_grad = False
+            self.freeze_model()
 
-            for param in self.model.features[0].parameters() :
+            for param in self.features[0].parameters() :
                 param.requires_grad = True
 
-            for param in self.model.classifier[6].parameters() :
+            for param in self.classifier[6].parameters() :
                 param.requires_grad = True
+
+    def freeze_model(self) :
+        for param in self.features.parameters() : param.requires_grad = False
+        # for param in self.avgpool.parameters() : param.requires_grad = False
+        for param in self.classifier.parameters() : param.requires_grad = False
 
     
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -110,14 +115,15 @@ def get_vgg(config : dict) :
         - num_classes : int
             Number of classes of the dataset
     """
-
-    config = check_model_config(config)
+    
+    # Check config
+    check_model_config(config)
 
     # Get the model
     model, preprocess_functions = download_published_model.download_vgg_nets(config['version'], config['batch_normalization'], config['pretrained'])
 
     # Create the model
-    model = vgg(model, config['num_classes'], config['use_single_channel_input'])
+    model = VGG(model, config['num_classes'], config['use_single_channel_input'])
 
     return model, preprocess_functions 
 
@@ -154,7 +160,5 @@ def check_model_config(config : dict) :
 
     if config['num_classes'] <= 0 :
         raise ValueError(f'The num_classes key must be greater than 0. Current value is {config["num_classes"]}')
-
-    return config
 
 

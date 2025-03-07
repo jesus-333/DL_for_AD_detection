@@ -2,8 +2,8 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
-from src import support_dataset, dataset
-from src.model import published_model
+from src.dataset import support_dataset, dataset
+from src.model import download_published_model 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -33,7 +33,7 @@ label_list = support_dataset.convert_label_from_str_to_int(label_list, convert_M
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 # Create model
-model, preprocess_functions = published_model.get_vgg_nets(version = 16, batch_normalization = True, pretrained = True)
+model, preprocess_functions = download_published_model.download_vgg_nets(version = 16, batch_normalization = True, pretrained = True)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
