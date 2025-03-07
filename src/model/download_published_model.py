@@ -9,7 +9,7 @@ from torchvision import transforms
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def get_Inception_v3(pretrained = True) :
+def download_Inception_v3(pretrained = True) :
     """
     Download the inception v3 model
     https://pytorch.org/hub/pytorch_vision_inception_v3/
@@ -27,14 +27,14 @@ def get_Inception_v3(pretrained = True) :
     return model,preprocess_function  
 
 
-def get_resnet50(pretrained = True) :
+def download_resnet50(pretrained = True) :
     """
     Download the resnet50 model
     https://pytorch.org/hub/nvidia_deeplearningexamples_resnet50/
     """
     resnet50 = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_resnet50', pretrained = pretrained)
 
-def get_vgg_nets(version : int, batch_normalization : bool, pretrained = True) :
+def download_vgg_nets(version : int, batch_normalization : bool, pretrained = True) :
     """
     Download a version of the VGG network
     https://pytorch.org/hub/pytorch_vision_vgg/
@@ -57,7 +57,7 @@ def get_vgg_nets(version : int, batch_normalization : bool, pretrained = True) :
 
     return model, preprocess_function  
 
-def get_resnet_3D(pretrained = True) :
+def download_resnet_3D(pretrained = True) :
     """
     Get the resnet 3D
 
@@ -69,7 +69,7 @@ def get_resnet_3D(pretrained = True) :
     return model
 
 
-def get_UNet(pretrained = True) :
+def download_UNet(pretrained = True) :
     """
     Get the pretrained UNet, a model for abnormality segmentation on a dataset of brain MRI volumes 
 
