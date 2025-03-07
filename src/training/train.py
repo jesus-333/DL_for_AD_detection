@@ -3,7 +3,6 @@
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 import torch
@@ -173,6 +172,62 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
         wandb_model_artifact.add_file(model_file_path )
         wandb.save(model_file_path )
 
+    # Return the trained model
+    return model
+
+def wandb_train(config : dict, model, train_dataset, validation_dataset = None) :
+    """
+    Train a model using the given configuration and dataset. This function uses wandb to log the training.
+    For more inforamation about the parameters, please refer to the train function.
+
+    Parameters
+    ----------
+
+    config : dict
+        Dictionary containing the training configuration. The dictionary should contain the following keys:
+        - train_config : dict : Dictionary containing the training configuration. Read the documentation of the train function for more information
+        - model_config : dict : Dictionary containing the model configuration. Read the documentation in the model module for more information about specific models
+                                The model_config are not used during the training, but they are logged in wandb.
+    model : torch.nn.Module
+        Model to train
+    train_dataset : torch.utils.data.Dataset
+        Dataset to use for training
+    validation_dataset : torch.utils.data.Dataset, optional
+        Dataset to use for validation, by default None. If None, no validation will be performed 
+    """
+    
+    # Check config
+    if 'train_config' not in config : raise ValueError('The configuration dictionary must contain the key "train_config"')
+    if 'model_config' not in config : raise ValueError('The configuration dictionary must contain the key "model_config"')
+    
+    # Get train configuration
+    train_config = config['train_config']
+    notes = train_config['notes'] if 'notes' in train_config else 'No notes in train_config'
+    name = train_config['name_training_run'] if 'name_training_run' in train_config else None
+    
+    # Initialize wandb
+    with wandb.init(project = train_config['project_name'], job_type = "train", config = config, notes = notes, name = name) as run:
+        # Setup artifact to save model
+        model_artifact_name = train_config['model_artifact_name'] + '_trained'
+        metadata = config
+        wandb_model_artifact = wandb.Artifact(model_artifact_name, type = "model",
+                                        description = "Trained {} model".format(train_config['model_artifact_name']),
+                                        metadata = metadata
+                                        )
+        
+        # Train the model
+        model = train(train_config, model, train_dataset, validation_dataset, wandb_model_artifact)
+        
+        # Log the model artifact
+        run.log_artifact(wandb_model_artifact)
+
+    return model
+
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Epoch functions
+
 def train_epoch_function(model, train_loader,loss_function, optimizer, device, measure_metrics_during_training = True, log_dict = None, print_var = True) : 
     # Set the model in training mode
     model.train()
@@ -189,10 +244,10 @@ def train_epoch_function(model, train_loader,loss_function, optimizer, device, m
         optimizer.zero_grad()
         
         # Networks forward pass
-        label_pred = model(x)
+        pred_label = model(x)
         
         # Loss evaluation
-        batch_train_loss = loss_function(label_pred, true_label)
+        batch_train_loss = loss_function(pred_label, true_label)
     
         # Backward/Optimization pass
         batch_train_loss.backward()
@@ -225,10 +280,10 @@ def validation_epoch_function(model, validation_dataloader, loss_function, devic
             true_label = sample_label_batch.to(device)
 
             # Networks forward pass
-            label_pred = model(x)
+            pred_label = model(x)
             
             # Loss evaluation
-            batch_train_loss = loss_function(label_pred, true_label)
+            batch_train_loss = loss_function(pred_label, true_label)
 
             # Accumulate the loss
             validation_loss += batch_train_loss * x.shape[0]

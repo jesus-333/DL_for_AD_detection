@@ -1,3 +1,11 @@
+[model_config]
+version = 16
+batch_normalization = true
+pretrained = true
+use_singla_channel_input = false
+num_classes = 2
+
+[train_config]
 batch_size = 1
 lr = 0.01
 epochs = 1
@@ -15,4 +23,4 @@ model_artifact_name = ""
 log_freq = 1
 name_training_run = ""
 notes = ""
-debug = false
+debug = true
