@@ -8,6 +8,11 @@ import torch
 import torchvision
 import matplotlib.pyplot as plt
 
+try :
+    import pydicom as dicom
+except ImportError :
+    print("The pydicom library is not installed. The MRI_2D_dataset_dicom class will not work.")
+
 from . import support_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -145,4 +150,27 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
             fig.tight_layout()
             fig.show()       
 
+class MRI_2D_dataset_dicom(MRI_2D_dataset):
 
+    def __init__(self, path_list : list, label_list : list, load_data_in_memory : bool = True, preprocess_functions = None) :
+        """
+        This class work exaclty as MRI_2D_dataset but it expects to receive in input a list with dcm file.
+        The only function that change behavior is load_image since it has to load dcm image and convert them in pytorch tensor
+        """
+
+        super().__init__(path_list, label_list, load_data_in_memory, preprocess_functions, grey_scale_image = True)
+
+    def load_image(self, path : str, create_copy_for_depth : bool = True) :
+        """
+        Given a path load a dcm image and convert it to a pytorch tensor.
+        """
+
+        image = dicom.dcmread(path).pixel_array
+        image[image > 255] = 255 # In some I notidced that there are pixel with value > 255. For now I just set them to 255. In the future I will check if this is the right thing to do.
+        image = torch.tensor(image).float().unsqueeze(0)
+        image = image / 255.0
+
+        if create_copy_for_depth : image = self.create_copy_of_image_for_depth_map(image)
+        if self.preprocess_functions is not None and self.apply_preprocess_functions : image = self.preprocess_functions(image)
+
+        return image

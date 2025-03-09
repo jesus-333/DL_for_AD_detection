@@ -6,4 +6,4 @@ In my case I download the data from the [ADNI website](https://adni.loni.usc.edu
 Then I create a folder for each dataset (e.g. fMRI, `ADNI\_3Yr\_3T`, etc). 
 Inside of each one of these folders I created folder for each class (e.g. AD for Alzheimerz's Disease, MCI for Mild Cognitive Impairment, CN for Control).
 Then in each one of this folder I extract all the data of the specific class downloaded from the ADNI website.
-So for example the data for MCI patients for the fMRI dataset, in my case are saved in `data/ADNI_3_fMRI/MCI` (N.b `ADNI\_3\_fMRI` is name that I choose for the fMRI dataset but you could use whatever name you want)
+So for example the data for MCI patients for the fMRI dataset, in my case are saved in `data/ADNI_3_fMRI/MCI/` (N.b `ADNI\_3\_fMRI` is name that I choose for the fMRI dataset but you could use whatever name you want)

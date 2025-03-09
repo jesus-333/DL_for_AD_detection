@@ -34,8 +34,6 @@ def convert_label_from_str_to_int(labels_str_list : list, convert_MCI_to_AD : bo
 
     return labels_int_list
 
-
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Function specific for me code repository
 
