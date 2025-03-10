@@ -12,13 +12,16 @@ path_MCI = 'data/ADNI_3_fMRI/MCI'
 path_CN = 'data/ADNI_3_fMRI/CN'
 
 convert_MCI_to_AD = False
+model_name = 'vgg'
+
+check_files = False
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 # Get the paths of the files for each class
-file_path_list_CN = support_dataset.get_all_files_from_path(path_CN)
-file_path_list_AD = support_dataset.get_all_files_from_path(path_AD)
-file_path_list_MCI = support_dataset.get_all_files_from_path(path_MCI)
+file_path_list_CN = support_dataset.get_all_files_from_path(path_CN, filetype_filter = 'dcm')
+file_path_list_AD = support_dataset.get_all_files_from_path(path_AD, filetype_filter = 'dcm')
+file_path_list_MCI = support_dataset.get_all_files_from_path(path_MCI, filetype_filter = 'dcm')
 
 # Get the labels for each class
 label_list_CN = support_dataset.get_labels_from_path_list(file_path_list_CN)
@@ -33,7 +36,7 @@ label_list = support_dataset.convert_label_from_str_to_int(label_list, convert_M
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 # Create model
-model, preprocess_functions = download_published_model.download_vgg_nets(version = 16, batch_normalization = True, pretrained = True)
+preprocess_functions = download_published_model.get_preprocess_functions(model_name)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -58,4 +61,34 @@ dataloader = torch.utils.data.DataLoader(fMRI_dataset, batch_size = 4, shuffle =
 for i, (images, labels) in enumerate(dataloader) :
     print(images.shape, labels.shape)
     break
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Iterate through all the files to check if they are readable
+
+if check_files :
+
+    list_idx_error = []
+    list_error = []
+    list_path_error = []
+
+    idx_to_print_advancement = np.linspace(0, len(fMRI_dataset), 100).astype(int)
+
+    for i in range(len(fMRI_dataset)) :
+        if i in idx_to_print_advancement : 
+            print(f"Elements analyzed: {i}/{len(fMRI_dataset)}")
+
+        try :
+            image, label = fMRI_dataset[i]
+        except Exception as e:
+            print("\tError with path number {}".format(i))
+            list_idx_error.append(i)
+            list_error.append(e)
+            list_path_error.append(fMRI_dataset.data[i])
+
+            # Save list to txt files
+            with open('error.txt', 'a') as f:
+                for i in range(len(list_idx_error)) :
+                    string_to_write = f"Error FOUND - path number : {list_idx_error[i]} - Error message : {list_error[i]}\n"
+                    string_to_write += f"Path: {list_path_error[i]}\n"
+                f.write(string_to_write)
 

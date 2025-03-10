@@ -9,16 +9,43 @@ import cv2 as cv
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def get_all_files_from_path(path_to_explore : str) :
+def get_idx_to_split_data_V1(n_elements : int, percentage_split : float, seed : int = None):
+    """
+    Given a number of elements (n_elements) create an array with number from 0 to n_elements - 1 and split it (randomly) in two lists.
+    The size of the two list is determined by the percentage_split parameter. The first list will be have size x = int(percentage_split * n_elements) while the second will have size y = n_elements - x
+    The procedure can be "deterministic" if the seed parameter is passed to the function.
+    """
+    
+    # Check input parameter
+    if n_elements <= 1 : raise ValueError("n_elements must be greater than 1. Current value is {}".format(n_elements))
+    if percentage_split <= 0 or percentage_split >= 1 : raise ValueError("percentage_split must be between 0 and 1. Current value is {}".format(percentage_split))
+
+    # Use of the seed for reproducibility
+    if seed is not None : np.random.seed(seed)
+
+    # Create idx vector
+    idx = np.random.permutation(n_elements)
+    size_1 = int(n_elements * percentage_split) 
+    
+    return idx[0:size_1], idx[size_1:]
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def get_all_files_from_path(path_to_explore : str, filetype_filter : str = None) :
     """
     Given a path to explore, return a list with all files in the folder and subfolders
+    If the argument filetype_filter  is passed, only the files with the specified extension are returned
     """
 
     file_path_list = []
     for path, subdirs, files in os.walk(path_to_explore):
         for name in files:
             file_path = os.path.join(path, name)
-            file_path_list.append(file_path)
+            
+            if filetype_filter is not None :
+                if file_path.endswith(filetype_filter) : file_path_list.append(file_path)
+            else :
+                file_path_list.append(file_path)
 
     return file_path_list
 

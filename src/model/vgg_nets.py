@@ -89,7 +89,7 @@ class VGG(torch.nn.Module):
 
     def freeze_model(self) :
         for param in self.features.parameters() : param.requires_grad = False
-        # for param in self.avgpool.parameters() : param.requires_grad = False
+        for param in self.avgpool.parameters() : param.requires_grad = False
         for param in self.classifier.parameters() : param.requires_grad = False
 
     

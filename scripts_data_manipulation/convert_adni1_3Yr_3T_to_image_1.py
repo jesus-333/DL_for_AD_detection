@@ -9,7 +9,7 @@ The original data are saved in nii files. This script read the nii files and con
 import os
 import nibabel as nib
 
-from src import support_dataset
+from src.dataset import support_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings

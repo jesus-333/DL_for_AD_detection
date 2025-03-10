@@ -71,8 +71,7 @@ print('{:.3f}±{:.3f}ms'.format(np.mean(list_time_dcm) * 1000, np.std(list_time_
 print('DCM file tensor')
 print('{:.3f}±{:.3f}ms'.format(np.mean(list_time_dcm_tensor) * 1000, np.std(list_time_dcm_tensor) * 1000))
 
-
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
 
