@@ -26,8 +26,7 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
     Parameters
     ----------
     train_config : dict
-        Dictionary containing the training configuration. The dictionary should contain the following keys:
-        - 'device' : str : device to use for training (e.g. 'cuda:0' or 'cpu')
+        Dictionary containing the training configuration. 
     model : torch.nn.Module
         Model to train
     train_dataset : torch.utils.data.Dataset 
@@ -82,6 +81,8 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
 
     #  Dictionary used to saved information during training and load them on wandb
     log_dict = {}
+
+    if train_config['print_var'] : print("Start training")
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     for epoch in range(train_config['epochs']):
@@ -104,7 +105,10 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
 
         if validation_loader is not None:
 
-            validation_loss = validation_epoch_function(model, loss_function, validation_loader, train_config, log_dict)
+            validation_loss = validation_epoch_function(model, validation_loader, loss_function, 
+                                                        train_config['device'], train_config['measure_metrics_during_training'], 
+                                                        log_dict,
+                                                        )
             
             # Save the new BEST model if a new minimum is reach for the validation loss
             if validation_loss < best_loss_val:
@@ -115,7 +119,7 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
         # (OPTIONAL) Optional steps during the training
 
         #  Measure the various metrics related to classification (accuracy, precision etc)
-        if train_config['measure_metrics_during_training'] and train_config['use_classifier']:
+        if train_config['measure_metrics_during_training'] :
             # Compute the various metrics
             train_metrics_dict = metrics.compute_metrics(model, train_loader, train_config['device'])
             validation_metrics_dict = metrics.compute_metrics(model, validation_loader, train_config['device'])
@@ -132,8 +136,8 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
         # (OPTIONAL) Print loss
         if train_config['print_var']:
             print("Epoch:{}".format(epoch))
-            print("\t Train loss        = {}".format(train_loss.detach().cpu().float()))
-            if validation_loader is not None: print("\t Validation loss   = {}".format(validation_loss.detach().cpu().float()))
+            print("\t Train loss        = {}".format(train_loss))
+            if validation_loader is not None: print("\t Validation loss   = {}".format(validation_loss))
 
             if lr_scheduler is not None: print("\t Learning rate     = {}".format(optimizer.param_groups[0]['lr']))
             if train_config['measure_metrics_during_training']:
@@ -223,8 +227,6 @@ def wandb_train(config : dict, model, train_dataset, validation_dataset = None) 
 
     return model
 
-
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Epoch functions
 
@@ -254,7 +256,7 @@ def train_epoch_function(model, train_loader,loss_function, optimizer, device, m
         optimizer.step()
 
         # Accumulate the loss
-        train_loss += batch_train_loss * x.shape[0]
+        train_loss += batch_train_loss.item() * x.shape[0]
 
     # Compute final loss
     train_loss = train_loss / len(train_loader.sampler)
@@ -286,7 +288,7 @@ def validation_epoch_function(model, validation_dataloader, loss_function, devic
             batch_train_loss = loss_function(pred_label, true_label)
 
             # Accumulate the loss
-            validation_loss += batch_train_loss * x.shape[0]
+            validation_loss += batch_train_loss.item() * x.shape[0]
 
         # Compute final loss
         validation_loss = validation_loss / len(validation_dataloader.sampler)
@@ -306,13 +308,13 @@ def check_train_config(config : dict) :
     if 'lr' not in config :
         raise ValueError('The training configuration must contain the key "lr"')
 
-    if 'lr' <= 0 : 
+    if config['lr'] <= 0 : 
         raise ValueError(f"The learning rate must be greater than 0. Current value: {config['lr']}")
 
     if 'epochs' not in config :
         raise ValueError('The training configuration must contain the key "epochs"')
 
-    if 'epochs' <= 0 :
+    if config['epochs'] <= 0 :
         raise ValueError(f"The number of epochs must be greater than 0. Current value: {config['epochs']}")
 
     if 'use_scheduler' not in config :
@@ -337,9 +339,9 @@ def check_train_config(config : dict) :
         config['path_to_save_model'] = "model_weights"
 
     if 'epoch_to_save_model' not in config :
-        print('Warning: the training configuration does not contain the key "epoch_to_save_model". -1 will be used as default value')
+        print('Warning: the training configuration does not contain the key "epoch_to_save_model".')
         print('This means that the model will be saved only at the end of the training')
-        config['epoch_to_save_model'] = -1
+        config['epoch_to_save_model'] = config['epochs'] + 2
 
     if 'measure_metrics_during_training' not in config :
         print('Warning: the training configuration does not contain the key "measure_metrics_during_training". True will be used as default value')
