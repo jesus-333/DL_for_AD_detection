@@ -6,6 +6,8 @@
 
 import torch
 import torchvision
+
+import numpy as np
 import matplotlib.pyplot as plt
 
 try :
@@ -20,7 +22,7 @@ from . import support_dataset
 
 class MRI_2D_dataset(torch.utils.data.Dataset):
 
-    def __init__(self, path_list : list, label_list : list, load_data_in_memory : bool = True, preprocess_functions = None, grey_scale_image : bool = True) :
+    def __init__(self, path_list : list, label_list : list, load_data_in_memory : bool = False, preprocess_functions = None, grey_scale_image : bool = True) :
         """
         This class is used to create a dataset of 2D MRI images (it can be also used for fMRI data).
         The input is a list of paths to the images and a list of labels.
@@ -40,44 +42,79 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
             If False it means that the image is already a 3 channel image and no conversion is needed.
         """
 
-        if load_data_in_memory : 
-            self.data, = self.load_dataset(path_list)
-        else :
-            self.data = path_list
-            
+        if len(path_list) != len(label_list) :
+            raise ValueError("Length of path_list and label_list must be the same. Current length of path_list : {}, current length of label_list : {}".format(len(path_list), len(label_list)))
+
+        self.path_list = np.asarray(path_list)
         self.labels = torch.asarray(label_list) 
-        self.load_data_in_memory = load_data_in_memory
 
         self.preprocess_functions = preprocess_functions
         self.apply_preprocess_functions = True if preprocess_functions is not None else False
         self.grey_scale_image = grey_scale_image
+
+        if load_data_in_memory : 
+            self.load_dataset()
+            self.load_data_in_memory = True
+        else :
+            self.load_data_in_memory = False
             
-    def __getitem__(self, idx : int) :
+    def __getitem__(self, idx) :
         if self.load_data_in_memory :
-            image = self.data[idx] 
+            image = self.data_loaded[idx] 
         else : 
-            image = self.load_image(self.data[idx], self.grey_scale_image)
+            image = self.load_image(self.path_list[idx], self.grey_scale_image)
 
         return image, self.labels[idx]
     
     def __len__(self) -> int :
-        return len(self.data)
+        return len(self.labels)
 
-    def load_image(self, path : str, create_copy_for_depth : bool = True) :
+    def load_image(self, path, create_copy_for_depth : bool = True) :
         """
         Given a path load the image through torchvision.io.read_image
         """
 
+        if type(path) is np.ndarray :
+            # In this case someone use a slice idx to get multiple item
+
+            tmp_list = []
+            for i in range(len(path)) :
+                tmp_list.append(self.__load_single_image(path[i], create_copy_for_depth))
+
+            image = torch.stack(tmp_list)
+        else :
+            # In this case someone use int idx to get a single item
+            image = self.__load_single_image(path, create_copy_for_depth)
+            image = image.unsqueeze(0)
+
+        return image
+
+
+    def __load_single_image(self, path : str, create_copy_for_depth : bool = True) : 
         image = torchvision.io.read_image(path).float()
         image = image / 255.0
 
-        if create_copy_for_depth : image = self.create_copy_of_image_for_depth_map(image)
+        if create_copy_for_depth and self.grey_scale_image : image = self.create_copy_of_image_for_depth_map(image)
         if self.preprocess_functions is not None and self.apply_preprocess_functions : image = self.preprocess_functions(image)
 
         return image
 
-    def load_dataset(self) :
-        pass
+    def load_dataset(self, create_copy_for_depth : bool = True) :
+        """
+        Loaded the data inside the memory. This is useful if the dataset is small and can be loaded in memory.
+        The data loaded are the images specified in the path_list attribute (self.path_list, passed in the constructor).
+        """
+
+        tmp_list = []
+        for path in self.path_list : tmp_list.append(self.__load_single_image(path, create_copy_for_depth))
+        
+        self.data_loaded = torch.stack(tmp_list)
+        self.load_data_in_memory = True
+
+    def remove_dataset_from_memory(self) :
+        self.data_loaded = None
+        self.load_data_in_memory = False
+        
 
     def create_copy_of_image_for_depth_map(self, image) :
         """
@@ -98,7 +135,7 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
         image, label = self.__getitem__(idx)
 
         # Rearrange the image to have the channel as the last dimension
-        image = image.permute(1, 2, 0)
+        image = image.squeeze().permute(1, 2, 0)
     
         # Plot the image
         fig, ax = plt.subplots()
@@ -126,12 +163,12 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
             else :
                 # Get data without applying the preprocess functions
                 self.apply_preprocess_functions = False
-                image_original  = self.load_image(self.data[idx])
+                image_original  = self.load_image(self.path_list[idx])
                 print(image_original.mean(), image_original.std())
 
                 # Get data with the preprocess functions
                 self.apply_preprocess_functions = True
-                image_preprocess = self.load_image(self.data[idx])
+                image_preprocess = self.load_image(self.path_list[idx])
                 print(image_preprocess.mean(), image_preprocess.std())
 
             # Rearrange the images to have the channel as the last dimension

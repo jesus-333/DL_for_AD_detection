@@ -9,6 +9,7 @@ import cv2 as cv
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+
 def get_idx_to_split_data_V1(n_elements : int, percentage_split : float, seed : int = None):
     """
     Given a number of elements (n_elements) create an array with number from 0 to n_elements - 1 and split it (randomly) in two lists.
@@ -28,6 +29,70 @@ def get_idx_to_split_data_V1(n_elements : int, percentage_split : float, seed : 
     size_1 = int(n_elements * percentage_split) 
     
     return idx[0:size_1], idx[size_1:]
+
+def random_split_array(input_aray,  percentage_split : float, seed : None) :
+    """
+    Given an input array, split it in two arrays with a specific percentage.
+    The seed parameter can be used to make the split deterministic.
+    """
+
+    # Check input parameter
+    if percentage_split <= 0 or percentage_split >= 1 : raise ValueError("percentage_split must be between 0 and 1. Current value is {}".format(percentage_split))
+
+    # Use of the seed for reproducibility
+    if seed is not None : np.random.seed(seed)
+
+    # Split the array
+    idx_1, idx_2 = get_idx_to_split_data_V1(len(input_aray), percentage_split)
+
+    return input_aray[idx_1], input_aray[idx_2]
+
+def get_idx_to_split_data_V2(n_elements : int, percentage_split_list : list, seed : int = None):
+    """
+    Given a number of elements (n_elements) create an array with number from 0 to n_elements - 1 and split it (randomly) in n lists.
+    Each of the n list will have a percentage of elements determined by the percentage_split_list parameter. The sum of the elements in percentage_split_list must be equal to 1.
+
+    E.g. n_elements = 100, percentage_split_list = [0.6, 0.3, 0.1]. The first list will have 60 elements, the second 30 and the third 10.
+    The procedure can be "deterministic" if the seed parameter is passed to the function.
+
+    Parameters
+    ----------
+    n_elements : int
+        Number of elements to split
+    percentage_split_list : list
+        List with the percentage of elements for each split
+    seed : int
+        Seed for reproducibility. Default is None.
+    """
+    
+    # Check input parameter
+    if n_elements <= 1 : raise ValueError("n_elements must be greater than 1. Current value is {}".format(n_elements))
+    if np.sum(percentage_split_list) != 1 and np.sum(percentage_split_list) != 0.9999999999999999 : raise ValueError("The sum of the elements in percentage_split_list must be equal to 1. Current sum is {}".format(np.sum(percentage_split_list)))
+
+    # Use of the seed for reproducibility
+    if seed is not None : np.random.seed(seed)
+
+    # Create idx vector
+    idx_to_split = np.arange(n_elements).astype(int)
+
+    # Create splits with the idx
+    idx_list = []
+    for i in range(len(percentage_split_list) - 1) :
+        percentage = percentage_split_list[i]
+        
+        if i == 0 :
+            actual_percentage = percentage
+        else :
+            size_split = int(percentage * n_elements)
+            actual_percentage = size_split / len(idx_to_split)
+
+        idx_to_save, idx_to_split = random_split_array(idx_to_split, actual_percentage, seed)
+        idx_list.append(idx_to_save)
+
+    # The last split is the remaining idx
+    idx_list.append(idx_to_split)
+
+    return idx_list
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
