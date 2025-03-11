@@ -57,7 +57,6 @@ def download_resnet_3D(pretrained = True) :
 
     return model
 
-
 def download_UNet(pretrained = True) :
     """
     Get the pretrained UNet, a model for abnormality segmentation on a dataset of brain MRI volumes 

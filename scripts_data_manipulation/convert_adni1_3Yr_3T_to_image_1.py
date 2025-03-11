@@ -63,7 +63,6 @@ def filter_files_for_preprocess(file_path_list : list) :
     
     return all_preprocess_list
 
-
 def get_subj_id_and_scan_date(file_path : str) :
     """
     Given a path to a file, extract the subject ID and the scan date from the file name.
@@ -73,7 +72,6 @@ def get_subj_id_and_scan_date(file_path : str) :
     date = file_path.split('/')[6].split('_')[0]
 
     return subj_id, date
-
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

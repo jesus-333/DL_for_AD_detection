@@ -50,7 +50,37 @@ class VGG(torch.nn.Module):
         self.use_single_channel_input = use_single_channel_input
 
     def forward(self, x) :
-        return self.model(x)
+        x = self.features(x)
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.classifier(x)
+
+        return x
+
+    def classify(self, x, return_prob : bool = False) :
+        """
+        Classify the input x.
+        If return_prob is True, the function will return the probability of each class. Otherwise, it will return the predicted class.
+
+        Parameters
+        ----------
+        x : torch.tensor
+            Input tensor. Shape must be B x C x H x W
+        return_prob : bool
+            If True, the function will return the probability of each class. Otherwise, it will return the predicted class.
+
+        Returns
+        -------
+        torch.tensor
+            If return_prob is True, the function will return the probability of each class. Otherwise, it will return the predicted class.
+            The shape of the output tensor is B x num_classes if return_prob is True. Otherwise, the shape is B.
+        """
+        x = self.forward(x)
+
+        if return_prob :
+            return torch.nn.functional.softmax(x, dim = 1)
+        else :
+            return torch.argmax(x, dim = 1)
 
     def set_model_for_finetuning(self, finetuning_type : int = 0) :
         """
@@ -66,8 +96,7 @@ class VGG(torch.nn.Module):
         """
 
         if finetuning_type == 0 :
-            for param in self.features.parameters() : param.requires_grad = True
-            for param in self.classifier.parameters() : param.requires_grad = True
+            for param in self.parameters() : param.requires_grad = True
 
         elif finetuning_type == 1 :
             self.freeze_model()
@@ -91,6 +120,13 @@ class VGG(torch.nn.Module):
         for param in self.features.parameters() : param.requires_grad = False
         for param in self.avgpool.parameters() : param.requires_grad = False
         for param in self.classifier.parameters() : param.requires_grad = False
+
+    def check_freeze_layer(self) :
+        """
+        Check, for each layer, if the layer is freezed or not (i.e. if the layer requires gradient or not)
+        """
+        for name, param in self.named_parameters():
+            print(name, "\t", param.requires_grad)
 
     
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
