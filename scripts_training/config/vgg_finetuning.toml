@@ -6,17 +6,19 @@ use_singla_channel_input = false
 num_classes = 2
 
 [train_config]
-batch_size = 1
+finetuning_type = 1
+batch_size = 64
 lr = 0.01
-epochs = 1
+epochs = 15
 use_scheduler = true
 lr_decay_rate = 0.99
 optimizer_weight_decay = 0.01
 device = "cpu"
 epoch_to_save_model = 1
 path_to_save_model = "model_weights"
-measure_metrics_during_training = false
+measure_metrics_during_training = true
 print_var = true
+seed = -1
 wandb_training = false
 project_name = ""
 model_artifact_name = ""
@@ -24,3 +26,10 @@ log_freq = 1
 name_training_run = ""
 notes = ""
 debug = true
+
+[dataset_config]
+merge_all_AD_class = false
+load_data_in_memory = true
+percentage_train = 0.5
+percentage_validation = 0.2
+percentage_test = 0.3

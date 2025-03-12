@@ -1,12 +1,14 @@
 """
-Check if the training functions are working correctly
+With this script you can fine tune the vgg neural network to classify MRI and fMRI data for alzheimer detection
+
+@author: Alberto Zancanaro (Jesus)
+@organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Imports
 
-import numpy as np
 import toml
+import numpy as np
 import torch
 
 from src.dataset import dataset, support_dataset
@@ -14,37 +16,49 @@ from src.model import vgg_nets
 from src.training import train_functions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Settings
+
+path_config = './scripts_training/config/vgg_finetuning.toml'
 
 path_files_Moderate_Demented    = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/ModerateDemented'
 path_files_Mild_Demented        = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/MildDemented'
 path_files_Very_Mild_Demented   = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/VeryMildDemented'
 path_files_Non_Demented         = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/NonDemented'
 
-merge_all_demented_class = True
-load_data_in_memory = True
-batch_size = 32
-epochs = 2
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Load config
+all_config = toml.load(path_config)
 
-percentage_train = 0.5
-percentage_validation = 0.2
-percentage_test = 0.3
-percentage_split_list = [percentage_train, percentage_validation, percentage_test]
+train_config = all_config['train_config']
+model_config = all_config['model_config']
+dataset_config = all_config['dataset_config']
 
-seed = None
+# Since the pth of model has size of ~0.5GB I save the only the model at the end of the training and the one with the lowest validation loss
+train_config['epoch_to_save_model'] = train_config['epochs'] + 2
 
-path_train_config = './scripts_training/config/vgg_finetuning.toml'
+# Note that toml file din't have (yet) the null type
+if train_config['seed'] == -1 : train_config['seed'] = None
+
+# Wand Setting
+train_config['wandb_training'] = True
+train_config['project_name'] = "vgg_finetuning_AD"
+train_config['name_training_run'] = None
+train_config['model_artifact_name'] = "vgg_finetuning_AD_kaggle"
+train_config['debug'] = False
+
+# Percentage used to split data in train/validation/test
+percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Datasets creation
+# Load model
 
-# Dictionary used to convert textural labels to integers
 label_to_int = dict(
     NonDemented = 0,
     ModerateDemented = 1,
     MildDemented = 2,
     VeryMildDemented = 3
 )
-if merge_all_demented_class : label_to_int['MildDemented'] = label_to_int['VeryMildDemented'] = label_to_int['ModerateDemented'] = 1
+if dataset_config['merge_all_AD_class'] : label_to_int['MildDemented'] = label_to_int['VeryMildDemented'] = label_to_int['ModerateDemented'] = 1
 
 # Get the paths of the files for each class
 file_path_list_1 = support_dataset.get_all_files_from_path(path_files_Moderate_Demented)
@@ -66,7 +80,7 @@ label_list_int = np.asarray(label_list_int)
 
 # Print the number of samples for each class
 print("Number of samples for each class :")
-if merge_all_demented_class :
+if dataset_config['merge_all_AD_class'] :
     print("Control  : {}".format(np.sum(np.asarray(label_list_int) == 0)))
     print("Demented : {}".format(np.sum(np.asarray(label_list_int) == 1)))
 else :
@@ -77,14 +91,13 @@ else :
 print("Total number of samples : {}\n".format(len(label_list_int)))
 
 # Get idx to split data in train, validation and test set
-idx_list = support_dataset.get_idx_to_split_data_V2(len(file_path_list), percentage_split_list, seed)
+idx_list = support_dataset.get_idx_to_split_data_V2(len(file_path_list), percentage_split_list, train_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
-# Check if the idx are correct
-print("Check if the idx are correct")
-print(f"Total number of samples                   : {len(file_path_list)}")
-print(f"Number of samples for each split          : {[len(idx) for idx in idx_list]}")
-print(f"Number of samples if I merge all idx list : {np.sum([len(idx) for idx in idx_list])}\n")
+# Save indices in the config
+train_config['idx_train']      = idx_train
+train_config['idx_test']       = idx_test
+train_config['idx_validation'] = idx_validation
 
 # Split the data
 train_file_path_list,      label_train_list_int      = file_path_list[idx_train],      label_list_int[idx_train]
@@ -105,28 +118,23 @@ else:
     print("No backend in use. Device set to cpu")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Create model and dataset 
+# Load model
+model_config['num_classes'] = len(set(label_list_int))
+vgg_model, preprocess_functions = vgg_nets.get_vgg(model_config)
 
-# Get config
-config = toml.load(path_train_config)
-
-# Setup training config to test the training function
-config['train_config']['batch_size'] = batch_size
-config['train_config']['epochs'] = epochs
-config['train_config']['epoch_to_save_model'] = config['train_config']['epochs'] + 2
-config['train_config']['measure_metrics_during_training'] = True
-config['train_config']['device'] = device
-
-# Get model
-vgg_model, preprocess_functions = vgg_nets.get_vgg(config['model_config'])
-print("Model CREATED")
+# Set type of finetuning
+vgg_model.set_model_for_finetuning(train_config['finetuning_type'])
+vgg_model.check_freeze_layer()
 
 # Create datasets
+load_data_in_memory = dataset_config['load_data_in_memory']
 MRI_train_dataset      = dataset.MRI_2D_dataset(train_file_path_list, label_train_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
 MRI_validation_dataset = dataset.MRI_2D_dataset(validation_file_path_list, label_validation_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
 MRI_test_dataset       = dataset.MRI_2D_dataset(test_file_path_list, label_test_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
 print("Datasets CREATED")
 
-# Check training 
-model = train_functions.train(config['train_config'], vgg_model, MRI_train_dataset, MRI_validation_dataset) 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Train model
+
+vgg_model = train_functions.wandb_train(all_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 
 

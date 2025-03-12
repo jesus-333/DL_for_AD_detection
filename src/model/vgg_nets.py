@@ -86,8 +86,9 @@ class VGG(torch.nn.Module):
         """
         Set the model for finetuning. The model can be set in three different ways, through the finetuning_type parameter:
         - 0 : The model will be set to finetune all the layers
-        - 1 : The model will be set to finetune only the last layer
-        - 2 : The model will be set to finetune only the first and last layer. This option is valid only if use_single_channel_input is True (i.e. the first layer has been modified))
+        - 1 : The model will be set to finetune only the last layer (i.e. the classifier[6] layer)
+        - 2 : The model will be set to finetune all the classifier layers
+        - 3 : The model will be set to finetune only the first and last layer. This option is valid only if use_single_channel_input is True (i.e. the first layer has been modified))
 
         Parameters
         ----------
@@ -105,6 +106,12 @@ class VGG(torch.nn.Module):
                 param.requires_grad = True
 
         elif finetuning_type == 2 :
+            self.freeze_model()
+
+            for param in self.classifier.parameters() :
+                param.requires_grad = True
+
+        elif finetuning_type == 3 :
             if not self.use_single_channel_input :
                 raise ValueError('The finetuning_type 2 is valid only if use_single_channel_input is True')
 

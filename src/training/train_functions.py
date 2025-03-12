@@ -159,8 +159,8 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
             # Add the model to the artifact
             if (epoch + 1) % train_config['epoch_to_save_model'] == 0:
                 model_file_path = '{}/{}'.format(train_config['path_to_save_model'], "model_{}.pth".format(epoch + 1))
-                wandb_model_artifact.add_file(model_file_path )
-                wandb.save(model_file_path )
+                wandb_model_artifact.add_file(model_file_path)
+                wandb.save(model_file_path)
             
             wandb.log(log_dict)
 
