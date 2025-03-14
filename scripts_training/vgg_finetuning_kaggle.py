@@ -25,6 +25,10 @@ path_files_Mild_Demented        = './data/Kaggle_Alzheimer_MRI_4_classes_dataset
 path_files_Very_Mild_Demented   = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/VeryMildDemented'
 path_files_Non_Demented         = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/NonDemented'
 
+# This values are precomputed with the script compute_avg_std_dataset.py
+dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816])
+dataset_std  = torch.tensor([0.3269, 0.3269, 0.3269])
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load config
 all_config = toml.load(path_config)
@@ -115,6 +119,9 @@ else:
 model_config['num_classes'] = len(set(label_list_int))
 vgg_model, preprocess_functions = vgg_nets.get_vgg(model_config)
 
+if dataset_mean is not None : preprocess_functions.transforms[2].mean = dataset_mean
+if dataset_std is not None : preprocess_functions.transforms[2].std = dataset_std
+
 # Set type of finetuning
 vgg_model.set_model_for_finetuning(train_config['finetuning_type'])
 vgg_model.check_freeze_layer()
@@ -128,4 +135,4 @@ print("Datasets CREATED")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-model = train_functions.train(train_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 
+# model = train_functions.train(train_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 
