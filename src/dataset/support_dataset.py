@@ -94,6 +94,51 @@ def get_idx_to_split_data_V2(n_elements : int, percentage_split_list : list, see
 
     return idx_list
 
+def get_idx_to_split_data_V3(labels_list : list, percentage_split_list : list, seed : int = None):
+    """
+    Given a list of labels (labels_list) create an array with number from 0 to len(labels_list) - 1 and split it in n lists.
+    Each of the n list will have a percentage of elements determined by the percentage_split_list parameter. The sum of the elements in percentage_split_list must be equal to 1.
+    The proportion of the labels in the splits is preserved, i.e. if the label 'A' is 10% of the dataset, in each split there will be 10% elements with label 'A'.
+    Of course this is possibile only if there are enough elements for each label in the dataset.
+    
+    Parameters
+    ----------
+    labels_list : list
+        List with the labels
+    percentage_split_list : list
+        List with the percentage of elements for each split
+    seed : int
+        Seed for reproducibility. Default is None.
+    """
+
+    # Check input parameter
+    if np.sum(percentage_split_list) != 1 and np.sum(percentage_split_list) != 0.9999999999999999 : raise ValueError("The sum of the elements in percentage_split_list must be equal to 1. Current sum is {}".format(np.sum(percentage_split_list)))
+
+    # Use of the seed for reproducibility
+    if seed is not None : np.random.seed(seed)
+
+    # Get the unique labels
+    unique_labels = np.unique(labels_list)
+
+    # Convert the labels_list to numpy array
+    labels_list = np.asarray(labels_list)
+    
+    # Create list with list of indices
+    idx_list = []
+    for i in range(len(percentage_split_list)) : idx_list.append([])
+
+    for unique_label in unique_labels :
+        # Get the idx for the unique label
+        idx_for_current_label = np.where(labels_list == unique_label)[0]
+
+        # Get split for current indices
+        tmp_split_for_current_label = get_idx_to_split_data_V2(len(idx_for_current_label), percentage_split_list, seed)
+
+        for i in range(len(percentage_split_list)) :
+            idx_list[i] = idx_list[i] + list(idx_for_current_label[tmp_split_for_current_label[i]]) 
+    
+    return idx_list
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def get_all_files_from_path(path_to_explore : str, filetype_filter : str = None) :
