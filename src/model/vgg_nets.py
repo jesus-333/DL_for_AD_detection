@@ -49,6 +49,8 @@ class VGG(torch.nn.Module):
         self.classifier = model.classifier
         self.use_single_channel_input = use_single_channel_input
 
+        print("Nota that the input must be in the rescaled between 0 and 1")
+
     def forward(self, x) :
         x = self.features(x)
         x = self.avgpool(x)

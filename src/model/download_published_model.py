@@ -18,7 +18,6 @@ def download_Inception_v3(pretrained = True) :
     model = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', pretrained = pretrained)
     preprocess_functions = get_preprocess_functions('inception')
 
-
     return model,preprocess_functions
 
 def download_resnet50(pretrained = True) :
@@ -42,7 +41,7 @@ def download_vgg_nets(version : int, batch_normalization : bool, pretrained = Tr
 
     model = torch.hub.load('pytorch/vision:v0.10.0', version_name, pretrained = pretrained)
     preprocess_functions = get_preprocess_functions('vgg')
-
+    print("Note that the the input images for this model have to be loaded in to a range of [0, 1]")
 
     return model, preprocess_functions
 
@@ -72,26 +71,34 @@ def download_UNet(pretrained = True) :
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def get_preprocess_functions(model_name : str) :
+def get_preprocess_functions(model_name : str, mean = None, std = None) :
     """
     Given the name of the model return the functions requires to preprocess the input.
     All the functions are inside a torchvision.transforms.Compose() object from torchvision and are functions of the torchvision.transforms package
+    Note that the values for normalization (mean and std) are computed on the ImageNet dataset, used originally to train the models.
+    If your domain is different, you may need to compute again those values based on your dataset.
     """
 
     model_name = model_name.lower() 
 
     if model_name == 'inception' :
+        if mean is None : mean = [0.485, 0.456, 0.406]
+        if std is None  : std = [0.229, 0.224, 0.225]
+
         preprocess_functions = transforms.Compose([
             transforms.Resize(299),
             transforms.CenterCrop(299),
+            transforms.Normalize(mean = mean, std = std),
             # transforms.ToTensor(),
-            transforms.Normalize(mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225]),
         ])
     elif model_name == 'vgg' :
+        if mean is None : mean = [0.485, 0.456, 0.406]
+        if std is None  : std = [0.229, 0.224, 0.225]
+
         preprocess_functions  = transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
-            transforms.Normalize(mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225]),
+            transforms.Normalize(mean = mean, std = std),
             # transforms.ToTensor(),
         ])
     else :

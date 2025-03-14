@@ -22,12 +22,14 @@ from . import support_dataset
 
 class MRI_2D_dataset(torch.utils.data.Dataset):
 
-    def __init__(self, path_list : list, label_list : list, load_data_in_memory : bool = False, preprocess_functions = None, grey_scale_image : bool = True) :
+    def __init__(self, path_list : list, label_list : list, load_data_in_memory : bool = False, preprocess_functions = None, grey_scale_image : bool = False) :
         """
-        This class is used to create a dataset of 2D MRI images (it can be also used for fMRI data).
+        This class is used to create a dataset of 2D MRI images.
         The input is a list of paths to the images and a list of labels.
 
-        args :
+        Parameters
+        ----------
+
         - path_list : list of str
             List of paths to the images. Each path must be a string that can be used to load the image with torchvision.io.read_image
             The images must be 2D images (black and white images), i.e. they must have only one channel.
@@ -37,9 +39,10 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
             If True the data are loaded in memory, otherwise they are loaded on the fly when an image is requested
         - preprocess_functions : list of functions
             List of functions to apply to the image before returning it. They must be from the torchvision.transforms module. If None (the default value) no preprocessing is applied.
+            They can be set after the creation of the object with the set_preprocess_functions method.
         - grey_scale_image : bool
-            If True the image is converted to a 3 channel image, where all the 3 channels are the same. This is useful for the models that require a 3 channel image as input.
-            If False it means that the image is already a 3 channel image and no conversion is needed.
+            If True the images are loaded with ImageReadMode.GRAY. If False the images are loaded with ImageReadMode.RGB.
+            Default is False.
         """
 
         if len(path_list) != len(label_list) :
@@ -59,19 +62,29 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
             self.load_data_in_memory = False
             
     def __getitem__(self, idx) :
+        """
+        Note if yout want to load multiple images when self.load_data_in_memory is False and you not use any preprocess functions (i.e. preprocess_functions is None).
+        In this case you must be sure that each image has the same shape. If the images have different shapes an error will occur.
+        This is also true if the preprocess functions do not change the shape of the images.
+        """
+
         if self.load_data_in_memory :
             image = self.data_loaded[idx] 
         else : 
-            image = self.load_image(self.path_list[idx], self.grey_scale_image)
+            image = self.load_image(self.path_list[idx])
 
         return image, self.labels[idx]
     
     def __len__(self) -> int :
         return len(self.labels)
 
-    def load_image(self, path, create_copy_for_depth : bool = True) :
+    def load_image(self, path) :
         """
         Given a path load the image through torchvision.io.read_image
+
+        Note if yout want to load multiple images when self.load_data_in_memory is False and you not use any preprocess functions (i.e. preprocess_functions is None).
+        In this case you must be sure that each image has the same shape. If the images have different shapes an error will occur.
+        This is also true if the preprocess functions do not change the shape of the images.
         """
 
         if type(path) is np.ndarray :
@@ -79,34 +92,39 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
 
             tmp_list = []
             for i in range(len(path)) :
-                tmp_list.append(self.__load_single_image(path[i], create_copy_for_depth))
-
+                tmp_list.append(self.__load_single_image(path[i]))
+            
             image = torch.stack(tmp_list)
         else :
             # In this case someone use int idx to get a single item
-            image = self.__load_single_image(path, create_copy_for_depth)
+            image = self.__load_single_image(path)
             image = image.unsqueeze(0)
 
         return image
 
 
-    def __load_single_image(self, path : str, create_copy_for_depth : bool = True) : 
-        image = torchvision.io.read_image(path).float()
+    def __load_single_image(self, path : str) : 
+        # Load the image
+        if self.grey_scale_image :
+            image = torchvision.io.read_image(path, mode = torchvision.io.image.ImageReadMode.GRAY).float()
+        else :
+            image = torchvision.io.read_image(path, mode = torchvision.io.image.ImageReadMode.RGB).float()
+
+        # Normalize in [0, 1] range
         image = image / 255.0
 
-        if create_copy_for_depth and self.grey_scale_image : image = self.create_copy_of_image_for_depth_map(image)
         if self.preprocess_functions is not None and self.apply_preprocess_functions : image = self.preprocess_functions(image)
 
         return image
 
-    def load_dataset(self, create_copy_for_depth : bool = True) :
+    def load_dataset(self) :
         """
         Loaded the data inside the memory. This is useful if the dataset is small and can be loaded in memory.
         The data loaded are the images specified in the path_list attribute (self.path_list, passed in the constructor).
         """
 
         tmp_list = []
-        for path in self.path_list : tmp_list.append(self.__load_single_image(path, create_copy_for_depth))
+        for path in self.path_list : tmp_list.append(self.__load_single_image(path))
         
         self.data_loaded = torch.stack(tmp_list)
         self.load_data_in_memory = True
@@ -115,17 +133,6 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
         self.data_loaded = None
         self.load_data_in_memory = False
         
-
-    def create_copy_of_image_for_depth_map(self, image) :
-        """
-        Usually the MRI scan are black and white images, with a single channel (or depth map).
-        This function create copy of the input and stack them along the channel dimension.
-        """
-        
-        image = torch.cat([image, image, image])
-
-        return image
-
     def visualize_sample(self, idx : int) :
         """
         Visualize a single sample of the dataset
@@ -187,6 +194,94 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
             fig.tight_layout()
             fig.show()       
 
+    def compute_avg_and_std_for_dataset(self, n_samples : int = -1) :
+        """
+        Compute the average and the standard deviation, using n_samples from the dataset.
+        If the preprocess_functions attribute is not None, some of them can be applied to the images before computing the average and the standard deviation.
+        More precisely, Resize and CenterCrop, if present in the preprocess_functions, are applied.
+
+        Links with some details/discussion about it : 
+            https://datascience.stackexchange.com/questions/77084/how-imagenet-mean-and-std-derived
+            https://discuss.pytorch.org/t/discussion-why-normalise-according-to-imagenet-mean-and-std-dev-for-transfer-learning/115670
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples to use to compute the average and the standard deviation. If -1 (the default value) all the samples are used.
+        """
+
+        if self.preprocess_functions is not None :
+            # Backup of the current preprocess_functions
+            preprocess_functions_backup = self.preprocess_functions
+            
+            # New preprocess_functions with only Resize and CenterCrop
+            self.preprocess_functions = torchvision.transforms.Compose([])
+
+            # Check if Resize and CenterCrop are present in the preprocess_functions
+            for transform in preprocess_functions_backup.transforms :
+                # If one of the two is present, add it to the new preprocess_functions
+                if isinstance(transform, torchvision.transforms.Resize) or isinstance(transform, torchvision.transforms.CenterCrop) :
+                    self.preprocess_functions.transforms.append(transform)
+
+        if n_samples == -1 or n_samples >= len(self) :
+            images = self[:][0]
+        else :
+            idx_random = np.random.choice(len(self), n_samples, replace = False)
+            images = self[idx_random][0]
+
+        # Compute the average and the standard deviation
+        avg = images.mean(dim = (0, 2, 3))
+        std = images.std(dim = (0, 2, 3))
+
+        if self.preprocess_functions is not None :
+            # Restore the original preprocess_functions
+            self.preprocess_functions = preprocess_functions_backup
+
+        return avg, std
+
+    def update_preprocess_functions_normalize(self) :
+        """
+        Update the normalize transforms, if present in the preprocess_functions.
+        The mean and the standard deviation are computed using the compute_avg_and_std_for_dataset method.
+        """
+
+        # Check if the preprocess_functions attribute is not None
+        if self.preprocess_functions is None :
+            print("The preprocess_functions attribute is None. No preprocessing is applied to the images.")
+        else :
+            # Check if the normalize transform is present in the preprocess_functions
+            normalize_present = False
+            for transform in self.preprocess_functions.transforms :
+                if isinstance(transform, torchvision.transforms.Normalize) :
+                    # Compute the average and the standard deviation
+                    avg, std = self.compute_avg_and_std_for_dataset()
+
+                    # Update the mean and the standard deviation
+                    transform.mean = avg
+                    transform.std = std
+                    
+                    print("preprocess_functions before : ", self.preprocess_functions, "\n")
+                    print("The mean and the standard deviation of the normalize transform have been updated.")
+                    print("The new mean values are : {}".format(avg))
+                    print("The new std values are  : {}".format(std), "\n")
+                    print("preprocess_functions after : ", self.preprocess_functions)
+
+                    normalize_present = True
+
+            if not normalize_present : print("The normalize transform is not present in the preprocess_functions attribute.")
+
+    def set_preprocess_functions(self, preprocess_functions) :
+        """
+        Set the preprocess_functions attribute.
+        """
+
+        if isinstance(preprocess_functions, torchvision.transforms.Compose) :
+            self.preprocess_functions = preprocess_functions
+            self.apply_preprocess_functions = True if preprocess_functions is not None else False
+        else :
+            raise ValueError("The preprocess_functions must be an instance of torchvision.transforms.Compose")
+
+
 class MRI_2D_dataset_dicom(MRI_2D_dataset):
 
     def __init__(self, path_list : list, label_list : list, load_data_in_memory : bool = True, preprocess_functions = None) :
@@ -201,13 +296,30 @@ class MRI_2D_dataset_dicom(MRI_2D_dataset):
         """
         Given a path load a dcm image and convert it to a pytorch tensor.
         """
-
+        
+        # Read DCM file
         image = dicom.dcmread(path).pixel_array
         image[image > 255] = 255 # In some I notidced that there are pixel with value > 255. For now I just set them to 255. In the future I will check if this is the right thing to do.
+
+        # Convert to tensor
         image = torch.tensor(image).float().unsqueeze(0)
+
+        # Normalize in [0, 1] range
         image = image / 255.0
 
         if create_copy_for_depth : image = self.create_copy_of_image_for_depth_map(image)
         if self.preprocess_functions is not None and self.apply_preprocess_functions : image = self.preprocess_functions(image)
+
+        return image
+
+    def create_copy_of_image_for_depth_map(self, image) :
+        """
+        Usually the MRI scan are black and white images, with a single channel (or depth map).
+        This function create copy of the input and stack them along the channel dimension, to obtain an "RGB image".
+        Note that this is not a real RGB image, since all the channels contain the same values. 
+        Nonetheless, this can be useful to use models that require RGB images as input (e.g. VGG, Inception, etc.).
+        """
+        
+        image = torch.cat([image, image, image])
 
         return image
