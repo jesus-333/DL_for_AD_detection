@@ -1,5 +1,6 @@
 *.DS_Store
 *.pyc
 *.pth
+*.png
 data/
 wandb/
