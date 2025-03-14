@@ -25,9 +25,13 @@ path_files_Mild_Demented        = './data/Kaggle_Alzheimer_MRI_4_classes_dataset
 path_files_Very_Mild_Demented   = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/VeryMildDemented'
 path_files_Non_Demented         = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/NonDemented'
 
-# This values are precomputed with the script compute_avg_std_dataset.py
+# This values are precomputed with the script compute_avg_std_dataset.py (withoug using the CenterCrop and Resize)
 dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816])
 dataset_std  = torch.tensor([0.3269, 0.3269, 0.3269])
+
+# This values are precomputed with the script compute_avg_std_dataset.py (using the CenterCrop and Resize before computation)
+dataset_mean = torch.tensor([0.4233, 0.4233, 0.4233])
+dataset_std  = torch.tensor([0.3179, 0.3179, 0.3179])
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load config

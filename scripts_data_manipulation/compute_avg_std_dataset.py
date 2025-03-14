@@ -25,6 +25,11 @@ mode_image_load = torchvision.io.image.ImageReadMode.RGB
 
 n_elements_to_use = -1
 
+preprocess_functions  = torchvision.transforms.Compose([
+    torchvision.transforms.Resize(256),
+    torchvision.transforms.CenterCrop(224),
+])
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def compute_final_mean_and_std_from_list(mean_list, std_list) :
@@ -66,6 +71,9 @@ for i in range(len(idx_to_use)) :
     file_path = list_files_path[idx_to_use[i]]
     image = torchvision.io.read_image(file_path, mode = mode_image_load)
     image = image / 255
+
+    if preprocess_functions is not None :
+        image = preprocess_functions (image)
     
     mean_list.append(image.mean(dim = (1, 2)))
     std_list.append(image.std(dim = (1, 2)))
