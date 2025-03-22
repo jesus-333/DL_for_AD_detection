@@ -1,5 +1,6 @@
 """
 With this script you can fine tune the vgg neural network to classify MRI and fMRI data for alzheimer detection
+For the dataset we used the the Kaggle alzheimer 4 class dataset (https://www.kaggle.com/datasets/marcopinamonti/alzheimer-mri-4-classes-dataset/data)
 
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
@@ -103,7 +104,8 @@ else :
 print("Total number of samples : {}\n".format(len(label_list_int)))
 
 # Get idx to split data in train, validation and test set
-idx_list = support_dataset.get_idx_to_split_data_V2(len(file_path_list), percentage_split_list, train_config['seed'])
+# idx_list = support_dataset.get_idx_to_split_data_V2(len(file_path_list), percentage_split_list, train_config['seed'])
+idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, train_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
 # Save indices in the config
@@ -151,5 +153,13 @@ print("Datasets CREATED")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train model
 
-vgg_model = train_functions.wandb_train(all_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 
+# vgg_model = train_functions.wandb_train(all_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 
 
+# Used to check validity of get_idx_to_split_data_V3
+# for i in range(4) : print(np.sum(label_train_list_int == i) / len(label_train_list_int) * 100)
+# print("")
+# for i in range(4) : print(np.sum(label_test_list_int == i) / len(label_test_list_int) * 100)
+# print("")
+# for i in range(4) : print(np.sum(label_validation_list_int == i) / len(label_validation_list_int) * 100)
+# print("")
+# for i in range(4) : print(np.sum(label_list_int == i) / len(label_list_int) * 100)

@@ -1,5 +1,6 @@
 """
-With this script you can fine tune the vgg neural network to classify MRI and fMRI data for alzheimer detection
+With this script you can train the DEMENET model to classify MRI and fMRI data for alzheimer detection.
+For more information about the model see https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9459692
 For the dataset we used the the Kaggle alzheimer 4 class dataset (https://www.kaggle.com/datasets/marcopinamonti/alzheimer-mri-4-classes-dataset/data)
 
 @author: Alberto Zancanaro (Jesus)
@@ -11,15 +12,17 @@ For the dataset we used the the Kaggle alzheimer 4 class dataset (https://www.ka
 import toml
 import numpy as np
 import torch
+from torchvision import transforms
 
 from src.dataset import dataset, support_dataset
-from src.model import vgg_nets
+from src.model import demenet
 from src.training import train_functions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
-path_config = './scripts_training/config/vgg_finetuning.toml'
+path_config_train_and_dataset = './scripts_training/config/demnet_training_and_data.toml'
+path_config_model             = './scripts_training/config/demnet_model.toml'
 
 path_files_Moderate_Demented    = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/ModerateDemented'
 path_files_Mild_Demented        = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/MildDemented'
@@ -27,32 +30,56 @@ path_files_Very_Mild_Demented   = './data/Kaggle_Alzheimer_MRI_4_classes_dataset
 path_files_Non_Demented         = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/NonDemented'
 
 # This values are precomputed with the script compute_avg_std_dataset.py (withoug using the CenterCrop and Resize)
-dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816])
-dataset_std  = torch.tensor([0.3269, 0.3269, 0.3269])
+# dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816])
+# dataset_std  = torch.tensor([0.3269, 0.3269, 0.3269])
 
 # This values are precomputed with the script compute_avg_std_dataset.py (using the CenterCrop and Resize before computation)
 dataset_mean = torch.tensor([0.4233, 0.4233, 0.4233])
 dataset_std  = torch.tensor([0.3179, 0.3179, 0.3179])
 
+preprocess_functions  = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.Normalize(mean = dataset_mean, std = dataset_std),
+])
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Load config
-all_config = toml.load(path_config)
+# Load train and dataset config
+train_and_dataset_config = toml.load(path_config_train_and_dataset)
+train_config = train_and_dataset_config['train_config']
+dataset_config = train_and_dataset_config['dataset_config']
 
-train_config = all_config['train_config']
-model_config = all_config['model_config']
-dataset_config = all_config['dataset_config']
+# Load model config
+model_config = toml.load(path_config_model)
 
-# Since the pth of model has size of ~0.5GB I save the only the model at the end of the training and the one with the lowest validation loss
-train_config['epoch_to_save_model'] = train_config['epochs'] + 2
+# Create single dictionary with all the config
+all_config = dict(
+    train_config = train_config,
+    dataset_config = dataset_config,
+    model_config = model_config
+)
+
+# train_config['epoch_to_save_model'] = train_config['epochs'] + 2
 
 # Note that toml file din't have (yet) the null type
 if train_config['seed'] == -1 : train_config['seed'] = None
+
+# Save in the settings dataset_mean and dataset_std
+dataset_config['dataset_mean'] = dataset_mean
+dataset_config['dataset_std'] = dataset_std
+
+# Wand Setting
+train_config['wandb_training'] = True
+train_config['project_name'] = "demnet_training"
+train_config['name_training_run'] = None
+train_config['model_artifact_name'] = "demnet_training_AD_kaggle"
+train_config['debug'] = False
 
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Load model
+# Get data path
 
 label_to_int = dict(
     NonDemented = 0,
@@ -93,7 +120,8 @@ else :
 print("Total number of samples : {}\n".format(len(label_list_int)))
 
 # Get idx to split data in train, validation and test set
-idx_list = support_dataset.get_idx_to_split_data_V2(len(file_path_list), percentage_split_list, train_config['seed'])
+# idx_list = support_dataset.get_idx_to_split_data_V2(len(file_path_list), percentage_split_list, train_config['seed'])
+idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, train_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
 # Save indices in the config
@@ -122,14 +150,7 @@ else:
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load model
 model_config['num_classes'] = len(set(label_list_int))
-vgg_model, preprocess_functions = vgg_nets.get_vgg(model_config)
-
-if dataset_mean is not None : preprocess_functions.transforms[2].mean = dataset_mean
-if dataset_std is not None : preprocess_functions.transforms[2].std = dataset_std
-
-# Set type of finetuning
-vgg_model.set_model_for_finetuning(train_config['finetuning_type'])
-vgg_model.check_freeze_layer()
+model = demenet.DEMNet(model_config)
 
 # Create datasets
 load_data_in_memory = dataset_config['load_data_in_memory']
@@ -139,5 +160,15 @@ MRI_test_dataset       = dataset.MRI_2D_dataset(test_file_path_list, label_test_
 print("Datasets CREATED")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Train model
 
-# model = train_functions.train(train_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 
+# vgg_model = train_functions.wandb_train(all_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 
+
+# Used to check validity of get_idx_to_split_data_V3
+# for i in range(4) : print(np.sum(label_train_list_int == i) / len(label_train_list_int) * 100)
+# print("")
+# for i in range(4) : print(np.sum(label_test_list_int == i) / len(label_test_list_int) * 100)
+# print("")
+# for i in range(4) : print(np.sum(label_validation_list_int == i) / len(label_validation_list_int) * 100)
+# print("")
+# for i in range(4) : print(np.sum(label_list_int == i) / len(label_list_int) * 100)
