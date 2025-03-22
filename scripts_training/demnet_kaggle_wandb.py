@@ -1,6 +1,6 @@
 """
 With this script you can train the DEMENET model to classify MRI and fMRI data for alzheimer detection.
-For more information about the model see https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9459692
+For more information about the model see https://ieeexplore.ieee.org/abstract/document/9459692 
 For the dataset we used the the Kaggle alzheimer 4 class dataset (https://www.kaggle.com/datasets/marcopinamonti/alzheimer-mri-4-classes-dataset/data)
 
 @author: Alberto Zancanaro (Jesus)
@@ -21,7 +21,7 @@ from src.training import train_functions
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
-path_config_train_and_dataset = './scripts_training/config/demnet_training_and_data.toml'
+path_config_train_and_dataset = './scripts_training/config/demnet_training_and_dataset.toml'
 path_config_model             = './scripts_training/config/demnet_model.toml'
 
 path_files_Moderate_Demented    = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/ModerateDemented'
@@ -29,19 +29,6 @@ path_files_Mild_Demented        = './data/Kaggle_Alzheimer_MRI_4_classes_dataset
 path_files_Very_Mild_Demented   = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/VeryMildDemented'
 path_files_Non_Demented         = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/NonDemented'
 
-# This values are precomputed with the script compute_avg_std_dataset.py (withoug using the CenterCrop and Resize)
-# dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816])
-# dataset_std  = torch.tensor([0.3269, 0.3269, 0.3269])
-
-# This values are precomputed with the script compute_avg_std_dataset.py (using the CenterCrop and Resize before computation)
-dataset_mean = torch.tensor([0.4233, 0.4233, 0.4233])
-dataset_std  = torch.tensor([0.3179, 0.3179, 0.3179])
-
-preprocess_functions  = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
-    transforms.Normalize(mean = dataset_mean, std = dataset_std),
-])
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load train and dataset config
@@ -51,6 +38,7 @@ dataset_config = train_and_dataset_config['dataset_config']
 
 # Load model config
 model_config = toml.load(path_config_model)
+model_config['input_channels'] = 1 if dataset_config['grey_scale_image'] else 3
 
 # Create single dictionary with all the config
 all_config = dict(
@@ -64,6 +52,21 @@ all_config = dict(
 # Note that toml file din't have (yet) the null type
 if train_config['seed'] == -1 : train_config['seed'] = None
 
+# This values are precomputed with the script compute_avg_std_dataset.py (withoug using the CenterCrop and Resize)
+# dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816])
+# dataset_std  = torch.tensor([0.3269, 0.3269, 0.3269])
+
+# This values are precomputed with the script compute_avg_std_dataset.py (using the CenterCrop and Resize before computation)
+dataset_mean = torch.tensor([0.4233, 0.4233, 0.4233]) if not dataset_config['grey_scale_image'] else torch.tensor([0.4233])
+dataset_std  = torch.tensor([0.3179, 0.3179, 0.3179]) if not dataset_config['grey_scale_image'] else torch.tensor([0.3179])
+
+preprocess_functions  = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(model_config['input_size']),
+    transforms.Normalize(mean = dataset_mean, std = dataset_std),
+])
+
+
 # Save in the settings dataset_mean and dataset_std
 dataset_config['dataset_mean'] = dataset_mean
 dataset_config['dataset_std'] = dataset_std
@@ -73,7 +76,6 @@ train_config['wandb_training'] = True
 train_config['project_name'] = "demnet_training"
 train_config['name_training_run'] = None
 train_config['model_artifact_name'] = "demnet_training_AD_kaggle"
-train_config['debug'] = False
 
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
@@ -150,25 +152,16 @@ else:
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load model
 model_config['num_classes'] = len(set(label_list_int))
-model = demenet.DEMNet(model_config)
+model = demenet.demnet(model_config)
 
 # Create datasets
 load_data_in_memory = dataset_config['load_data_in_memory']
-MRI_train_dataset      = dataset.MRI_2D_dataset(train_file_path_list, label_train_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
-MRI_validation_dataset = dataset.MRI_2D_dataset(validation_file_path_list, label_validation_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
-MRI_test_dataset       = dataset.MRI_2D_dataset(test_file_path_list, label_test_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
+MRI_train_dataset      = dataset.MRI_2D_dataset(train_file_path_list, label_train_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
+MRI_validation_dataset = dataset.MRI_2D_dataset(validation_file_path_list, label_validation_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
+MRI_test_dataset       = dataset.MRI_2D_dataset(test_file_path_list, label_test_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
 print("Datasets CREATED")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train model
 
-# vgg_model = train_functions.wandb_train(all_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 
-
-# Used to check validity of get_idx_to_split_data_V3
-# for i in range(4) : print(np.sum(label_train_list_int == i) / len(label_train_list_int) * 100)
-# print("")
-# for i in range(4) : print(np.sum(label_test_list_int == i) / len(label_test_list_int) * 100)
-# print("")
-# for i in range(4) : print(np.sum(label_validation_list_int == i) / len(label_validation_list_int) * 100)
-# print("")
-# for i in range(4) : print(np.sum(label_list_int == i) / len(label_list_int) * 100)
+model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 

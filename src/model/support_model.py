@@ -26,3 +26,7 @@ def get_activation(activation_name: dict):
     else:
         error_message = 'The activation must have one of the following string: relu, elu, selu, gelu'
         raise ValueError(error_message)
+
+def count_trainable_parameters(layer):
+    n_parameters = sum(p.numel() for p in  layer.parameters() if p.requires_grad)
+    return n_parameters

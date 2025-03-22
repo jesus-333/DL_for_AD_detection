@@ -20,25 +20,18 @@ class VGG(torch.nn.Module):
         Parameters
         ----------
 
-        config : dict
-            Configuration of the model. The configuration must contain the following keys:
-            - version : int
-                Version of the VGG network. Possible values are 11, 13, 16 or 19
-            - batch_normalization : bool
-                If True, the model will have batch normalization
-            - pretrained : bool
-                If True, the model will be pretrained
-            - use_singla_channel_input
-                If True, the firts layer of the model will be modified to accept single channel input
-            - num_classes : int
-                Number of classes of the dataset
-
+        model : torch.nn.Module
+            VGG network model. As defined in https://pytorch.org/vision/main/models/vgg.html
+        num_classes : int
+            Number of classes of the dataset
+        use_single_channel_input : bool
+            If True, the firts layer of the model will be modified to accept single channel input
         """
 
         super(VGG, self).__init__()
 
         # Modify the last layer to have the correct number of classes
-        model.classifier[6] = torch.nn.Linear(4096, num_classes)
+        model.classifier[-1] = torch.nn.Linear(4096, num_classes)
 
         # (OPTIONAL) Modify the first layer to accept single channel input
         if use_single_channel_input :

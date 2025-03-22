@@ -1,6 +1,6 @@
 """
 Pytorch implementation of DEMNET, A Deep Learning Model for Early Diagnosis of Alzheimer Diseases and Dementia From MR Images.
-For more information about the model see https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9459692
+For more information about the model see https://ieeexplore.ieee.org/abstract/document/9459692
 
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
@@ -29,7 +29,7 @@ class demnet(torch.nn.Module) :
                 Size of the input image. It is assumed that the image is square. This value is used to compute the size of the input of the fully connected layers.
             - input_channels : int
                 Number of channels of the input image. It is assumed that the image is grayscale. If not provided, the default value is 3.
-            - n_classes : int
+            - num_classes : int
                 Number of classes of the classification problem.
             - activation : str
                 Activation function to use in the model. The activation function must be supported by the support_model.get_activation function.
@@ -60,16 +60,16 @@ class demnet(torch.nn.Module) :
         """
         super(demnet, self).__init__()
 
-        activation = support_model.get_activation(config['activation'])
-        
         check_demnet_config(config)
+        activation = support_model.get_activation(config['activation'])
+        self.use_as_features_extractor = False
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Convolutional layers (feature extraction)
 
 
         self.conv_1 = torch.nn.Sequential(
-            torch.nn.Conv2d(1, 16, kernel_size = config['kernel_size_conv_1'], padding = 'same'),
+            torch.nn.Conv2d(config['input_channels'], 16, kernel_size = config['kernel_size_conv_1'], padding = 'same'),
             torch.nn.BatchNorm2d(16) if config['batch_norm'] else torch.nn.Identity(),
             activation,
         )
@@ -96,7 +96,7 @@ class demnet(torch.nn.Module) :
         self.flatten = torch.nn.Flatten()
 
         size_after_conv = self.compute_size_after_conv(config['input_size'], config['input_channels'])
-        n_input_neurons = size_after_conv[2] * size_after_conv[3]
+        n_input_neurons = size_after_conv[1] * size_after_conv[2] * size_after_conv[3]
 
         self.classifier = torch.nn.Sequential(
             torch.nn.Linear(n_input_neurons, 512),
@@ -105,7 +105,7 @@ class demnet(torch.nn.Module) :
             activation if config['use_activation_in_classifier'] else torch.nn.Identity(),
             torch.nn.Linear(128, 64),
             activation if config['use_activation_in_classifier'] else torch.nn.Identity(),
-            torch.nn.Linear(64, config['n_classes']),
+            torch.nn.Linear(64, config['num_classes']),
         )
 
         self.use_as_features_extractor = config['use_as_features_extractor']
@@ -130,6 +130,33 @@ class demnet(torch.nn.Module) :
             x = self.flatten(x)
             x = self.classifier(x)
 
+            return x
+
+    def classify(self, x, return_prob : bool = False) :
+        """
+        Classify the input x.
+        If return_prob is True, the function will return the probability of each class. Otherwise, it will return the predicted class.
+
+        Parameters
+        ----------
+        x : torch.tensor
+            Input tensor. Shape must be B x C x H x W
+        return_prob : bool
+            If True, the function will return the probability of each class. Otherwise, it will return the predicted class.
+
+        Returns
+        -------
+        torch.tensor
+            If return_prob is True, the function will return the probability of each class. Otherwise, it will return the predicted class.
+            The shape of the output tensor is B x num_classes if return_prob is True. Otherwise, the shape is B.
+        """
+        x = self.forward(x)
+
+        if return_prob :
+            return torch.nn.functional.softmax(x, dim = 1)
+        else :
+            return torch.argmax(x, dim = 1)
+
     def compute_size_after_conv(self, size : int, n_channels : int) :
         use_as_features_extractor_backup = self.use_as_features_extractor
         self.use_as_features_extractor = True
@@ -140,6 +167,37 @@ class demnet(torch.nn.Module) :
         self.use_as_features_extractor = use_as_features_extractor_backup
 
         return x.size()
+
+    def print_input_size_after_each_conv_layer(self, size : int, n_channels : int) :
+        print(f"Input size : {n_channels}x{size}x{size}")
+
+        x = torch.zeros(1, n_channels, size, size)
+        x = self.conv_1(x)
+        print(f"Size after conv_1 :\t\t{x.size()}")
+        x = self.conv_2(x)
+        print(f"Size after conv_2 :\t\t{x.size()}")
+        x = self.pool(x)
+        print(f"Size after pool :\t\t{x.size()}")
+        x = self.demnet_block_1(x)
+        print(f"Size after demnet_block_1 :\t{x.size()}")
+        x = self.demnet_block_2(x)
+        print(f"Size after demnet_block_2 :\t{x.size()}")
+        x = self.demnet_block_3(x)
+        print(f"Size after demnet_block_3 :\t{x.size()}")
+        x = self.dropout_1(x)
+        print(f"Size after dropout_1 :\t\t{x.size()}")
+        x = self.demnet_block_4(x)
+        print(f"Size after demnet_block_4 :\t{x.size()}")
+        x = self.dropout_2(x)
+        print(f"Size after dropout_2 :\t\t{x.size()}")
+
+        if not self.use_as_features_extractor :
+            x = self.flatten(x)
+            print(f"Size after flatten :\t\t{x.size()}")
+
+    def print_trainable_parameters(self) :
+        trainable_parameters = sum(p.numel() for p in self.parameters() if p.requires_grad)
+        print(f"Trainable parameters : {trainable_parameters}")
 
 class demnet_block(torch.nn.Module) :
 
@@ -163,7 +221,7 @@ class demnet_block(torch.nn.Module) :
             - batch_norm : bool
                 If True, batch normalization is used in the block.
         """
-        super(demnet, self).__init__()
+        super(demnet_block, self).__init__()
 
         self.activation = support_model.get_activation(config['activation'])
 
@@ -213,8 +271,8 @@ def check_demnet_config(config : dict) :
 
     if config['input_channels'] <= 0 : raise Exception(f'Error: input_channels must be greater than 0. Current value : {config["input_channels"]}')
 
-    if 'n_classes' not in config : raise Exception('Error: n_classes not found in config.')
-    if config['n_classes'] <= 0 : raise Exception(f'Error: n_classes must be greater than 0. Current value : {config["n_classes"]}')
+    if 'num_classes' not in config : raise Exception('Error: num_classes not found in config.')
+    if config['num_classes'] <= 0 : raise Exception(f'Error: num_classes must be greater than 0. Current value : {config["num_classes"]}')
 
     if 'activation' not in config : raise Exception('Error: activation not found in config. Possible values are: relu, elu, selu, gelu.')
 
