@@ -1,10 +1,3 @@
-[model_config]
-version = 16
-batch_normalization = true
-pretrained = true
-use_singla_channel_input = false
-num_classes = 2
-
 [train_config]
 finetuning_type = 1
 batch_size = 64
@@ -20,8 +13,8 @@ measure_metrics_during_training = true
 print_var = true
 seed = -1
 wandb_training = false
-project_name = ""
-model_artifact_name = ""
+project_name = "demnet_training"
+model_artifact_name = "demnet"
 log_freq = 1
 name_training_run = ""
 notes = ""
