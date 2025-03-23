@@ -9,6 +9,15 @@ For more information about the model see https://ieeexplore.ieee.org/abstract/do
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 import torch
+import matplotlib.pyplot as plt
+
+try :
+    import pytorch_grad_cam
+    gradcam_available = True
+except : 
+    print('Warning: pytorch-grad-cam not found. The XAI functions will not work.')
+    gradcam_available = False
+
 
 from . import support_model
 
@@ -198,6 +207,77 @@ class demnet(torch.nn.Module) :
     def print_trainable_parameters(self) :
         trainable_parameters = sum(p.numel() for p in self.parameters() if p.requires_grad)
         print(f"Trainable parameters : {trainable_parameters}")
+
+    def compute_gradcam_for_input(self, x, target_layer : str, target_class : int) :
+        """
+        Get the Grad-CAM of the input x.
+
+        Parameters
+        ----------
+        x : torch.tensor
+            Input tensor. Shape must be B x C x H x W
+        target_layer : str 
+            Layer to use to compute the Grad-CAM. The possible values are : conv_1, conv_2, demnet_block_1, demnet_block_2, demnet_block_3, demnet_block_4
+        target_class : int
+            Class to use to compute the Grad-CAM.
+
+        Returns
+        -------
+        torch.tensor
+            Grad-CAM of the input x. The shape of the output tensor is B x H x W.
+        """
+        if not gradcam_available :
+            print('Error: pytorch-grad-cam not found. The XAI functions will not work.')
+            print('No output will be returned.')
+            print('Please install pytorch-grad-cam with the command : pip install pytorch-grad-cam and restart the script.')
+        else :
+            gradcam = pytorch_grad_cam.GradCAM(model = self, target_layers = [self._modules[target_layer]])
+            # self.gradcam = pytorch_grad_cam.GradCAM(model = self, target_layers = [self.demnet_block_4.pool])
+
+            target_class = [pytorch_grad_cam.utils.model_targets.ClassifierOutputTarget(target_class)]
+            grayscale_cam = self.gradcam(x, target_class )
+
+            return grayscale_cam
+
+    def visualize_gradcame_for_input(self, x, target_layer : str, target_class : int, figsize : tuple = (10, 5), cmap : str = 'gray', alpha : float = 0.3) :
+        """
+        Visualize the Grad-CAM of the input x.
+        Use the function compute_gradcam_for_input to compute the Grad-CAM.
+
+        Parameters
+        ----------
+        x : torch.tensor
+            Input tensor. Shape must be 1 x C x H x W
+        target_layer : str
+            Layer to use to compute the Grad-CAM. The possible values are : conv_1, conv_2, demnet_block_1, demnet_block_2, demnet_block_3, demnet_block_4
+        target_class : int
+            Class to use to compute the Grad-CAM.
+        figsize : tuple
+            Size of the figure. Default value is (10, 5).
+        cmap : str
+            Color map of the input image. Default value is 'gray'.
+        alpha : float
+            Alpha value of the Grad-CAM. Default value is 0.3.
+        """
+
+        # Compute the Grad-CAM
+        grayscale_cam = self.compute_gradcam_for_input(x, target_layer, target_class)
+
+        # Create the figure
+        fig, ax = plt.subplots(1, 1, figsize = figsize)
+    
+        # Plot the input image and the Grad-CAM
+        ax.imshow(x.squeeze().cpu().detach().numpy(), cmap = cmap)
+        ax.imshow(grayscale_cam.squeeze(), cmap = 'jet', alpha = alpha)
+        
+        # Show the figure
+        fig.tight_layout()
+        plt.show()
+
+        return fig, ax
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 
 class demnet_block(torch.nn.Module) :
 
