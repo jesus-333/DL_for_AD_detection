@@ -15,7 +15,8 @@ try :
     import pytorch_grad_cam
     gradcam_available = True
 except : 
-    print('Warning: pytorch-grad-cam not found. The XAI functions will not work.')
+    print('Warning: pytorch-grad-cam not found. The XAI functions will not work. You can install the package with pip install grad-cam')
+    print('See here for more details : https://github.com/jacobgil/pytorch-grad-cam')
     gradcam_available = False
 
 
