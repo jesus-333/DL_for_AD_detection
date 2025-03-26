@@ -239,7 +239,7 @@ class demnet(torch.nn.Module) :
 
             return grayscale_cam
 
-    def visualize_gradcame_for_input(self, x, target_layer : str, target_class : int, figsize : tuple = (10, 5), cmap : str = 'gray', alpha : float = 0.3) :
+    def visualize_gradcame_for_input(self, x : torch.tensor, target_layer : str, target_class : int, figsize : tuple = (10, 5), cmap : str = 'gray', alpha : float = 0.3) :
         """
         Visualize the Grad-CAM of the input x.
         Use the function compute_gradcam_for_input to compute the Grad-CAM.
@@ -277,7 +277,6 @@ class demnet(torch.nn.Module) :
         return fig, ax
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
 
 class demnet_block(torch.nn.Module) :
 

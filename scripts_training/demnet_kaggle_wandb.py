@@ -29,7 +29,6 @@ path_files_Mild_Demented        = './data/Kaggle_Alzheimer_MRI_4_classes_dataset
 path_files_Very_Mild_Demented   = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/VeryMildDemented'
 path_files_Non_Demented         = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/NonDemented'
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load train and dataset config
 train_and_dataset_config = toml.load(path_config_train_and_dataset)
@@ -56,16 +55,25 @@ if train_config['seed'] == -1 : train_config['seed'] = None
 # dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816])
 # dataset_std  = torch.tensor([0.3269, 0.3269, 0.3269])
 
-# This values are precomputed with the script compute_avg_std_dataset.py (using the CenterCrop and Resize before computation)
-dataset_mean = torch.tensor([0.4233, 0.4233, 0.4233]) if not dataset_config['grey_scale_image'] else torch.tensor([0.4233])
-dataset_std  = torch.tensor([0.3179, 0.3179, 0.3179]) if not dataset_config['grey_scale_image'] else torch.tensor([0.3179])
+# This values are precomputed with the script compute_avg_std_dataset.py (using the Resize(256) and CenterCrop(224) before computation)
+if model_config['input_size'] == 224 :
+    dataset_mean = torch.tensor([0.4233, 0.4233, 0.4233]) if not dataset_config['grey_scale_image'] else torch.tensor([0.4233])
+    dataset_std  = torch.tensor([0.3179, 0.3179, 0.3179]) if not dataset_config['grey_scale_image'] else torch.tensor([0.3179])
 
-preprocess_functions  = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(model_config['input_size']),
-    transforms.Normalize(mean = dataset_mean, std = dataset_std),
-])
+    preprocess_functions  = transforms.Compose([
+        transforms.Resize(model_config['input_size']),
+        transforms.CenterCrop(model_config['input_size']),
+        transforms.Normalize(mean = dataset_mean, std = dataset_std),
+    ])
+else :
+    # This values are precomputed with the script compute_avg_std_dataset.py (using the Resize(176)  before computation)
+    dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816]) if not dataset_config['grey_scale_image'] else torch.tensor([0.2816])
+    dataset_std  = torch.tensor([0.3269, 0.3269, 0.3269]) if not dataset_config['grey_scale_image'] else torch.tensor([0.3269])
 
+    preprocess_functions  = transforms.Compose([
+        transforms.Resize(model_config['input_size']),
+        transforms.Normalize(mean = dataset_mean, std = dataset_std),
+    ])
 
 # Save in the settings dataset_mean and dataset_std
 dataset_config['dataset_mean'] = dataset_mean
@@ -164,4 +172,4 @@ print("Datasets CREATED")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train model
 
-model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
+# model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
