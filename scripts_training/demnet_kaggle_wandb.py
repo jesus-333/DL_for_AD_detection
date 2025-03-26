@@ -61,19 +61,21 @@ if model_config['input_size'] == 224 :
     dataset_std  = torch.tensor([0.3179, 0.3179, 0.3179]) if not dataset_config['grey_scale_image'] else torch.tensor([0.3179])
 
     preprocess_functions  = transforms.Compose([
-        transforms.Resize(model_config['input_size']),
+        transforms.Resize(256),
         transforms.CenterCrop(model_config['input_size']),
         transforms.Normalize(mean = dataset_mean, std = dataset_std),
     ])
-else :
+elif model_config['input_size'] == 176 :
     # This values are precomputed with the script compute_avg_std_dataset.py (using the Resize(176)  before computation)
     dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816]) if not dataset_config['grey_scale_image'] else torch.tensor([0.2816])
-    dataset_std  = torch.tensor([0.3269, 0.3269, 0.3269]) if not dataset_config['grey_scale_image'] else torch.tensor([0.3269])
+    dataset_std  = torch.tensor([0.3259, 0.3259, 0.3259]) if not dataset_config['grey_scale_image'] else torch.tensor([0.3259])
 
     preprocess_functions  = transforms.Compose([
-        transforms.Resize(model_config['input_size']),
+        transforms.Resize((model_config['input_size'], model_config['input_size'])),
         transforms.Normalize(mean = dataset_mean, std = dataset_std),
     ])
+else :
+    raise ValueError("Input size not supported. Use 224 or 176")
 
 # Save in the settings dataset_mean and dataset_std
 dataset_config['dataset_mean'] = dataset_mean
@@ -172,4 +174,4 @@ print("Datasets CREATED")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train model
 
-# model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
+model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 

@@ -25,8 +25,10 @@ mode_image_load = torchvision.io.image.ImageReadMode.RGB
 
 n_elements_to_use = -1
 
+input_size = 176
+
 preprocess_functions  = torchvision.transforms.Compose([
-    torchvision.transforms.Resize(176),
+    torchvision.transforms.Resize((input_size, input_size)),
     # torchvision.transforms.CenterCrop(224),
 ])
 

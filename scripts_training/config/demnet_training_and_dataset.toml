@@ -2,7 +2,7 @@
 finetuning_type = 1
 batch_size = 64
 lr = 0.01
-epochs = 50
+epochs = 2
 use_scheduler = true
 lr_decay_rate = 0.99
 optimizer_weight_decay = 0.01
