@@ -29,6 +29,8 @@ path_files_Mild_Demented        = './data/Kaggle_Alzheimer_MRI_4_classes_dataset
 path_files_Very_Mild_Demented   = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/VeryMildDemented'
 path_files_Non_Demented         = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/NonDemented'
 
+print_var = True
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load train and dataset config
 train_and_dataset_config = toml.load(path_config_train_and_dataset)
@@ -92,47 +94,9 @@ percentage_split_list = [dataset_config['percentage_train'], dataset_config['per
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Get data path
+file_path_list, label_list_int, label_list_str = support_dataset.get_kaggle_AD_datase(path_files_Moderate_Demented, path_files_Mild_Demented, path_files_Very_Mild_Demented, path_files_Non_Demented, 
+                                                                                      dataset_config['merge_all_AD_class '], print_var)
 
-label_to_int = dict(
-    NonDemented = 0,
-    ModerateDemented = 1,
-    MildDemented = 2,
-    VeryMildDemented = 3
-)
-if dataset_config['merge_all_AD_class'] : label_to_int['MildDemented'] = label_to_int['VeryMildDemented'] = label_to_int['ModerateDemented'] = 1
-
-# Get the paths of the files for each class
-file_path_list_1 = support_dataset.get_all_files_from_path(path_files_Moderate_Demented)
-file_path_list_2 = support_dataset.get_all_files_from_path(path_files_Mild_Demented)
-file_path_list_3 = support_dataset.get_all_files_from_path(path_files_Very_Mild_Demented)
-file_path_list_control = support_dataset.get_all_files_from_path(path_files_Non_Demented)
-print("Paths of files readed")
-
-# Merge all paths and convert to nmupy array
-file_path_list = file_path_list_1 + file_path_list_2 + file_path_list_3 + file_path_list_control
-file_path_list = np.asarray(file_path_list)
-
-# Get labels
-label_list_str = support_dataset.get_labels_from_path_list(file_path_list)
-
-# Convert labels
-label_list_int = [label_to_int[label] for label in label_list_str]
-label_list_int = np.asarray(label_list_int)
-
-# Print the number of samples for each class
-print("Number of samples for each class :")
-if dataset_config['merge_all_AD_class'] :
-    print("Control  : {}".format(np.sum(np.asarray(label_list_int) == 0)))
-    print("Demented : {}".format(np.sum(np.asarray(label_list_int) == 1)))
-else :
-    print("NonDemented      : {}".format(np.sum(np.asarray(label_list_int) == 0)))
-    print("ModerateDemented : {}".format(np.sum(np.asarray(label_list_int) == 1)))
-    print("MildDemented     : {}".format(np.sum(np.asarray(label_list_int) == 2)))
-    print("VeryMildDemented : {}".format(np.sum(np.asarray(label_list_int) == 3)))
-print("Total number of samples : {}\n".format(len(label_list_int)))
-
-# Get idx to split data in train, validation and test set
-# idx_list = support_dataset.get_idx_to_split_data_V2(len(file_path_list), percentage_split_list, train_config['seed'])
 idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, train_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
@@ -174,4 +138,4 @@ print("Datasets CREATED")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train model
 
-model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
+# model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
