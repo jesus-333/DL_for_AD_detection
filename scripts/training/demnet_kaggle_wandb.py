@@ -95,7 +95,7 @@ percentage_split_list = [dataset_config['percentage_train'], dataset_config['per
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Get data path
 file_path_list, label_list_int, label_list_str = support_dataset.get_kaggle_AD_dataset(path_files_Moderate_Demented, path_files_Mild_Demented, path_files_Very_Mild_Demented, path_files_Non_Demented, 
-                                                                                      dataset_config['merge_AD_class '], print_var)
+                                                                                      dataset_config['merge_AD_class'], print_var)
 
 idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, train_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
@@ -138,4 +138,4 @@ print("Datasets CREATED")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train model
 
-model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
+# model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
