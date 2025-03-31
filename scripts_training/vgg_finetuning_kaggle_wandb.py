@@ -71,7 +71,7 @@ label_to_int = dict(
     MildDemented = 2,
     VeryMildDemented = 3
 )
-if dataset_config['merge_all_AD_class'] : label_to_int['MildDemented'] = label_to_int['VeryMildDemented'] = label_to_int['ModerateDemented'] = 1
+if dataset_config['merge_AD_class'] : label_to_int['MildDemented'] = label_to_int['VeryMildDemented'] = label_to_int['ModerateDemented'] = 1
 
 # Get the paths of the files for each class
 file_path_list_1 = support_dataset.get_all_files_from_path(path_files_Moderate_Demented)
@@ -93,7 +93,7 @@ label_list_int = np.asarray(label_list_int)
 
 # Print the number of samples for each class
 print("Number of samples for each class :")
-if dataset_config['merge_all_AD_class'] :
+if dataset_config['merge_AD_class'] :
     print("Control  : {}".format(np.sum(np.asarray(label_list_int) == 0)))
     print("Demented : {}".format(np.sum(np.asarray(label_list_int) == 1)))
 else :

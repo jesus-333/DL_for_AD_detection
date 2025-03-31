@@ -28,7 +28,7 @@ notes = ""
 debug = true
 
 [dataset_config]
-merge_all_AD_class = 0
+merge_AD_class = 0
 load_data_in_memory = true
 percentage_train = 0.8
 percentage_validation = 0.1

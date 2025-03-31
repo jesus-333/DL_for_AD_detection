@@ -251,7 +251,7 @@ def get_kaggle_AD_dataset(path_files_Moderate_Demented : str, path_files_Mild_De
         Path to the folder with the images of the ModerateDemented class
     path_files_Very_Mild_Demented : str
         Path to the folder with the images of the VeryMildDemented class
-    merge_all_class : int
+    merge_AD_class : int
         An int that represent how to merge the AD class. 
         If 0 no merge will be applied
         If 1 all the AD class will be merged in a single class. I.e. the MildDemented, ModerateDemented and VeryMildDemented will be merged in a single class.
@@ -313,7 +313,7 @@ def get_kaggle_AD_dataset(path_files_Moderate_Demented : str, path_files_Mild_De
     # Print the number of samples for each class
     if print_var :
         print("Number of samples for each class :")
-        if merge_all_AD_class :
+        if merge_AD_class :
             print("Control  : {}".format(np.sum(np.asarray(label_list_int) == 0)))
             print("Demented : {}".format(np.sum(np.asarray(label_list_int) == 1)))
         else :
@@ -326,7 +326,7 @@ def get_kaggle_AD_dataset(path_files_Moderate_Demented : str, path_files_Mild_De
     return file_path_list, label_list_int, label_list_str
 
 
-def download_and_get_kaggle_AD_dataset(path_to_save_data : str = './data/', merge_all_AD_class : bool = False, print_var : bool = True) :
+def download_and_get_kaggle_AD_dataset(path_to_save_data : str = './data/', merge_AD_class : bool = False, print_var : bool = True) :
     """
     Download and return the Kaggle AD dataset. The dataset can be find at the following link : https://www.kaggle.com/datasets/marcopinamonti/alzheimer-mri-4-classes-dataset
     The data are downloaded in the default path of kagglehub and then moved in the new path provided. If no path is provided, the data are moved in the './data/' folder.
@@ -346,7 +346,7 @@ def download_and_get_kaggle_AD_dataset(path_to_save_data : str = './data/', merg
         path_files_Non_Demented         = os.path.join(path_to_save_data, 'Alzheimer_MRI_4_classes_dataset/NonDemented')
         print(path_files_Moderate_Demented    )
 
-    return get_kaggle_AD_dataset(path_files_Non_Demented, path_files_Mild_Demented, path_files_Moderate_Demented, path_files_Very_Mild_Demented, merge_all_AD_class, print_var)
+    return get_kaggle_AD_dataset(path_files_Non_Demented, path_files_Mild_Demented, path_files_Moderate_Demented, path_files_Very_Mild_Demented, merge_AD_class, print_var)
 
 def get_preprocess_function(dataset_name : str, input_size : int, grey_scale_image : bool) :
     if dataset_name == 'kaggle' :
