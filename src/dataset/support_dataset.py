@@ -272,15 +272,19 @@ def get_kaggle_AD_dataset(path_files_Moderate_Demented : str, path_files_Mild_De
     """
 
     if merge_AD_class == 0 :
-        pass
-    elif merge_AD_class == 1 :
         label_to_int = dict(
             NonDemented = 0,
             ModerateDemented = 1,
             MildDemented = 2,
             VeryMildDemented = 3
         )
-        label_to_int['MildDemented'] = label_to_int['VeryMildDemented'] = label_to_int['ModerateDemented'] = 1
+    elif merge_AD_class == 1 :
+        label_to_int = dict(
+            NonDemented = 0,
+            ModerateDemented = 1,
+            MildDemented = 1,
+            VeryMildDemented = 1
+        )
     elif merge_AD_class == 2 :
         label_to_int = dict(
             NonDemented = 0,
@@ -288,7 +292,6 @@ def get_kaggle_AD_dataset(path_files_Moderate_Demented : str, path_files_Mild_De
             MildDemented = 2,
             VeryMildDemented = 2
         )
-        label_to_int['MildDemented'] = label_to_int['VeryMildDemented'] = 1
     else :
         raise ValueError(f"merge_AD_class not valid. Must be 0 (no merge), 1 (merge all AD class) or 2 (merge Mild and Very Mild). Current value : {merge_AD_class}")
 
