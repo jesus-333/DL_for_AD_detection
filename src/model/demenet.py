@@ -10,6 +10,7 @@ For more information about the model see https://ieeexplore.ieee.org/abstract/do
 
 import torch
 import matplotlib.pyplot as plt
+import os
 
 try :
     import pytorch_grad_cam
@@ -18,6 +19,13 @@ except :
     print("Warning: pytorch-grad-cam not found. The XAI functions will not work. You can install the package with 'pip install grad-cam'")
     print('See here for more details : https://github.com/jacobgil/pytorch-grad-cam')
     gradcam_available = False
+
+try :
+    import wandb
+    wandb_available = True
+except :
+    print("Warning: wandb not found. The functions to download the pretrained model from wandb will not work. You can install the package with 'pip install wandb'")
+    wandb_available = False
 
 
 from . import support_model
@@ -330,6 +338,63 @@ class demnet_block(torch.nn.Module) :
         return x
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def get_model_pretrained_with_kaggle_dataset(version : int, load_early_stop_weights : bool = True, epoch_to_load : int = -1) -> (torch.nn.Module, dict) :
+    """
+    Using wandb artifact, download the pretrained model of the DEMNET trained with the Kaggle Alzheimer 4 classes dataset.
+    To use this function you need to have wandb installed. You can install the package with 'pip install wandb'.
+    The runs information can be visualized at this link : https://wandb.ai/jesus_333/demnet_training/
+    The version input specify the version of the artifact to download. Notable versions are:
+    - v5 : Trained to classify all the original 4 classes : NonDemented, VeryMildDemented, MildDemented, ModerateDemented
+    - v7 : The VeryMildDemented and MildDemented classes were merged into a single class before training. Therefore, the model is trained to classify only three classes : NonDemented, MildDemented, ModerateDemented
+    - v8 : All dementia class were merged into a single class before training. Therefore, the model is trained to classify only two classes : NonDemented, Demented
+    
+    Parameters
+    ----------
+    version : int
+        Version of the artifact to download. 
+    load_early_stop_weights : bool
+        If True, the weights of the model at the early stop epoch are loaded. Default is True. If False, you must specify the epoch to load with the epoch_to_load parameter.
+    epoch_to_load : int
+        If load_early_stop_weights is False, specify the epoch to load. If load_early_stop_weights is True, this parameter is ignored. Otherwise, must be a number greater than 0.
+
+    Returns :
+    model : torch.nn.Module
+        Pretrained model of the DEMNET trained with the Kaggle Alzheimer 4 classes dataset.
+    metadata : dict
+        Metadata of the artifact. Contains all the information about the configuration of the model, dataset and training process. The keys of the dictionary are:
+        - model_config : dict
+            Configuration of the model. The information about the keys of the configuration can be found in the demnet init description and demnet_block init description.
+        - dataset_config : dict
+            Configuration of the dataset used to train the model.
+        - train_config : dict
+            Configuration of the training process. 
+    """
+
+    if load_early_stop_weights == False and epoch_to_load <= 0 :
+        raise Exception('Error: epoch_to_load must be greater than 0 if load_early_stop_weights is False. Current value : {epoch_to_load}')
+
+    # Download the artifact
+    run = wandb.init()
+    artifact = run.use_artifact(f'jesus_333/demnet_training/demnet_training_AD_kaggle_trained:v{version}', type='model')
+    artifact_dir = artifact.download()
+
+    # Get the path to model weights
+    file_list = os.listdir(artifact_dir)
+
+    # Create demnet
+    model = demnet(artifact.metadata['model_config'])
+
+    # Load weights
+    if load_early_stop_weights :
+        model.load_state_dict(torch.load(os.path.join(artifact_dir, 'model_BEST.pth'), map_location = torch.device('cpu')))
+    else :
+        model.load_state_dict(torch.load(os.path.join(artifact_dir, f'model_{epoch_to_load}.pth'), map_location = torch.device('cpu')))
+
+    return model, artifact.metadata
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+
 
 def check_demnet_config(config : dict) :
     """

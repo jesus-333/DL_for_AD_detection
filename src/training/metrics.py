@@ -17,8 +17,10 @@ import os
 #%% Function to compute the metrics 
 
 def compute_metrics(model, loader, device):
+    # Compute the label for the data inside the dataloader
     true_label, predict_label = compute_label(model, loader, device)
-
+    
+    # Compare with the true label to compute the various metrics
     computed_metrics = compute_metrics_from_labels(true_label, predict_label)
 
     return computed_metrics

@@ -90,6 +90,7 @@ print(f"Number of samples if I merge all idx list : {np.sum([len(idx) for idx in
 train_file_path_list,      label_train_list_int      = file_path_list[idx_train],      label_list_int[idx_train]
 validation_file_path_list, label_validation_list_int = file_path_list[idx_validation], label_list_int[idx_validation]
 test_file_path_list,       label_test_list_int       = file_path_list[idx_test],       label_list_int[idx_test]
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Select training device 
 
