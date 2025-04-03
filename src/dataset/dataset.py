@@ -21,30 +21,48 @@ from . import support_dataset
 
 
 class MRI_2D_dataset(torch.utils.data.Dataset):
+    """
+    This class is used to create a dataset of 2D MRI images.
+    The input is a list of paths to the images and a list of labels.
+
+    Parameters
+    ----------
+
+    - path_list : list of str
+        List of paths to the images. Each path must be a string that can be used to load the image with torchvision.io.read_image
+    - label_list : list of int
+        List of labels
+    - load_data_in_memory : bool
+        If True the data are loaded in memory, otherwise they are loaded on the fly when an image is requested
+    - preprocess_functions : list of functions
+        List of functions to apply to the image before returning it. They must be from the torchvision.transforms module. If None (the default value) no preprocessing is applied.
+        They can be set after the creation of the object with the set_preprocess_functions method.
+    - grey_scale_image : bool
+        If True the images are loaded with ImageReadMode.GRAY. If False the images are loaded with ImageReadMode.RGB.
+        Default is False.
+
+    Attributes
+    ----------
+    - path_list : np.ndarray
+        List of paths to the images. Each path must be a string that can be used to load the image with torchvision.io.read_image
+    - labels : torch.Tensor
+        List of labels. It is a tensor of int. The values are the same as the input label_list.
+    - preprocess_functions : torchvision.transforms.Compose
+        List of functions to apply to the image before returning it, if passed in the constructor. If None no preprocessing is applied.
+    - apply_preprocess_functions : bool
+        If True the preprocess_functions are applied to the images. If False they are not applied. This can be useful if you want to apply the preprocess functions only in some cases and avoid the recreation of the dataset.
+    - grey_scale_image : bool
+        If True the images are loaded with ImageReadMode.GRAY. If False the images are loaded with ImageReadMode.RGB.
+    - add_extra_dimensions_to_single_sample : bool
+        If True when a single sample is required, an extra dimension is added to the tensor. By default this is False, to ensure compatibility with the DataLoader class.
+        If you use the dataset and you do not required a DataLoader, you can set this attribute to True, so even the shape of single samples is (1, 1, H, W) (and therefore directly compatible with convolutional layers).
+    - load_data_in_memory : bool
+        This attribute is set automatically by the constructor. It specifies if the data are loaded in memory or not and is later used in the __getitem__ method.
+    """
 
     def __init__(self, path_list : list, label_list : list, load_data_in_memory : bool = False, preprocess_functions = None, grey_scale_image : bool = False) :
-        """
-        This class is used to create a dataset of 2D MRI images.
-        The input is a list of paths to the images and a list of labels.
-
-        Parameters
-        ----------
-
-        - path_list : list of str
-            List of paths to the images. Each path must be a string that can be used to load the image with torchvision.io.read_image
-            The images must be 2D images (black and white images), i.e. they must have only one channel.
-        - label_list : list of int
-            List of labels
-        - load_data_in_memory : bool
-            If True the data are loaded in memory, otherwise they are loaded on the fly when an image is requested
-        - preprocess_functions : list of functions
-            List of functions to apply to the image before returning it. They must be from the torchvision.transforms module. If None (the default value) no preprocessing is applied.
-            They can be set after the creation of the object with the set_preprocess_functions method.
-        - grey_scale_image : bool
-            If True the images are loaded with ImageReadMode.GRAY. If False the images are loaded with ImageReadMode.RGB.
-            Default is False.
-        """
-
+    
+        # Check input
         if len(path_list) != len(label_list) :
             raise ValueError("Length of path_list and label_list must be the same. Current length of path_list : {}, current length of label_list : {}".format(len(path_list), len(label_list)))
 
@@ -54,6 +72,7 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
         self.preprocess_functions = preprocess_functions
         self.apply_preprocess_functions = True if preprocess_functions is not None else False
         self.grey_scale_image = grey_scale_image
+        self.add_extra_dimensions_to_single_sample = False
 
         if load_data_in_memory : 
             self.load_dataset()
@@ -98,7 +117,7 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
         else :
             # In this case someone use int idx to get a single item
             image = self.__load_single_image(path)
-            image = image.unsqueeze(0)
+            if self.add_extra_dimensions_to_single_sample : image = image.unsqueeze(0)
 
         return image
 
