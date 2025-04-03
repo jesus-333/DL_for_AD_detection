@@ -21,8 +21,8 @@ from src.training import train_functions
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
-path_config_train_and_dataset = './scripts_training/config/demnet_training_and_dataset.toml'
-path_config_model             = './scripts_training/config/demnet_model.toml'
+path_config_train_and_dataset = './scripts/training/config/demnet_training_and_dataset.toml'
+path_config_model             = './scripts/training/config/demnet_model.toml'
 
 path_files_Moderate_Demented    = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/ModerateDemented'
 path_files_Mild_Demented        = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/MildDemented'

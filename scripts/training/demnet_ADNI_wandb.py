@@ -24,17 +24,17 @@ from src.training import train_functions
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # wandb login
 
-if os.path.exists("~/keys.json"):
-    os.environ["WANDB_API_KEY"] = json.loads("~/keys.json")["work_account"]
-    wandb.login()
+# if os.path.exists("~/keys.json"):
+#     os.environ["WANDB_API_KEY"] = json.loads("~/keys.json")["work_account"]
+#     wandb.login()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
-path_config_train_and_dataset = './scripts_training/config/demnet_training_and_dataset.toml'
-path_config_model             = './scripts_training/config/demnet_model.toml'
+path_config_train_and_dataset = './scripts/training/config/demnet_training_and_dataset.toml'
+path_config_model             = './scripts/training/config/demnet_model.toml'
 
-path_to_data = './data/ADNI_MRI_2D_Axial_png/'
+path_to_data = './data/ADNI_MRI_2D_Axial_png_sampled_6400/'
 
 print_var = True
 
@@ -55,8 +55,9 @@ all_config = dict(
     model_config = model_config
 )
 
-# train_config['epoch_to_save_model'] = train_config['epochs'] + 2
+if 'path_to_data' in dataset_config : path_to_data = dataset_config['path_to_data']
 
+# train_config['epoch_to_save_model'] = train_config['epochs'] + 2
 # Note that toml file din't have (yet) the null type
 if train_config['seed'] == -1 : train_config['seed'] = None
 
@@ -142,4 +143,4 @@ print("Datasets CREATED")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train model
 
-# model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
+model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
