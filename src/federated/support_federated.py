@@ -15,6 +15,7 @@ from typing import List
 from ..dataset import support_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Data related functions
 
 def split_data_for_clients(data, percentage_split_per_client : list, seed : int = None, labels = None, keep_labels_proportion : int = False) :
     """
@@ -55,7 +56,7 @@ def split_data_for_clients_uniformly(data, n_client : int, seed : int = None, la
     """
     Split the data (and labels if provided) uniformly among the clients.
     If keep_labels_proportion is True, the original proportion of labels is kept for each client. E.g. if the original data has 10% of label 1 and 90% of label 0, each client will have 10% of label 1 and 90% of label 0.
-    Note that keep_labels_proportion works only if there are enough samples for each label for each client.
+    Note that keep_labels_proportion works only if there are enough samples for each label for each client. Also if class are highly unbalanced, and/or the number of sample for specific class is not divisible by n_client, the split is not perfectly uniform.
     """
 
     data_per_client = []
@@ -69,27 +70,6 @@ def split_data_for_clients_uniformly(data, n_client : int, seed : int = None, la
     else :
         data_per_client = split_data_for_clients(data, percentage_split_per_client, seed)
         return data_per_client
-
-def set_weights(model, weights: List[np.ndarray]):
-    """
-    sLoad the weights into the model.
-    The function was copied from the Flower tutorial: https://flower.ai/docs/framework/tutorial-series-get-started-with-flower-pytorch.html
-    The only difference is the change of the function signature (from set_parameters(net, paramenters) to set_weights(model, weights))
-    """
-    params_dict = zip(model.state_dict().keys(), weights)
-    state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
-    model.load_state_dict(state_dict, strict=True)
-
-
-def get_weights(model) -> List[np.ndarray]:
-    """
-    Given a torch model, return a list of numpy arrays containing the weights of the model.
-    The function was copied from the Flower tutorial: https://flower.ai/docs/framework/tutorial-series-get-started-with-flower-pytorch.htmla
-    The only difference is the change of the function signature (from get_parameters(net) to get_weights(model))
-    """
-    return [val.cpu().numpy() for _, val in model.state_dict().items()]
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def check_split_correctness(original_data, original_label, data_per_client, labels_per_client) :
     """
@@ -118,4 +98,57 @@ def check_split_correctness(original_data, original_label, data_per_client, labe
 
     print("Everything seems correct")
 
+def load_data_and_labels(client_id : int, dataset_config : dict) :
+    """
+    Load the data and labels for a given client, identified by client_id, that must be a positive integer.
+
+    The data and the labels must be saved in npy files in the path specified in dataset_config['path_data'].
+    For each client there must be two files: one for the data and one for the labels.
+    The files must be named as follows : x_data.npy and x_labels.npy, where x is the client_id.
+    
+    The data files is an array of length n, with n the number of samples. Each element of the array must be a path to an image.
+    The labels file is an array of length n, with n the number of samples. Each element of the array must be an integer representing the class of the corresponding image.
+    The reason for this is that the dataset class used path to images as input during creation. 
+    The choice of loading the data directly in the memory, or keep the path and load at fly during the training, is left to the user, that can specify the option during dataset creation.
+    """
+    
+    # Get data and labels per client
+    file_path_list_client = np.load(dataset_config['path_data'] + f'{client_id}_data.npy')
+    label_list_int_client = np.load(dataset_config['path_data'] + f'{client_id}_labels_npy')
+
+    # Check if element of file_path_list_client are paths to images
+    for i in range(len(file_path_list_client)) :
+        if not isinstance(file_path_list_client[i], str) : raise ValueError(f"Element {i} of file_path_list_client is not a string. Actual value is {file_path_list_client[i]}")
+        if not file_path_list_client[i].endswith('.jpg') and not file_path_list_client[i].endswith('.png') and not file_path_list_client[i].endswith('.jpeg') : raise ValueError(f"Element {i} of file_path_list_client is not a valid image path. Actual value is {file_path_list_client[i]}")
+
+    # Check if labels_client is an array of integers
+    for i in range(len(label_list_int_client)) :
+        if not isinstance(label_list_int_client[i], int) : raise ValueError(f"Element {i} of labels_client is not an integer. Actual value is {label_list_int_client[i]}")
+        if label_list_int_client[i] < 0 : raise ValueError(f"Element {i} of labels_client is negative. Actual value is {label_list_int_client[i]}. Note that labels must be integers in the range [0, n_classes - 1], where n_classes is the number of classes in the dataset.")
+    
+    return file_path_list_client, label_list_int_client  
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Model related function
+
+def set_weights(model, weights: List[np.ndarray]):
+    """
+    sLoad the weights into the model.
+    The function was copied from the Flower tutorial: https://flower.ai/docs/framework/tutorial-series-get-started-with-flower-pytorch.html
+    The only difference is the change of the function signature (from set_parameters(net, paramenters) to set_weights(model, weights))
+    """
+    params_dict = zip(model.state_dict().keys(), weights)
+    state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
+    model.load_state_dict(state_dict, strict=True)
+
+
+def get_weights(model) -> List[np.ndarray]:
+    """
+    Given a torch model, return a list of numpy arrays containing the weights of the model.
+    The function was copied from the Flower tutorial: https://flower.ai/docs/framework/tutorial-series-get-started-with-flower-pytorch.htmla
+    The only difference is the change of the function signature (from get_parameters(net) to get_weights(model))
+    """
+    return [val.cpu().numpy() for _, val in model.state_dict().items()]
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
