@@ -79,8 +79,9 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
     # Variable to track best losses
     best_loss_val = sys.maxsize # Best total loss for the validation data
 
-    #  Dictionary used to saved information during training and load them on wandb
+    #  Dictionaries used to saved information during training and load them on wandb
     log_dict = {}
+    training_metrics = dict()
 
     if train_config['print_var'] : print("Start training")
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -165,6 +166,14 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
             wandb.log(log_dict)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # Save metrics 
+        for metric in log_dict :
+            if epoch == 0 : # If it is the first epoch create the list for the specific metric
+                training_metrics[metric] = [log_dict[metric]]
+            else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
+                training_metrics[metric].append(log_dict[metric])
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # End training cycle
 
     # Save the model at the end of the training
@@ -177,7 +186,7 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
         wandb.save(model_file_path )
 
     # Return the trained model
-    return model
+    return model, training_metrics
 
 def wandb_train(config : dict, model, train_dataset, validation_dataset = None) :
     """
@@ -220,12 +229,12 @@ def wandb_train(config : dict, model, train_dataset, validation_dataset = None) 
                                         )
         
         # Train the model
-        model = train(train_config, model, train_dataset, validation_dataset, wandb_model_artifact)
+        model, training_metrics = train(train_config, model, train_dataset, validation_dataset, wandb_model_artifact)
         
         # Log the model artifact
         run.log_artifact(wandb_model_artifact)
 
-    return model
+    return model, training_metrics
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Epoch functions

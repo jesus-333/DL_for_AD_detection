@@ -153,7 +153,7 @@ print("Datasets CREATED")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train model
 
-# vgg_model = train_functions.wandb_train(all_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 
+# vgg_model, training_metrics = train_functions.wandb_train(all_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 
 
 # Used to check validity of get_idx_to_split_data_V3
 # for i in range(4) : print(np.sum(label_train_list_int == i) / len(label_train_list_int) * 100)

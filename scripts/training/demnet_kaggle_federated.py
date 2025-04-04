@@ -14,7 +14,7 @@ import numpy as np
 import torch
 from torchvision import transforms
 
-from src.dataset import dataset, support_dataset
+from src.dataset import dataset, support_dataset, support_dataset_kaggle
 from src.model import demenet
 from src.training import train_functions
 from src.federated import support_federated
@@ -22,8 +22,8 @@ from src.federated import support_federated
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
-path_config_train_and_dataset = './scripts_training/config/demnet_training_and_dataset.toml'
-path_config_model             = './scripts_training/config/demnet_model.toml'
+path_config_train_and_dataset = './scripts/training/config/demnet_training_and_dataset.toml'
+path_config_model             = './scripts/training/config/demnet_model.toml'
 
 path_files_Moderate_Demented    = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/ModerateDemented'
 path_files_Mild_Demented        = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/MildDemented'
@@ -78,10 +78,8 @@ percentage_split_train_validation_test = [dataset_config['percentage_train'], da
 # Dataset creation
 
 # Get data path
-file_path_list, label_list_int, label_list_str = support_dataset.get_kaggle_AD_dataset(path_files_Moderate_Demented, path_files_Mild_Demented, path_files_Very_Mild_Demented, path_files_Non_Demented, 
+file_path_list, label_list_int, label_list_str = support_dataset_kaggle.get_dataset(path_files_Moderate_Demented, path_files_Mild_Demented, path_files_Very_Mild_Demented, path_files_Non_Demented, 
                                                                                       dataset_config['merge_AD_class'], print_var)
 
 # Divide data for each client
 data_per_client, labels_per_client = support_federated.split_data_for_clients(file_path_list, percentage_split_per_client, train_config['seed'], label_list_int, keep_labels_proportion)
-
-

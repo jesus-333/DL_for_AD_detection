@@ -92,7 +92,7 @@ dataset_config['dataset_std'] = dataset_std
 train_config['wandb_training'] = True
 train_config['project_name'] = "demnet_training"
 train_config['name_training_run'] = None
-train_config['model_artifact_name'] = "demnet_training_AD_kaggle"
+train_config['model_artifact_name'] = "demnet_training_ADNI"
 
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
@@ -143,4 +143,4 @@ print("Datasets CREATED")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train model
 
-model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
+model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 

@@ -138,4 +138,4 @@ print("Datasets CREATED")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train model
 
-# model = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
+model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 

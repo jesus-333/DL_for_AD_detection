@@ -1,11 +1,11 @@
 [train_config]
 batch_size = 64
 lr = 0.01
-epochs = 50
+epochs = 2
 use_scheduler = true
 lr_decay_rate = 0.95
 optimizer_weight_decay = 0.01
-device = "cuda"
+device = "mps"
 epoch_to_save_model = 10
 path_to_save_model = "model_weights"
 measure_metrics_during_training = true
@@ -13,7 +13,7 @@ print_var = true
 seed = -1
 wandb_training = false
 project_name = "demnet_training"
-model_artifact_name = "demnet_training_AD_kaggle"
+model_artifact_name = "demnet_training_ADNI"
 log_freq = 1
 name_training_run = ""
 notes = ""

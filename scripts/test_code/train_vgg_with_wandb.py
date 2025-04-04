@@ -135,5 +135,5 @@ MRI_test_dataset       = dataset.MRI_2D_dataset(test_file_path_list, label_test_
 print("Datasets CREATED")
 
 # Check training 
-model = train_functions.wandb_train(config, vgg_model, MRI_train_dataset, MRI_validation_dataset)
+model, training_metrics = train_functions.wandb_train(config, vgg_model, MRI_train_dataset, MRI_validation_dataset)
 
