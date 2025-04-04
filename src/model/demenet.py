@@ -33,49 +33,77 @@ from . import support_model
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 class demnet(torch.nn.Module) :
+    """
+    Create the DEMNET model. For more information about the model see https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9459692
+    
+    Parameters
+    ----------
+
+    config : dict
+        Dictionary with the configuration of the model. The keys of the dictionary are:
+        - input_size : int
+            Size of the input image. It is assumed that the image is square. This value is used to compute the size of the input of the fully connected layers.
+        - input_channels : int
+            Number of channels of the input image. It is assumed that the image is grayscale. If not provided, the default value is 3.
+        - num_classes : int
+            Number of classes of the classification problem.
+        - activation : str
+            Activation function to use in the model. The activation function must be supported by the support_model.get_activation function.
+            Possible values are: 'relu', 'elu', 'selu', 'gelu'.
+        - kernel_size_conv_1 : int
+            Kernel size of the first convolutional layer. See the scheme of the model in the paper for more information.
+        - kernel_size_conv_2 : int
+            Kernel size of the second convolutional layer. See the scheme of the model in the paper for more information.
+        - batch_norm : bool
+            If True, batch normalization is used in the model. If not provided, the default value is True.
+        - config_demnet_block_1 : dict
+            Configuration of the first demnet block. For more information see the demnet_block init description.
+        - config_demnet_block_2 : dict
+            Configuration of the second demnet block. For more information see the demnet_block init description.
+        - config_demnet_block_3 : dict
+            Configuration of the third demnet block. For more information see the demnet_block init description.
+        - config_demnet_block_4 : dict
+            Configuration of the fourth demnet block. For more information see the demnet_block init description.
+        - dropout_rate_1 : float
+            Dropout rate of the first dropout layer. If not provided, the default value is 0.5.
+        - dropout_rate_2 : float
+            Dropout rate of the second dropout layer. If not provided, the default value is 0.5.
+        - use_activation_in_classifier : bool
+            If True, an activation function is used in the fully connected layers. If not provided, the default value is True.
+        - use_as_features_extractor : bool
+            If True, the model is used as a feature extractor. If not provided, the default value is False.
+            If the model is used as a feature extractor, the output of the model is the output of the convolutional layers, without flattening and classification.
+
+    Attributes
+    ----------
+    conv_1 : torch.nn.Module
+        First convolutional layer of the model.
+    conv_2 : torch.nn.Module
+        Second convolutional layer of the model.
+    pool : torch.nn.Module
+        Max pooling layer of the model.
+    demnet_block_1 : torch.nn.Module
+        First demnet block of the model. For more information see the demnet_block init description and the original paper.
+    demnet_block_2 : torch.nn.Module
+        Second demnet block of the model. For more information see the demnet_block init description and the original paper.
+    demnet_block_3 : torch.nn.Module
+        Third demnet block of the model. For more information see the demnet_block init description and the original paper.
+    demnet_block_4 : torch.nn.Module
+        Fourth demnet block of the model. For more information see the demnet_block init description and the original paper.
+    dropout_1 : torch.nn.Module
+        First dropout layer of the model.
+    dropout_2 : torch.nn.Module
+        Second dropout layer of the model.
+    flatten : torch.nn.Module
+        Flatten layer of the model. Used to flatten the output of the convolutional layers before passing it to the fully connected layers.
+    classifier : torch.nn.Module
+        Fully connected layers of the model. Used to classify the output of the convolutional layers.
+    use_as_features_extractor : bool
+        If True, the model is used as a feature extractor. If not provided, the default value is False.
+        If the model is used as a feature extractor, the output of the model is the output of the convolutional layers, without flattening and classification.
+    """
 
     def __init__(self, config : dict) :
-        """
-        Create the DEMNET model. For more information about the model see https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9459692
-        
-        Parameters
-        ----------
-
-        config : dict
-            Dictionary with the configuration of the model. The keys of the dictionary are:
-            - input_size : int
-                Size of the input image. It is assumed that the image is square. This value is used to compute the size of the input of the fully connected layers.
-            - input_channels : int
-                Number of channels of the input image. It is assumed that the image is grayscale. If not provided, the default value is 3.
-            - num_classes : int
-                Number of classes of the classification problem.
-            - activation : str
-                Activation function to use in the model. The activation function must be supported by the support_model.get_activation function.
-                Possible values are: 'relu', 'elu', 'selu', 'gelu'.
-            - kernel_size_conv_1 : int
-                Kernel size of the first convolutional layer. See the scheme of the model in the paper for more information.
-            - kernel_size_conv_2 : int
-                Kernel size of the second convolutional layer. See the scheme of the model in the paper for more information.
-            - batch_norm : bool
-                If True, batch normalization is used in the model. If not provided, the default value is True.
-            - config_demnet_block_1 : dict
-                Configuration of the first demnet block. For more information see the demnet_block init description.
-            - config_demnet_block_2 : dict
-                Configuration of the second demnet block. For more information see the demnet_block init description.
-            - config_demnet_block_3 : dict
-                Configuration of the third demnet block. For more information see the demnet_block init description.
-            - config_demnet_block_4 : dict
-                Configuration of the fourth demnet block. For more information see the demnet_block init description.
-            - dropout_rate_1 : float
-                Dropout rate of the first dropout layer. If not provided, the default value is 0.5.
-            - dropout_rate_2 : float
-                Dropout rate of the second dropout layer. If not provided, the default value is 0.5.
-            - use_activation_in_classifier : bool
-                If True, an activation function is used in the fully connected layers. If not provided, the default value is True.
-            - use_as_features_extractor : bool
-                If True, the model is used as a feature extractor. If not provided, the default value is False.
-                If the model is used as a feature extractor, the output of the model is the output of the convolutional layers, without flattening and classification.
-        """
         super(demnet, self).__init__()
 
         check_demnet_config(config)
