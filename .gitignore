@@ -2,6 +2,8 @@
 *.pyc
 *.pth
 *.png
+tmp.py
 data/
 wandb/
 artifacts/
+TMP/
