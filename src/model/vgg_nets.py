@@ -88,7 +88,7 @@ class VGG(torch.nn.Module):
         Parameters
         ----------
         finetuning_type : int
-            Type of finetuning. Possible values are 0, 1 or 2.
+            Type of finetuning. Possible values are 0, 1, 2, or 3.
         """
 
         if finetuning_type == 0 :

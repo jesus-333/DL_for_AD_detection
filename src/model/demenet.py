@@ -313,6 +313,46 @@ class demnet(torch.nn.Module) :
 
         return fig, ax
 
+    def set_training_mode(self, training_mode : int = 0) :
+        """
+        This function is used to freeze (some) of the model parameters. This is useful when you want to finetune the model.
+        To frozen the parameters, the requires_grad attribute of the parameters is set to False.
+        The layers that are frozen are decided by the training_mode parameter. The possible values are:
+        - 0 : No layaer will be frozen, i.e. all the layers will be trained.
+        - 1 : Only the last layer of the classifier will be trained. The rest of the model will be frozen.
+        - 2 : All the classifier layers will be trained. The rest of the model will be frozen.
+
+        Parameters
+        ----------
+        training_mode : int
+            Type of finetuning. Possible values are 0, 1 or 2.
+        """
+
+        if training_mode == 0 :
+            for param in self.parameters() : param.requires_grad = True
+
+        elif training_mode == 1 :
+            self.freeze_model()
+
+            for param in self.classifier[6].parameters() :
+                param.requires_grad = True
+
+        elif training_mode == 2 :
+            self.freeze_model()
+
+            for param in self.classifier.parameters() :
+                param.requires_grad = True
+
+    def freeze_model(self) :
+        for param in self.parameters() : param.requires_grad = False
+
+    def check_freeze_layer(self) :
+        """
+        Check, for each layer, if the layer is freezed or not (i.e. if the layer requires gradient or not)
+        """
+        for name, param in self.named_parameters():
+            print(name, "\t", param.requires_grad)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 class demnet_block(torch.nn.Module) :
