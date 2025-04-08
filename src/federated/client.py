@@ -63,10 +63,14 @@ class flower_client_v1(NumPyClient):
         """
 
         converted_training_metrics = []
-
+    
+        # Save metrics over time
         for metric in training_metrics :
             for i in range(self.train_config['epochs']) :
-                converted_training_metrics[f'{metric}_{i}'] = training_metrics[metric][i]
+                converted_training_metrics[f'{metric}:{i}'] = training_metrics[metric][i]
+
+            # Duplicate metrics at last epoch (so it easy to recover the final metrics values)
+            converted_training_metrics[f'{metric}:END'] = training_metrics[metric][i]
 
         return converted_training_metrics
 

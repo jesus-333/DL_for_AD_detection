@@ -1,4 +1,8 @@
 """
+Support functions for the FL module. It contains functions related to data management, model weights conversion and metric computation.
+Note that some of this functions are written to be used outside the src libary (e.g. split_data_for_clients) while others (e.g. set_weights) are for internal use.
+The server has its own dedicate support file. See support_federated_server.py
+
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
@@ -15,7 +19,7 @@ from typing import List
 from ..dataset import support_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Data related functions
+# Data related functions (e.g. split data)
 
 def split_data_for_clients(data, percentage_split_per_client : list, seed : int = None, labels = None, keep_labels_proportion : int = False) :
     """
@@ -133,7 +137,7 @@ def load_data_and_labels(client_id : int, dataset_config : dict) :
 
 def set_weights(model, weights: List[np.ndarray]):
     """
-    sLoad the weights into the model.
+    Load the weights into the model.
     The function was copied from the Flower tutorial: https://flower.ai/docs/framework/tutorial-series-get-started-with-flower-pytorch.html
     The only difference is the change of the function signature (from set_parameters(net, paramenters) to set_weights(model, weights))
     """
@@ -151,4 +155,43 @@ def get_weights(model) -> List[np.ndarray]:
     return [val.cpu().numpy() for _, val in model.state_dict().items()]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Metric related functions
 
+def weighted_average(metrics_per_client):
+    """
+    This function is loosely inspired by the function with the same name in https://github.com/adap/flower/blob/main/examples/advanced-pytorch/pytorch_example/server_app.py
+    Note that this function is written to be used as argument during the creation of the server (i.e. the strategy). More specifically it should be used as value for the argoments fit_metrics_aggregation_fn and evaluate_metrics_aggregation_fn of the strategy constructor.
+    After that when this function is called it expects to receive as input a list in the following form :
+        metrics_per_client = [..., (n_i, metrics_dict_i), ...]
+    The length of the list is the number of clients, n_i is the number of training samples for that specific client and metrics_dict_i is contains the metric computed for that specific client.
+    """
+
+    weighted_metrics = dict()
+    n_samples_per_client = []
+    # eval_metrics = [(res.num_examples, res.metrics) for _, res in results]
+    
+    # Iterate over the metrics obtained for each client
+    for i in range(len(metrics_per_client)) :
+        # Get number of training samples and metrics for each client
+        n_samples_current_client = metrics_per_client[i][0]
+        metrics_current_client   = metrics_per_client[i][1]
+    
+        # Save the number of samples
+        n_samples_current_client.append(n_samples_current_client)
+        
+        # Iterate over the computed metrics
+        for metric in metrics_current_client :
+            # If the metric is not present in the dictionary add it
+            if metric not in weighted_metrics :
+                weighted_metrics[metric] = np.zeros(len(metrics_per_client))
+            
+            # Save the current metric
+            weighted_metrics[metric][i] = metrics_current_client[metric]
+
+    # Perform weighted average
+    for metric in weighted_metrics :
+        metric_array = weighted_metrics[metric]
+        weighted_metrics[metric] = np.average(metric_array, n_samples_per_client)
+
+    # Aggregate and return custom metric (weighted average)
+    return weighted_metrics
