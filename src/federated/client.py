@@ -15,7 +15,7 @@ from flwr.common import Context
 
 from . import support_federated
 from ..training import train_functions, test_functions
-from ..model import demenet
+from ..model import demnet
 from ..dataset import dataset, support_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -90,7 +90,7 @@ def client_fn_demnet(context : Context) -> Client :
     dataset_config = toml.load(context.node_config['dataset_config_path'])
 
     # Load model
-    model = demenet.demnet(model_config)
+    model = demnet.demnet(model_config)
 
     # Load data and labels
     file_path_list_client, label_list_int_client = support_federated.load_data_and_labels(context.node_config["partition-id"], dataset_config)

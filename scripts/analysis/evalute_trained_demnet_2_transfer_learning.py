@@ -16,7 +16,7 @@ import torch
 import numpy as np
 
 from src.dataset import support_dataset, dataset
-from src.model import demenet
+from src.model import demnet 
 from src.training import metrics
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -33,7 +33,7 @@ print_var = True
 
 # Download the trained model and get config used during model training.
 # Note that the config is a dictionary with the keys : train_config, dataset_config, model_config
-model, all_config = demenet.get_model_pretrained_with_kaggle_dataset(7, load_early_stop_weights, epoch_to_load)
+model, all_config = demnet.get_model_pretrained_with_kaggle_dataset(7, load_early_stop_weights, epoch_to_load)
 print("Model DOWNLOADED")
 
 # Get the config for model, training and dataset

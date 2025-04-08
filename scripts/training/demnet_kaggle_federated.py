@@ -1,5 +1,5 @@
 """
-With this script you can train the DEMENET model to classify MRI and fMRI data for alzheimer detection.
+With this script you can train the DEMNET model to classify MRI and fMRI data for alzheimer detection.
 For more information about the model see https://ieeexplore.ieee.org/abstract/document/9459692 
 For the dataset we used the the Kaggle alzheimer 4 class dataset (https://www.kaggle.com/datasets/marcopinamonti/alzheimer-mri-4-classes-dataset/data)
 
@@ -15,7 +15,7 @@ import torch
 from torchvision import transforms
 
 from src.dataset import dataset, support_dataset, support_dataset_kaggle
-from src.model import demenet
+from src.model import demnet 
 from src.training import train_functions
 from src.federated import support_federated
 

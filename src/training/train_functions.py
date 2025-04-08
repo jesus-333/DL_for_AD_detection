@@ -12,7 +12,7 @@ import sys
 try :
     import wandb
 except ImportError :
-    print('Warning: wandb is not installed. if you want to use it, please install it using "pip install wandb"')
+    print('Warning: wandb is not installed. If you want to use it, please install it using "pip install wandb"')
     print('The functionality of the code will not be affected, but you will not be able to use wandb to monitor the training')
 
 from . import metrics

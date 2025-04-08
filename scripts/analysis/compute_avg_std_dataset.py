@@ -20,6 +20,7 @@ from src.dataset import support_dataset
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 path_dataset = './data/ADNI_MRI_2D_Axial_png/'
+path_dataset = './data/ADNI_MRI_2D_Axial_png_sampled_6400/'
 # path_dataset = './data/Kaggle_Alzheimer_MRI_4_classes_dataset'
 
 mode_image_load = torchvision.io.image.ImageReadMode.RGB
