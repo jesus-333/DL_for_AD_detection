@@ -12,6 +12,7 @@ The server has its own dedicate support file. See support_federated_server.py
 
 import torch
 import numpy as np
+import os
 
 from collections import OrderedDict
 from typing import List
@@ -139,12 +140,16 @@ def set_weights(model, weights: List[np.ndarray]):
     """
     Load the weights into the model.
     The function was copied from the Flower tutorial: https://flower.ai/docs/framework/tutorial-series-get-started-with-flower-pytorch.html
-    The only difference is the change of the function signature (from set_parameters(net, paramenters) to set_weights(model, weights))
+    There are only minor changes in the function signature (from set_parameters(net, parameters) to set_weights(model, weights)) and the addition of a try/except block to catch the error when the model and the weights have different architectures.
     """
     params_dict = zip(model.state_dict().keys(), weights)
     state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
-    model.load_state_dict(state_dict, strict=True)
-
+    try :
+        model.load_state_dict(state_dict, strict = True)
+    except RuntimeError as e:
+        print("Error loading state dict. Check if the model and the weights have the same architecture.")
+        print(f"Error message: {e}")
+        raise e
 
 def get_weights(model) -> List[np.ndarray]:
     """
@@ -154,13 +159,41 @@ def get_weights(model) -> List[np.ndarray]:
     """
     return [val.cpu().numpy() for _, val in model.state_dict().items()]
 
+def save_model_weights(model : torch.nn.Module, path_to_save_model : str, filename : str) :
+    """
+    Save the model after a training round in the path specified in path_to_save_model with the name specified by filename
+    The model is saved in the form of a state_dict, which is a dictionary containing all the parameters of the model.
+    
+    Parameters
+    ----------
+    model : torch.nn.Module   
+        The model to save.
+    path_to_save_model : str
+        The path where to save the model. If it does not exist, it will be created through os.makedirs.
+    filename : str
+        The name of the file where to save the model. The file will be saved in the path_to_save_model directory.
+
+    Returns
+    -------
+    str
+        The complete path where the model is saved. It is the concatenation of path_to_save_model and filename, i.e. path_to_save_model/filename.
+    """
+    # Create folder specified in the path
+    os.makedirs(path_to_save_model, exist_ok = True)
+
+    # Save the model
+    save_path = os.path.join(path_to_save_model, filename)
+    torch.save(model.state_dict(), save_path)
+
+    return save_path 
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Metric related functions
 
 def weighted_average(metrics_per_client):
     """
     This function is loosely inspired by the function with the same name in https://github.com/adap/flower/blob/main/examples/advanced-pytorch/pytorch_example/server_app.py
-    Note that this function is written to be used as argument during the creation of the server (i.e. the strategy). More specifically it should be used as value for the argoments fit_metrics_aggregation_fn and evaluate_metrics_aggregation_fn of the strategy constructor.
+    Note that this function is written to be used as argument during the creation of the server (i.e.e the strategy). More specifically it should be used as value for the argoments fit_metrics_aggregation_fn and evaluate_metrics_aggregation_fn of the strategy constructor.
     After that when this function is called it expects to receive as input a list in the following form :
         metrics_per_client = [..., (n_i, metrics_dict_i), ...]
     The length of the list is the number of clients, n_i is the number of training samples for that specific client and metrics_dict_i is contains the metric computed for that specific client.

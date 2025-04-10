@@ -4,10 +4,11 @@
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-import torch
-import numpy as np
-import os
+import flwr
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import os
 
 try : 
     import wandb
@@ -16,9 +17,8 @@ except ImportError :
     print('Warning: wandb is not installed. The class fed_avg_with_wandb_tracking will not works. If you want to use it, please install it using "pip install wandb" ')
     wandb_installed = False
 
-import flwr
-# from flwr.common import parameters_to_ndarrays
-# from flwr.server.strategy import FedAvg
+from . import support_federated_generic
+from . import support_federated_server
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -27,7 +27,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
     A class that behaves like FedAvg but with the possibility to log the results through wandb.
     """
 
-    def __init__(self, server_config : dict, *args, **kwargs):
+    def __init__(self, model, server_config : dict, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -42,18 +42,18 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
                                     name = server_config['wandb_config']['name_training_run']
                                     )
 
-
         # Wandb artifact to save model weights
         self.model_artifact = wandb.Artifact(server_config['wandb_config']['model_artifact_name '], type = "model", 
                                              description = server_config['wandb_config']['description'] if 'description' in server_config['wandb_config'] else None,
                                              metadata = server_config)
-
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Other parameters
 
         self.count_rounds = 0
         self.tot_rounds = server_config['num_rounds']
+
+        self.model = model
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Override methods from FedAvg
@@ -76,8 +76,11 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             model_weights = flwr.common.parameters_to_ndarrays(aggregated_parameters) 
             self.model_weights = model_weights
 
+            # Load updated weights into the model
+            support_federated_generic.set_weights(self.model, model_weights)
+
             # Save weights
-            save_path = self.save_model_weights()
+            save_path = support_federated_generic.save_model_weights(self.model, path_to_save_model = self.server_config['path_to_save_model'], filename = f"model_round_{self.count_rounds}.pth")
 
             # Add weight to wandb
             self.model_artifact.add_file(save_path)
@@ -95,7 +98,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
                 training_epochs = np.arange(log_dict['epochs']) + 1
 
                 # Extract losses
-                metrics_values_list, metrics_name_list = self.extract_metric_from_log_dict(log_dict)
+                metrics_values_list, metrics_name_list = support_federated_server.extract_metric_from_log_dict(log_dict)
 
                 # Plot(s) creation and log
                 # TODO Check which is better to log plot
@@ -167,55 +170,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # New function (i.e. all this funciton are not inherited from FedAvg)
-
-    def save_model_weights(self) :
-        """
-        Save the model after a training round in the path specified in server_config['path_to_save_model']
-        """
-        # Create folder specified in the path
-        os.makedirs(self.server_config['path_to_save_model'], exist_ok = True)
-
-        # Save the model
-        save_path = f"{self.server_config['path_to_save_model']}/model_round_{self.count_rounds}.pth"
-        torch.save(self.model.state_dict(), save_path)
-
-        return save_path 
-
-    def extract_metric_from_log_dict(self, log_dict : dict) :
-        """
-        Since (at the time of writing) flower does not allow to save entire array/list inside the log dict I have to save each epoch separately, i.e. with a different entry in the dictionary.
-        With this method I will merge all the entry for each specic key and 
-        The list is then returned as numpy array.
-        """
-        
-        training_epochs = np.arange(log_dict['epochs']) + 1
-        
-        metrics_values_list = []
-        metrics_name_list = []
-
-        # Get the name of the metrics
-        for metric_name in log_dict :
-            if '0' in metric_name : 
-                metrics_name_list.append(metric_name.split(":")[0])
-        
-        # Iterate over possible metrics
-        for metric_name in metrics_name_list :
-            # Create list for the specific metric
-            metrics_values_list.append([])
-
-            # Iterate over training epoch
-            for i in range(len(training_epochs)) :
-                # Get epoch and metric for the epoch
-                current_epoch = training_epochs[i]
-                metric_for_current_epoch = log_dict[f'{metric_name}_{current_epoch}']
-
-                # Save metric
-                metrics_values_list[i].append(metric_for_current_epoch)
-
-            # Convert list to numpy array
-            metrics_values_list[i] = np.asarray(metrics_values_list[i])
-        
-        return metrics_values_list, metrics_name_list
+    # TODO : consider if move them to support_federated_server.
 
     def create_and_log_matplotlib_metric_plot(self, metrics_to_plot_list, training_epochs, metrics_name_list, client_id) :
         """
