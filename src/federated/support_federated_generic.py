@@ -90,7 +90,6 @@ def check_split_correctness(original_data, original_label, data_per_client, labe
     data_to_label = dict()
     for i in range(len(original_data)) : data_to_label[original_data[i]] = original_label[i]
     
-    
     for i in range(len(data_per_client)) :
         data_specific_client = data_per_client[i]
         labels_specific_client = labels_per_client[i]
@@ -103,23 +102,15 @@ def check_split_correctness(original_data, original_label, data_per_client, labe
 
     print("Everything seems correct")
 
-def load_data_and_labels(client_id : int, dataset_config : dict) :
+def load_data_and_labels(file_path_list_client : str, label_list_int_client : str) :
     """
-    Load the data and labels for a given client, identified by client_id, that must be a positive integer.
+    Load the data and the labels specified by the two paths.
 
-    The data and the labels must be saved in npy files in the path specified in dataset_config['path_data'].
-    For each client there must be two files: one for the data and one for the labels.
-    The files must be named as follows : x_data.npy and x_labels.npy, where x is the client_id.
-    
     The data files is an array of length n, with n the number of samples. Each element of the array must be a path to an image.
     The labels file is an array of length n, with n the number of samples. Each element of the array must be an integer representing the class of the corresponding image.
     The reason for this is that the dataset class used path to images as input during creation. 
-    The choice of loading the data directly in the memory, or keep the path and load at fly during the training, is left to the user, that can specify the option during dataset creation.
+    The choice of loading the data directly in the memory, or keep the path and load at fly during the training, is left to the user (through the parameter load_data_in_memory in the dataset creation).
     """
-    
-    # Get data and labels per client
-    file_path_list_client = np.load(dataset_config['path_data'] + f'{client_id}_data.npy')
-    label_list_int_client = np.load(dataset_config['path_data'] + f'{client_id}_labels_npy')
 
     # Check if element of file_path_list_client are paths to images
     for i in range(len(file_path_list_client)) :

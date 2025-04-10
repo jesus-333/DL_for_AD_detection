@@ -25,10 +25,30 @@ from . import support_federated_server
 class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
     """
     A class that behaves like FedAvg but with the possibility to log the results through wandb.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        The model to use for the training.
+    all_config : dict
+        Dictionayy with all the configuration parameters. It must contain the following keys:
+        - server_config : dict
+            Dictionary with the server configuration. 
+        - dataset_config : dict
+            Dictionary with the dataset configuration. The possible keys are the input parameters of the class inside src/dataset/dataset.py
+        - model_config : dict
+            Dictionary with the model configuration. The possible keys depends on the model used. See the files inside src/model for more information.
+        - train_config : dict
+            Dictionary with the training configuration. 
+    *args, **kwargs : other parameters inherited from FedAvg
     """
 
-    def __init__(self, model, server_config : dict, *args, **kwargs):
+    def __init__(self, model, all_config : dict, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # Get config dictionaries
+        server_config = all_config['server_config']
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Wandb parameters
@@ -37,7 +57,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
         # Initialise wandb
         self.wandb_run = wandb.init(project = server_config['wandb_config']['project_name'], 
-                                    job_type = "train", config = server_config, 
+                                    job_type = "train", config = all_config, 
                                     notes = server_config['wandb_config']['notes'], 
                                     name = server_config['wandb_config']['name_training_run']
                                     )
@@ -45,7 +65,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         # Wandb artifact to save model weights
         self.model_artifact = wandb.Artifact(server_config['wandb_config']['model_artifact_name '], type = "model", 
                                              description = server_config['wandb_config']['description'] if 'description' in server_config['wandb_config'] else None,
-                                             metadata = server_config)
+                                             metadata = all_config)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Other parameters
@@ -170,7 +190,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # New function (i.e. all this funciton are not inherited from FedAvg)
-    # TODO : consider if move them to support_federated_server.
+    # TODO : consider if move them to support_federated_server
 
     def create_and_log_matplotlib_metric_plot(self, metrics_to_plot_list, training_epochs, metrics_name_list, client_id) :
         """

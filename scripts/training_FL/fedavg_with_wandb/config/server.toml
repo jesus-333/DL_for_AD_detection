@@ -1,0 +1,7 @@
+num_rounds = 8
+n_client = 3
+fraction_fit = 1
+fraction_evaluate = 1
+local_epochs = 1
+keep_labels_proportion = true
+centralized_evaluation = true

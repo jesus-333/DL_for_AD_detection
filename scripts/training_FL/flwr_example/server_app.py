@@ -11,6 +11,7 @@ def server_fn(context: Context):
     # Read from config
     num_rounds = context.run_config["num-server-rounds"]
     fraction_fit = context.run_config["fraction-fit"]
+    context.run_config["extra_stuff"] = 123
 
     # Initialize model parameters
     ndarrays = get_weights(Net())
@@ -29,4 +30,4 @@ def server_fn(context: Context):
 
 
 # Create ServerApp
-app = ServerApp(server_fn=server_fn)
+app_sv = ServerApp(server_fn=server_fn)
