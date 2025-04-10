@@ -3,6 +3,7 @@
 *.pth
 *.png
 tmp.py
+.venv/
 data/
 wandb/
 artifacts/
