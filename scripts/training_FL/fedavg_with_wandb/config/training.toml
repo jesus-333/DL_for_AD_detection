@@ -14,6 +14,6 @@ wandb_training = false
 project_name = "demnet_training"
 model_artifact_name = "demnet_training_ADNI"
 log_freq = 1
-name_training_run = ""
+name_training_run = "test_flwr_app"
 notes = ""
 debug = true

@@ -60,4 +60,4 @@ path_training_config = './scripts/training_FL/fedavg_with_wandb/config/training.
 default = "local-simulation"
 
 [tool.flwr.federations.local-simulation]
-options.num-supernodes = 10
+options.num-supernodes = 3

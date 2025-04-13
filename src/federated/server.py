@@ -49,6 +49,9 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Get config dictionaries
         server_config = all_config['server_config']
+        training_config  = all_config['training_config']
+
+        self.all_config = all_config
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Wandb parameters
@@ -56,15 +59,15 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         if not wandb_installed : raise ImportError('wandb is not installed. Please it using "pip install wandb"')
 
         # Initialise wandb
-        self.wandb_run = wandb.init(project = server_config['wandb_config']['project_name'], 
+        self.wandb_run = wandb.init(project = training_config['project_name'], 
                                     job_type = "train", config = all_config, 
-                                    notes = server_config['wandb_config']['notes'], 
-                                    name = server_config['wandb_config']['name_training_run']
+                                    notes = training_config['notes'], 
+                                    name = training_config['name_training_run']
                                     )
 
         # Wandb artifact to save model weights
-        self.model_artifact = wandb.Artifact(server_config['wandb_config']['model_artifact_name '], type = "model", 
-                                             description = server_config['wandb_config']['description'] if 'description' in server_config['wandb_config'] else None,
+        self.model_artifact = wandb.Artifact(training_config['model_artifact_name'], type = "model", 
+                                             description = training_config['description'] if 'description' in training_config else None,
                                              metadata = all_config)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -100,7 +103,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             support_federated_generic.set_weights(self.model, model_weights)
 
             # Save weights
-            save_path = support_federated_generic.save_model_weights(self.model, path_to_save_model = self.server_config['path_to_save_model'], filename = f"model_round_{self.count_rounds}.pth")
+            save_path = support_federated_generic.save_model_weights(self.model, path_to_save_model = self.all_config['training_config']['path_to_save_model'], filename = f"model_round_{self.count_rounds}.pth")
 
             # Add weight to wandb
             self.model_artifact.add_file(save_path)
@@ -112,6 +115,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
                 log_dict = results[i][1].metrics
                 
                 # Get id and number of training epoch
+                for el in log_dict : print(el)
                 client_id = log_dict['client_id']
 
                 # Create epoch arrays
@@ -157,36 +161,29 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
         return aggregated_parameters, aggregated_metrics
 
-    def aggregate_evaluate(self, server_round, results, failures):
-        """
-        Aggregate results from federated evaluation.
-        """
-        loss, metrics = super().aggregate_evaluate(server_round, results, failures)
+    # def aggregate_evaluate(self, server_round, results, failures):
+    #     """
+    #     Aggregate results from federated evaluation.
+    #     """
+    #     loss, metrics = super().aggregate_evaluate(server_round, results, failures)
+    #
+    #     # Store and log
+    #     self.store_results_and_log(
+    #         server_round=server_round,
+    #         tag="federated_evaluate",
+    #         results_dict={"federated_evaluate_loss": loss, **metrics},
+    #     )
+    #     return loss, metrics
 
-        # Store and log
-        self.store_results_and_log(
-            server_round=server_round,
-            tag="federated_evaluate",
-            results_dict={"federated_evaluate_loss": loss, **metrics},
-        )
-        return loss, metrics
-
-    def evaluate(self, server_round, parameters):
-        """
-        Run centralized evaluation if callback was passed to strategy init.
-        """
-        loss, metrics = super().evaluate(server_round, parameters)
-
-        # Save model if new best central accuracy is found
-        self._update_best_acc(server_round, metrics["centralized_accuracy"], parameters)
-
-        # Store and log
-        self.store_results_and_log(
-            server_round=server_round,
-            tag="centralized_evaluate",
-            results_dict={"centralized_loss": loss, **metrics},
-        )
-        return loss, metrics
+    # def evaluate(self, server_round, parameters):
+    #     """
+    #     Run centralized evaluation if callback was passed to strategy init.
+    #     """
+    #     loss, metrics = super().evaluate(server_round, parameters)
+    #
+    #
+    #     # Store and log
+    #     return loss, metrics
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # New function (i.e. all this funciton are not inherited from FedAvg)

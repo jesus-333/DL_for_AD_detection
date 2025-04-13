@@ -114,12 +114,14 @@ def load_data_and_labels(file_path_list_client : str, label_list_int_client : st
 
     # Check if element of file_path_list_client are paths to images
     for i in range(len(file_path_list_client)) :
-        if not isinstance(file_path_list_client[i], str) : raise ValueError(f"Element {i} of file_path_list_client is not a string. Actual value is {file_path_list_client[i]}")
+        if not isinstance(file_path_list_client[i], str) : raise ValueError(f"Element {i} of file_path_list_client is not a string. Actual value is {file_path_list_client[i]} and type is type {type(file_path_list_client[i])}")
         if not file_path_list_client[i].endswith('.jpg') and not file_path_list_client[i].endswith('.png') and not file_path_list_client[i].endswith('.jpeg') : raise ValueError(f"Element {i} of file_path_list_client is not a valid image path. Actual value is {file_path_list_client[i]}")
 
     # Check if labels_client is an array of integers
     for i in range(len(label_list_int_client)) :
-        if not isinstance(label_list_int_client[i], int) : raise ValueError(f"Element {i} of labels_client is not an integer. Actual value is {label_list_int_client[i]}")
+        # If value are saved in numpy integer isinstance will return false. More info here https://github.com/numpy/numpy/issues/2951
+        # TODO write a better condition in the if
+        # if not isinstance(label_list_int_client[i], int) : raise ValueError(f"Element {i} of labels_client is not an integer. Actual value is {label_list_int_client[i]} and type is {type(label_list_int_client[i])}")
         if label_list_int_client[i] < 0 : raise ValueError(f"Element {i} of labels_client is negative. Actual value is {label_list_int_client[i]}. Note that labels must be integers in the range [0, n_classes - 1], where n_classes is the number of classes in the dataset.")
     
     return file_path_list_client, label_list_int_client  
@@ -130,11 +132,24 @@ def load_data_and_labels(file_path_list_client : str, label_list_int_client : st
 def set_weights(model, weights: List[np.ndarray]):
     """
     Load the weights into the model.
-    The function was copied from the Flower tutorial: https://flower.ai/docs/framework/tutorial-series-get-started-with-flower-pytorch.html
-    There are only minor changes in the function signature (from set_parameters(net, parameters) to set_weights(model, weights)) and the addition of a try/except block to catch the error when the model and the weights have different architectures.
+    The function was originally copied from the Flower tutorial: https://flower.ai/docs/framework/tutorial-series-get-started-with-flower-pytorch.html
+    Unfortunately it was not working due to a problem with the layers that have the num_batches_tracked.
+    A modified version of the dictionary copy was therefore implemented.
     """
-    params_dict = zip(model.state_dict().keys(), weights)
-    state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
+    # Old method
+    # params_dict = zip(model.state_dict().keys(), weights)
+    # state_dict = OrderedDict({k : torch.Tensor(v) for k, v in params_dict})
+    
+    # New method
+    # With the old method
+    state_dict = dict()
+    for k, v in zip(model.state_dict().keys(), weights) :
+        if 'num_batches' in k :
+            state_dict[k] = model.state_dict()[k]
+        else :
+            state_dict[k] = torch.Tensor(v) 
+    state_dict = OrderedDict(state_dict)
+
     try :
         model.load_state_dict(state_dict, strict = True)
     except RuntimeError as e:

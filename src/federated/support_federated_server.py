@@ -45,7 +45,7 @@ def extract_metric_from_log_dict(log_dict : dict) -> (list, list):
         for i in range(len(training_epochs)) :
             # Get epoch and metric for the epoch
             current_epoch = training_epochs[i]
-            metric_for_current_epoch = log_dict[f'{metric_name}_{current_epoch}']
+            metric_for_current_epoch = log_dict[f'{metric_name}:{current_epoch}']
 
             # Save metric
             metrics_values_list[i].append(metric_for_current_epoch)

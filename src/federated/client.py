@@ -21,14 +21,18 @@ from ..dataset import dataset, support_dataset
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 class flower_client_v1(NumPyClient):
-    def __init__(self, model, train_dataset, validation_dataset, train_config):
-        # Save model, dataset_config and train_config
+    def __init__(self, model, train_dataset, validation_dataset, training_config):
+        # Save model, dataset_config and training_config
         self.model = model
-        self.train_config = train_config
+        self.training_config = training_config 
 
         # Save dataset
         self.train_dataset = train_dataset
         self.validation_dataset = validation_dataset
+
+        # Check if client id is saved inside training_config
+        self.client_id = training_config["client_id"] if 'client_id' in training_config else -1
+        if self.client_id == -1 : print('WARNING: client id not found in training_config. Set to -1')
 
     def get_weights(self, config):
         return support_federated_generic.get_weights(self.model)
@@ -38,12 +42,16 @@ class flower_client_v1(NumPyClient):
         support_federated_generic.set_weights(self.model, parameters)
 
         # Train the model
-        self.model, training_metrics = train_functions.train(self.train_config, self.model, self.train_dataset, self.validation_dataset)
+        self.model, training_metrics = train_functions.train(self.training_config, self.model, self.train_dataset, self.validation_dataset)
 
         # Convert metrics (see notes in the function description)
         converted_training_metrics = self.convert_training_metrics_for_upload(training_metrics)
+        
+        # Add extra information to the metrics
+        converted_training_metrics['client_id'] = self.client_id
+        converted_training_metrics['epochs']    = self.training_config['epochs']
 
-        return support_federated_generic.get_weights(self.model), len(self.trainloader), converted_training_metrics
+        return support_federated_generic.get_weights(self.model), len(self.train_dataset), converted_training_metrics
 
     def evaluate(self, parameters, config) :
         """
@@ -61,11 +69,11 @@ class flower_client_v1(NumPyClient):
         In the server implementation there is a similar method that merge the single scalar again in a new list.
         """
 
-        converted_training_metrics = []
+        converted_training_metrics = dict()
     
         # Save metrics over time
         for metric in training_metrics :
-            for i in range(self.train_config['epochs']) :
+            for i in range(self.training_config['epochs']) :
                 converted_training_metrics[f'{metric}:{i}'] = training_metrics[metric][i]
 
             # Duplicate metrics at last epoch (so it easy to recover the final metrics values)

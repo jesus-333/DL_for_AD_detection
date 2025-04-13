@@ -69,8 +69,8 @@ def prepare_data_for_FL_training(all_config : dict) :
     # Save data and labels in npy files
     for i in range(all_config['server_config']['n_client']) :
         # Path to save data and labels
-        dataset_path = all_config['dataset_config']['path_data'] + f'{i + 1}_data.npy'
-        labels_path  = all_config['dataset_config']['path_data'] + f'{i + 1}_labels.npy'
+        dataset_path = all_config['dataset_config']['path_data'] + f'{i}_data.npy'
+        labels_path  = all_config['dataset_config']['path_data'] + f'{i}_labels.npy'
 
         # Save data and labels
         np.save(dataset_path, data_per_client[i])
@@ -140,7 +140,7 @@ def server_fn(context: Context):
         fraction_evaluate = fraction_eval,
         initial_parameters = parameters,
         # on_fit_config_fn = on_fit_config, # TODO in future iteration
-        evaluate_fn = gen_evaluate_fn() if all_config['server_config']['centralized_evaluation'] else None,
+        evaluate_fn = gen_evaluate_fn(data_server, labels_server, training_config) if all_config['server_config']['centralized_evaluation'] else None,
         evaluate_metrics_aggregation_fn = support_federated_generic.weighted_average,
     )
     config = ServerConfig(num_rounds = num_rounds)
