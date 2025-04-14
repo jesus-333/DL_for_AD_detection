@@ -141,6 +141,7 @@ def server_fn(context: Context):
         initial_parameters = parameters,
         # on_fit_config_fn = on_fit_config, # TODO in future iteration
         evaluate_fn = gen_evaluate_fn(data_server, labels_server, training_config) if all_config['server_config']['centralized_evaluation'] else None,
+        fit_metrics_aggregation_fn = support_federated_generic.weighted_average,
         evaluate_metrics_aggregation_fn = support_federated_generic.weighted_average,
     )
     config = ServerConfig(num_rounds = num_rounds)

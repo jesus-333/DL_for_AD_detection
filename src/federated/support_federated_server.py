@@ -26,7 +26,7 @@ def extract_metric_from_log_dict(log_dict : dict) -> (list, list):
         metrics_name_list (list): List of strings containing the names of the metrics. Each element is the name of metrics corresponding to the same index in metrics_values_list.
     """
     
-    training_epochs = np.arange(log_dict['epochs']) + 1
+    training_epochs = np.arange(log_dict['epochs'])
     
     metrics_values_list = []
     metrics_name_list = []
@@ -37,14 +37,16 @@ def extract_metric_from_log_dict(log_dict : dict) -> (list, list):
             metrics_name_list.append(metric_name.split(":")[0])
     
     # Iterate over possible metrics
-    for metric_name in metrics_name_list :
+    for i in range(len(metrics_name_list)) :
+        metric_name = metrics_name_list[i]
+
         # Create list for the specific metric
         metrics_values_list.append([])
 
         # Iterate over training epoch
-        for i in range(len(training_epochs)) :
+        for j in range(len(training_epochs)) :
             # Get epoch and metric for the epoch
-            current_epoch = training_epochs[i]
+            current_epoch = training_epochs[j]
             metric_for_current_epoch = log_dict[f'{metric_name}:{current_epoch}']
 
             # Save metric

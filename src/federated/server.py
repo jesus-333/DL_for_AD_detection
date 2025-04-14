@@ -5,6 +5,7 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 import flwr
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -115,7 +116,6 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
                 log_dict = results[i][1].metrics
                 
                 # Get id and number of training epoch
-                for el in log_dict : print(el)
                 client_id = log_dict['client_id']
 
                 # Create epoch arrays
@@ -189,6 +189,35 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
     # New function (i.e. all this funciton are not inherited from FedAvg)
     # TODO : consider if move them to support_federated_server
 
+    def create_metric_plot(self, metrics_to_plot_list : list, training_epochs, metrics_name_list : list, client_id : str) :
+        """
+        Create a plot with matplotlib for the metrics in metrics_to_plot_list. Each element of the list must be an array/list with the value of the metric for each epoch.
+        """
+        
+        # Apparently matplotlib is not thread safe. 
+        # The creation of fig and ax with the command plt.subplots() without using the default backend will cause the following warning and the crash of python.
+        # UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
+        # A possibile solution suggested online was the use of a non-interactive backend
+        matplotlib.use('agg')
+
+        # Create figure
+        fig, ax = plt.subplots(1, 1, figsize = (16, 10))
+        fontsize = 16
+
+        for i in range(len(metrics_name_list)) :
+            # Plot the metric
+            ax.plot(training_epochs, metrics_to_plot_list[i], label = metrics_name_list[i])
+            
+            # Add details
+            ax.legend(fontsize = fontsize)
+            ax.set_xlabel('Epoch', fontsize = fontsize)
+            ax.set_ylabel('Loss', fontsize = fontsize)
+            ax.grid(True)
+
+        fig.tight_layout()
+
+        return fig, ax
+
     def create_and_log_matplotlib_metric_plot(self, metrics_to_plot_list, training_epochs, metrics_name_list, client_id) :
         """
         Create a plot with matplotlib for the metric(s) inside metrics_to_plot_list and log it to wandb.
@@ -207,28 +236,6 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         self.wandb_run.log({
             f"{client_id}/{metric_name}_round_{self.count_rounds}_plt" : fig
         }, commit = False)
-
-    def create_matplotlib_metric_plot(self, metrics_to_plot_list : list, training_epochs, metrics_name_list : list, client_id : str) :
-        """
-        Create a plot with matplotlib for the metrics in metrics_to_plot_list. Each element of the list must be an array/list with the value of the metric for each epoch.
-        """
-
-        fig, ax = plt.subplots(1, 1, figsize = (16, 10))
-        fontsize = 16
-
-        for i in range(len(metrics_name_list)) :
-            # Plot the metric
-            ax.plot(training_epochs, metrics_to_plot_list[i], label = metrics_name_list[i])
-            
-            # Add details
-            ax.legend(fontsize = fontsize)
-            ax.set_xlabel('Epoch', fontsize = fontsize)
-            ax.set_ylabel('Loss', fontsize = fontsize)
-            ax.grid(True)
-
-        fig.tight_layout()
-
-        return fig, ax
 
     def create_and_log_wandb_metric_plot(self, metrics_to_plot_list, training_epochs, metrics_name_list, client_id) :
         """

@@ -216,12 +216,21 @@ def weighted_average(metrics_per_client):
         metrics_current_client   = metrics_per_client[i][1]
     
         # Save the number of samples
-        n_samples_current_client.append(n_samples_current_client)
+        n_samples_per_client.append(n_samples_current_client)
         
         # Iterate over the computed metrics
         for metric in metrics_current_client :
             # If the metric is not present in the dictionary add it
             if metric not in weighted_metrics :
+                # Note that in weighted_metrics dictionary for each metric, I have to save the value for each client. 
+                # E.g. If I have a metric called 'loss_res' and 3 clients then weighted_metrics will have the following form :
+                # weighted_metrics = dict(
+                #     ...
+                #     loss_res = numpy_array[value_loss_res_clien_1, value_loss_res_clien_2, value_loss_res_clien_3]
+                #     ...
+                # )
+                # So each array must have the same length of the number of client. This is equivalent to the lenght of metrics_per_client.
+                # Remember that metrics_per_client is a list of length equals the number of clients where each element is a dictionary with the metric of that specific client.
                 weighted_metrics[metric] = np.zeros(len(metrics_per_client))
             
             # Save the current metric
@@ -230,7 +239,7 @@ def weighted_average(metrics_per_client):
     # Perform weighted average
     for metric in weighted_metrics :
         metric_array = weighted_metrics[metric]
-        weighted_metrics[metric] = np.average(metric_array, n_samples_per_client)
+        weighted_metrics[metric] = np.average(metric_array, weights = n_samples_per_client)
 
     # Aggregate and return custom metric (weighted average)
     return weighted_metrics

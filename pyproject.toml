@@ -24,6 +24,7 @@ dependencies = [
 	"matplotlib",
 	"nibabel",
 	"opencv-python",
+	"plotly",
 	"pydicom",
 	"toml",
     "torch",

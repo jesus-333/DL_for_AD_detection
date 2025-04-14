@@ -58,9 +58,13 @@ class flower_client_v1(NumPyClient):
         NOT USED FOR NOW
         """
 
+        print("Evaluate function not implemented for the client. Returning dummy values.")
+
         # support_federated.set_weights(self.model, parameters)
         # loss, accuracy = test_functions.test()
         # return float(loss), len(self.valloader), {"accuracy": float(accuracy)}
+
+        return 1.0, len(self.validation_dataset), {"accuracy": 1.0}
 
     def convert_training_metrics_for_upload(self, training_metrics) :
         """
