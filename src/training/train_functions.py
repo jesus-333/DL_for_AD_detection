@@ -26,7 +26,46 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
     Parameters
     ----------
     train_config : dict
-        Dictionary containing the training configuration. 
+        Dictionary containing the training configuration. The dictionary will be check through the function check_train_config. 
+        If some keys are missing a defualt value will be used or an error will be raised (depending on the key).
+        The dictionary should contain the following keys:
+        - batch_size : int 
+            Batch size to use for training. If missing an error will be raised.
+        - lr : float
+            Learning rate to use for training. If missing or it has a value <= 0 an error will be raised.
+        - epochs : int
+            Number of epochs to use for training. If missing or it has a value <= 0 an error will be raised.
+        - use_scheduler : bool
+            If True, a learning rate scheduler will be used. If not specified, False will be used as default value.
+        - lr_decay_rate : float
+            Learning rate decay rate. This parameter is used only if use_scheduler is set to True. If not specified, 0.99 will be used as default value.
+        - optimizer_weight_decay : float
+            Weight decay for the AdamW optimizer. If not specified, 0.01 will be used as default value.
+        - device : str
+            Device to use for training. If not specified, "cpu" will be used as default value.
+        - epoch_to_save_model : int
+            Number of epochs to use for saving the model. It must be a positive integer. If not specified, or it has a value <= 0, the model will be saved only at the end of the training.
+        - path_to_save_model : str
+            Path to save the model. If not specified, "model_weights" will be used as default value.
+        - measure_metrics_during_training : bool
+            If True, additional metrics will be computed during training (e.g. accuracy, sensitivity). If not specified, True will be used as default value.
+        - print_var : bool
+            If True, additional information will be printed during training (e.g. loss, learning rate). If not specified, True will be used as default value.
+        - wandb_training : bool
+            If True, wandb will be used to monitor the training. If not specified, False will be used as default value. 
+            If you want to track the training with wandb you should use the function wandb_train instead of this one (Note that wandb_train function will internally call this function).
+        - project_name : str
+            Name of the wandb project. This parameter is used only if wandb_training is set to True. If not specified, an error will be raised.
+        - model_artifact_name : str
+            Name of the wandb model artifact. This parameter is used only if wandb_training is set to True. If not specified, an error will be raised.
+        - log_freq : int
+            Frequency of logging the metrics on wandb. This parameter is used only if wandb_training is set to True. If not specified, 1 will be used as default value.
+        - name_training_run : str
+            Name of the wandb training run. This parameter is used only if wandb_training is set to True. If not specified, None will be used as default value.
+        - notes : str
+            Notes to add to the wandb training run. This parameter is used only if wandb_training is set to True. If not specified, None will be used as default value.
+        - debug : bool
+            This key is not used in the training functions. It is only useful if you want to quickly filter the training run in wandb. If not specified, False will be used as default value.
     model : torch.nn.Module
         Model to train
     train_dataset : torch.utils.data.Dataset 
@@ -34,7 +73,8 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
     validation_dataset : torch.utils.data.Dataset, optional
         Dataset to use for validation, by default None. If None, no validation will be performed
     wandb_model_artifact : wandb.Artifact, optional
-        If wandb is installed, the artifact of the model to use for logging, by default None. If None, no logging will be performed
+        If wandb is installed, the artifact of the model to use for logging, by default None. If None, no logging will be performed. 
+        If you want to track the training with wandb you should use the function wandb_train instead of this one (Note that wandb_train function will internally call this function).
     """
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -79,9 +119,13 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
     # Variable to track best losses
     best_loss_val = sys.maxsize # Best total loss for the validation data
 
-    #  Dictionaries used to saved information during training and load them on wandb
+    # Dictionaries used to saved information during training and load them on wandb.
+    # Note that this due dcitionaries serves different from purposes. 
+    # computed_metrics_during_training is used to save each metric at each epoch and it is returned at the end of the training. 
+    # log_dict save the metrics of a single epoch and it is used by wandb to log the metrics. It is reset at every epoch. The reset is not hardcoded (i.e. I don't have any log_dict = {} for each iteration of the cycle)
+    # But at each iteration the same key are used so basically it the same a reset because each time the values are overwritten.
     log_dict = {}
-    training_metrics = dict()
+    computed_metrics_during_training = dict()
 
     if train_config['print_var'] : print("Start training")
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -92,8 +136,7 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
 
         # Advance epoch for train set (backward pass) and validation (no backward pass)
         train_loss = train_epoch_function(model, train_loader, loss_function, optimizer, 
-                                          train_config['device'], train_config['measure_metrics_during_training'], 
-                                          log_dict, train_config['print_var']
+                                          train_config['device'], log_dict, train_config['print_var']
                                           )
 
         # Save the model after the epoch
@@ -107,8 +150,7 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
         if validation_loader is not None:
 
             validation_loss = validation_epoch_function(model, validation_loader, loss_function, 
-                                                        train_config['device'], train_config['measure_metrics_during_training'], 
-                                                        log_dict,
+                                                        train_config['device'], log_dict,
                                                         )
             
             # Save the new BEST model if a new minimum is reach for the validation loss
@@ -124,6 +166,15 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
             # Compute the various metrics
             train_metrics_dict = metrics.compute_metrics(model, train_loader, train_config['device'])
             validation_metrics_dict = metrics.compute_metrics(model, validation_loader, train_config['device'])
+
+            # Save metrics 
+            for metric in train_metrics_dict :
+                if epoch == 0 : # If it is the first epoch create the list for the specific metric
+                    computed_metrics_during_training[f"{metric}_train"]      = [train_metrics_dict[metric]]
+                    computed_metrics_during_training[f"{metric}_validation"] = [validation_metrics_dict[metric]]
+                else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
+                    computed_metrics_during_training[f"{metric}_train"].append(train_metrics_dict[metric])
+                    computed_metrics_during_training[f"{metric}_validation"].append(validation_metrics_dict[metric])
 
         #  Update learning rate (if a scheduler is provided)
         if lr_scheduler is not None:
@@ -166,14 +217,6 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
             wandb.log(log_dict)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        # Save metrics 
-        for metric in log_dict :
-            if epoch == 0 : # If it is the first epoch create the list for the specific metric
-                training_metrics[metric] = [log_dict[metric]]
-            else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
-                training_metrics[metric].append(log_dict[metric])
-
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # End training cycle
 
     # Save the model at the end of the training
@@ -182,11 +225,11 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
     # Save in wandb the model with the best loss on validation set 
     if train_config['wandb_training'] and validation_loader is not None:
         model_file_path = '{}/{}'.format(train_config['path_to_save_model'], 'model_BEST.pth')
-        wandb_model_artifact.add_file(model_file_path )
-        wandb.save(model_file_path )
+        wandb_model_artifact.add_file(model_file_path)
+        wandb.save(model_file_path)
 
     # Return the trained model
-    return model, training_metrics
+    return model, computed_metrics_during_training
 
 def wandb_train(config : dict, model, train_dataset, validation_dataset = None) :
     """
@@ -229,17 +272,17 @@ def wandb_train(config : dict, model, train_dataset, validation_dataset = None) 
                                         )
         
         # Train the model
-        model, training_metrics = train(train_config, model, train_dataset, validation_dataset, wandb_model_artifact)
+        model, computed_metrics_during_training = train(train_config, model, train_dataset, validation_dataset, wandb_model_artifact)
         
         # Log the model artifact
         run.log_artifact(wandb_model_artifact)
 
-    return model, training_metrics
+    return model, computed_metrics_during_training
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Epoch functions
 
-def train_epoch_function(model, train_loader,loss_function, optimizer, device, measure_metrics_during_training = True, log_dict = None, print_var = True) : 
+def train_epoch_function(model, train_loader,loss_function, optimizer, device, log_dict = None, print_var = True) : 
     # Set the model in training mode
     model.train()
 
@@ -275,7 +318,7 @@ def train_epoch_function(model, train_loader,loss_function, optimizer, device, m
     
     return train_loss
 
-def validation_epoch_function(model, validation_dataloader, loss_function, device, measure_metrics_during_training = True, log_dict = None) : 
+def validation_epoch_function(model, validation_dataloader, loss_function, device, log_dict = None) : 
     # Set the model in training mode
     model.eval()
 
@@ -349,7 +392,12 @@ def check_train_config(config : dict) :
 
     if 'epoch_to_save_model' not in config :
         print('Warning: the training configuration does not contain the key "epoch_to_save_model".')
-        print('This means that the model will be saved only at the end of the training')
+        print('The model will be saved only at the end of the training')
+        config['epoch_to_save_model'] = config['epochs'] + 2
+
+    if config['epoch_to_save_model'] <= 0 :
+        print('Warning: the training configuration contains the key "epoch_to_save_model" with a value <= 0.')
+        print('The model will be saved only at the end of the training')
         config['epoch_to_save_model'] = config['epochs'] + 2
 
     if 'measure_metrics_during_training' not in config :
@@ -383,7 +431,15 @@ def check_train_config(config : dict) :
             print('A random name will be assigned by wandb to the training run')
             config['name_training_run'] = None
 
-def update_log_dict_metrics(metrics_dict, log_dict, label):
+        if 'debug' not in config :
+            print('Warning: the training configuration does not contain the key "debug". False will be used as default value')
+            print('This key is not used in the training functions. It is only useful if you want to quickly filter the training run in wandb')
+            config['debug'] = False
+
+def update_log_dict_metrics(metrics_dict, log_dict, label = None):
     for key, value in metrics_dict.items() :
-        log_dict['{}_{}'.format(key, label)] = value
+        if label is not None :
+            log_dict['{}_{}'.format(key, label)] = value
+        else :
+            log_dict['{}'.format(key)] = value
 

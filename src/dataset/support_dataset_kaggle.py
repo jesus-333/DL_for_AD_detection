@@ -17,7 +17,7 @@ import shutil
 import torch
 from torchvision import transforms
 
-from . import support_dataset
+from . import support_dataset, dataset
 
 try :
     import kagglehub
@@ -28,7 +28,7 @@ except ImportError :
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def get_dataset(path_files_Moderate_Demented : str, path_files_Mild_Demented : str, path_files_Very_Mild_Demented : str, path_files_Non_Demented : str, 
+def get_data(path_files_Moderate_Demented : str, path_files_Mild_Demented : str, path_files_Very_Mild_Demented : str, path_files_Non_Demented : str, 
                           merge_AD_class : int = 0, print_var : bool = True) :
     """
     Given the path to the folders with the images of the AD dataset, return the list with the paths of the files and the labels.
@@ -126,7 +126,7 @@ def get_dataset(path_files_Moderate_Demented : str, path_files_Mild_Demented : s
     return file_path_list, label_list_int, label_list_str
 
 
-def download_and_get_dataset(path_to_save_data : str = './data/', merge_AD_class : bool = False, print_var : bool = True) :
+def download_and_get_data(path_to_save_data : str = './data/', merge_AD_class : bool = False, print_var : bool = True) :
     """
     Download and return the Kaggle AD dataset. The dataset can be find at the following link : https://www.kaggle.com/datasets/marcopinamonti/alzheimer-mri-4-classes-dataset
     The data are downloaded in the default path of kagglehub and then moved in the new path provided. If no path is provided, the data are moved in the './data/' folder.
@@ -151,5 +151,38 @@ def download_and_get_dataset(path_to_save_data : str = './data/', merge_AD_class
         path_files_Non_Demented         = os.path.join(path_to_save_data, 'Alzheimer_MRI_4_classes_dataset/NonDemented')
         print(path_files_Moderate_Demented    )
 
-    return get_dataset(path_files_Non_Demented, path_files_Mild_Demented, path_files_Moderate_Demented, path_files_Very_Mild_Demented, merge_AD_class, print_var)
+    return get_data(path_files_Non_Demented, path_files_Mild_Demented, path_files_Moderate_Demented, path_files_Very_Mild_Demented, merge_AD_class, print_var)
+
+def get_dataset_with_preprocess_function_from_data(file_path_list : list, label_list_int : list, model_config : dict, dataset_config : dict) :
+    # Get proprocess function
+    if model_config['input_size'] == 224 :
+        dataset_mean = torch.tensor([0.4233, 0.4233, 0.4233]) if not dataset_config['grey_scale_image'] else torch.tensor([0.4233])
+        dataset_std  = torch.tensor([0.3179, 0.3179, 0.3179]) if not dataset_config['grey_scale_image'] else torch.tensor([0.3179])
+
+        preprocess_functions  = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(model_config['input_size']),
+            transforms.Normalize(mean = dataset_mean, std = dataset_std),
+        ])
+    elif model_config['input_size'] == 176 :
+        # This values are precomputed with the script compute_avg_std_dataset.py (using the Resize(176)  before computation)
+        dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816]) if not dataset_config['grey_scale_image'] else torch.tensor([0.2816])
+        dataset_std  = torch.tensor([0.3259, 0.3259, 0.3259]) if not dataset_config['grey_scale_image'] else torch.tensor([0.3259])
+
+        preprocess_functions  = transforms.Compose([
+            transforms.Resize((model_config['input_size'], model_config['input_size'])),
+            transforms.Normalize(mean = dataset_mean, std = dataset_std),
+        ])
+    else :
+        raise ValueError("Input size not supported. Use 224 or 176")
+
+    load_data_in_memory = dataset_config['load_data_in_memory']
+    test_dataset = dataset.MRI_2D_dataset(file_path_list, label_list_int, load_data_in_memory = load_data_in_memory, 
+                                          preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image']
+                                          )
+
+    return test_dataset
+
+
+
 
