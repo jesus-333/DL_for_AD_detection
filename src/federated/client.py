@@ -53,18 +53,18 @@ class flower_client_v1(NumPyClient):
 
         return support_federated_generic.get_weights(self.model), len(self.train_dataset), converted_training_metrics
 
-    def evaluate(self, parameters, config) :
-        """
-        NOT USED FOR NOW
-        """
-
-        print("Evaluate function not implemented for the client. Returning dummy values.")
-
-        # support_federated.set_weights(self.model, parameters)
-        # loss, accuracy = test_functions.test()
-        # return float(loss), len(self.valloader), {"accuracy": float(accuracy)}
-
-        return 1.0, len(self.validation_dataset), {"accuracy": 1.0}
+    # def evaluate(self, parameters, config) :
+    #     """
+    #     NOT USED FOR NOW
+    #     """
+    #
+    #     print("Evaluate function not implemented for the client. Returning dummy values.")
+    #
+    #     # support_federated.set_weights(self.model, parameters)
+    #     # loss, accuracy = test_functions.test()
+    #     # return float(loss), len(self.valloader), {"accuracy": float(accuracy)}
+    #
+    #     return 1.0, len(self.validation_dataset), {"accuracy": 1.0}
 
     def convert_training_metrics_for_upload(self, training_metrics) :
         """
@@ -77,6 +77,10 @@ class flower_client_v1(NumPyClient):
     
         # Save metrics over time
         for metric in training_metrics :
+            # Avoid conversion of confusion matrix
+            if 'confusion_matrix' in metric : continue
+
+            # Iterate over length epoch
             for i in range(self.training_config['epochs']) :
                 converted_training_metrics[f'{metric}:{i}'] = training_metrics[metric][i]
 

@@ -1,6 +1,6 @@
 batch_size = 64
 lr = 0.01
-epochs = 2
+epochs = 4
 use_scheduler = true
 lr_decay_rate = 0.95
 optimizer_weight_decay = 0.01

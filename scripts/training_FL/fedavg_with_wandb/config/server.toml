@@ -1,7 +1,8 @@
-num_rounds = 8
+num_rounds = 2
 n_client = 3
 fraction_fit = 1
 fraction_evaluate = 1
-local_epochs = 1
 keep_labels_proportion = true
-centralized_evaluation = true
+centralized_evaluation = false
+metrics_to_log_from_clients = ['accuracy_train', 'accuracy_validation']
+metrics_plot_backend = 'wandb'

@@ -78,7 +78,7 @@ percentage_split_train_validation_test = [dataset_config['percentage_train'], da
 # Dataset creation
 
 # Get data path
-file_path_list, label_list_int, label_list_str = support_dataset_kaggle.get_dataset(path_files_Moderate_Demented, path_files_Mild_Demented, path_files_Very_Mild_Demented, path_files_Non_Demented, 
+file_path_list, label_list_int, label_list_str = support_dataset_kaggle.get_data(path_files_Moderate_Demented, path_files_Mild_Demented, path_files_Very_Mild_Demented, path_files_Non_Demented, 
                                                                                       dataset_config['merge_AD_class'], print_var)
 
 # Divide data for each client
