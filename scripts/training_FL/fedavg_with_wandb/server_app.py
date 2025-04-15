@@ -103,11 +103,6 @@ def server_fn(context : Context):
 
     # Get seed 
     training_config['seed'] = context.run_config["seed"] if 'seed' in context.run_config else None
-
-    # Get n_clients from num-supernodes (defined inside pyproject.toml)
-    print(context)
-    raise ValueError("ASDHKALSHDKJLASHD")
-    server_config['n_clients'] = context.run_config['num-supernodes']
     
     # Create single config dictionary
     all_config = dict(

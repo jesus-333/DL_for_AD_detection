@@ -120,8 +120,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
         self.count_rounds = 0
         self.num_rounds = server_config['num_rounds']
-        self.metrics_to_log_from_clients = server_config['metrics_to_log_from_clients'] if 'metrics_to_log_from_clients' in server_config else 'all'
-        self.metrics_to_log_from_clients = 'all' if self.metrics_to_log_from_clients is None else self.metrics_to_log_from_clients
+        self.metrics_to_log_from_clients = server_config['metrics_to_log_from_clients'] if 'metrics_to_log_from_clients' in server_config else None
 
         self.model = model
 
@@ -159,39 +158,41 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             # Add weight to wandb
             self.model_artifact.add_file(save_path)
             wandb.save(save_path)
+
+            if self.metrics_to_log_from_clients is not None :
             
-            # Iterate over clients
-            for i in range(len(results)) :
-                # Get metrics log dict for current client
-                log_dict = results[i][1].metrics
-                
-                # Get id and number of training epoch
-                client_id = log_dict['client_id']
-
-                # Create epoch arrays
-                training_epochs = np.arange(log_dict['epochs']) + 1
-
-                # Extract losses
-                metrics_values_list, metrics_name_list = support_federated_server.extract_metric_from_log_dict(log_dict)
-
-                # Plot(s) creation and log
-                if self.metrics_to_log_from_clients == 'all' :
-                    self.create_and_log_wandb_metric_plot_separately(metrics_values_list, training_epochs,  metrics_name_list, client_id)
-                else :
-                    # Get the metrics to plot
-                    idx_of_metrics_to_plot = [i for i in range(len(metrics_values_list)) if metrics_name_list[i] in self.metrics_to_log_from_clients]
-                    metrics_values_to_plot_list = [metrics_values_list[idx] for idx in idx_of_metrics_to_plot]
-                    metrics_name_to_plot_list   = [metrics_name_list[idx] for idx in idx_of_metrics_to_plot]
+                # Iterate over clients
+                for i in range(len(results)) :
+                    # Get metrics log dict for current client
+                    log_dict = results[i][1].metrics
                     
-                    # TODO add option to decide if upload also the plot with the metrics merged
-                    self.create_and_log_wandb_metric_plot_separately(metrics_values_to_plot_list, training_epochs, metrics_name_to_plot_list, client_id)
+                    # Get id and number of training epoch
+                    client_id = log_dict['client_id']
 
-                    # For now this not produce the plot I want
-                    # self.create_and_log_wandb_metric_plot_together(metrics_values_to_plot_list, training_epochs, metrics_name_to_plot_list, client_id)
+                    # Create epoch arrays
+                    training_epochs = np.arange(log_dict['epochs']) + 1
 
-                # for metric_values, metric_name in zip(metrics_values_list, metrics_name_list) :
-                #     self.create_and_log_matplotlib_metric_plot([metric_values], training_epochs, [metric_name], client_id)
-                #     self.create_and_log_wandb_metric_plot_separately([metric_values], training_epochs, [metric_name], client_id)
+                    # Extract losses
+                    metrics_values_list, metrics_name_list = support_federated_server.extract_metric_from_log_dict(log_dict)
+
+                    # Plot(s) creation and log
+                    if self.metrics_to_log_from_clients == 'all' :
+                        self.create_and_log_wandb_metric_plot_separately(metrics_values_list, training_epochs,  metrics_name_list, client_id)
+                    else :
+                        # Get the metrics to plot
+                        idx_of_metrics_to_plot = [i for i in range(len(metrics_values_list)) if metrics_name_list[i] in self.metrics_to_log_from_clients]
+                        metrics_values_to_plot_list = [metrics_values_list[idx] for idx in idx_of_metrics_to_plot]
+                        metrics_name_to_plot_list   = [metrics_name_list[idx] for idx in idx_of_metrics_to_plot]
+                        
+                        # TODO add option to decide if upload also the plot with the metrics merged
+                        self.create_and_log_wandb_metric_plot_separately(metrics_values_to_plot_list, training_epochs, metrics_name_to_plot_list, client_id)
+
+                        # For now this not produce the plot I want
+                        # self.create_and_log_wandb_metric_plot_together(metrics_values_to_plot_list, training_epochs, metrics_name_to_plot_list, client_id)
+
+                    # for metric_values, metric_name in zip(metrics_values_list, metrics_name_list) :
+                    #     self.create_and_log_matplotlib_metric_plot([metric_values], training_epochs, [metric_name], client_id)
+                    #     self.create_and_log_wandb_metric_plot_separately([metric_values], training_epochs, [metric_name], client_id)
         else :
             model_weights = None
 
