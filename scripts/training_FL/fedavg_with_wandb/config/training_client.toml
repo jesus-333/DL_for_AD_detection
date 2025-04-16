@@ -1,6 +1,6 @@
-batch_size = 48
+batch_size = 96
 lr = 0.01
-epochs = 2
+epochs = 50
 optimizer_weight_decay = 0.01
 device = "mps"
 epoch_to_save_model = 10
@@ -11,17 +11,6 @@ seed = -1
 use_weights_with_lower_validation_error = true
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Wandb settings
-
-wandb_training = false
-project_name = "demnet_training_FL_kaggle"
-model_artifact_name = "demnet_training_FL_kaggle"
-log_freq = 1
-name_training_run = "run_"
-notes = ""
-debug = true
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # LR Scheduler settings
 
 use_scheduler = true
@@ -29,7 +18,7 @@ use_scheduler = true
 name = 'ChainedScheduler'
 [lr_scheduler_config.list_config_schedulers.config_1]
 name = 'CosineAnnealingLR'
-T_max = 9
+T_max = 8
 eta_min = 1e-5
 [lr_scheduler_config.list_config_schedulers.config_2]
 name = 'ExponentialLR'

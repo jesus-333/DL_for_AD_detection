@@ -93,8 +93,9 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Get config dictionaries
-        server_config = all_config['server_config']
-        training_config  = all_config['training_config']
+        server_config   = all_config['server_config']
+        training_config = all_config['training_config']
+        wandb_config    = server_config['wandb_config']
 
         self.all_config = all_config
 
@@ -104,15 +105,15 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         if not wandb_installed : raise ImportError('wandb is not installed. Please it using "pip install wandb"')
 
         # Initialise wandb
-        self.wandb_run = wandb.init(project = training_config['project_name'], 
+        self.wandb_run = wandb.init(project = wandb_config['project_name'], 
                                     job_type = "train", config = all_config, 
-                                    notes = training_config['notes'], 
-                                    name = training_config['name_training_run']
+                                    notes = wandb_config['notes'], 
+                                    name = wandb_config['name_training_run']
                                     )
 
         # Wandb artifact to save model weights
-        self.model_artifact = wandb.Artifact(training_config['model_artifact_name'], type = "model", 
-                                             description = training_config['description'] if 'description' in training_config else None,
+        self.model_artifact = wandb.Artifact(wandb_config['model_artifact_name'], type = "model", 
+                                             description = wandb_config['description'] if 'description' in wandb_config else None,
                                              metadata = all_config)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
