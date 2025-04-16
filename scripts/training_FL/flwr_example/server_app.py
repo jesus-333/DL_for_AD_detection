@@ -28,6 +28,5 @@ def server_fn(context: Context):
 
     return ServerAppComponents(strategy=strategy, config=config)
 
-
 # Create ServerApp
 app_sv = ServerApp(server_fn=server_fn)

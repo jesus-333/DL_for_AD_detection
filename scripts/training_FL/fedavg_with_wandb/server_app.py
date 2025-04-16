@@ -103,6 +103,7 @@ def server_fn(context : Context):
 
     # Get seed 
     training_config['seed'] = context.run_config["seed"] if 'seed' in context.run_config else None
+    training_config['seed'] = np.random.randint(0, 10e8)
     
     # Create single config dictionary
     all_config = dict(
@@ -116,6 +117,7 @@ def server_fn(context : Context):
     num_rounds    = server_config["num_rounds"]
     fraction_fit  = server_config["fraction_fit"]
     fraction_eval = server_config["fraction_evaluate"]
+    if len(server_config['metrics_to_log_from_clients']) == 0 : server_config['metrics_to_log_from_clients'] = None 
 
     # Prepare dataset for FL training and central evaluation
     data_per_client, labels_per_client = prepare_data_for_FL_training(all_config)

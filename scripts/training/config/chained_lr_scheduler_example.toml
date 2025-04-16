@@ -1,0 +1,9 @@
+[train_config.lr_scheduler_config]
+name = 'ChainedScheduler'
+[train_config.lr_scheduler_config.list_config_schedulers.config_1]
+name = 'CosineAnnealingLR'
+T_max = 20
+eta_min = 1e-5
+[train_config.lr_scheduler_config.list_config_schedulers.config_2]
+name = 'ExponentialLR'
+gamma = 0.95

@@ -1,14 +1,26 @@
 batch_size = 1
 lr = 0.01
 epochs = 1
-use_scheduler = true
-lr_decay_rate = 0.99
 optimizer_weight_decay = 0.01
 device = "cpu"
 epoch_to_save_model = 1
 path_to_save_model = "model_weights"
 measure_metrics_during_training = false
 print_var = true
+seed = 42
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Lr scheduler settings 
+use_scheduler = true
+[lr_scheduler_config]
+name = 'CosineAnnealingLR'
+gamma = 0.96  	# Used for ExponentialLR and StepLR
+T_max = 2 		# Used for CosineAnnealingLR
+eta_min = 0 	# Used for CosineAnnealingLR
+step_size = 5	# Used for StepLR
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Wandb settings
 wandb_training = false
 project_name = ""
 model_artifact_name = ""

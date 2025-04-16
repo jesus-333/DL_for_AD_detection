@@ -1,8 +1,6 @@
 batch_size = 64
 lr = 0.01
-epochs = 4
-use_scheduler = true
-lr_decay_rate = 0.95
+epochs = 20
 optimizer_weight_decay = 0.01
 device = "mps"
 epoch_to_save_model = 10
@@ -10,10 +8,25 @@ path_to_save_model = "model_weights"
 measure_metrics_during_training = true
 print_var = true
 seed = -1
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Wandb settings
+
 wandb_training = false
-project_name = "demnet_training"
-model_artifact_name = "demnet_training_ADNI"
+project_name = "demnet_training_FL_kaggle"
+model_artifact_name = "demnet_training_FL_kaggle"
 log_freq = 1
-name_training_run = "test_flwr_app"
+name_training_run = "run_"
 notes = ""
 debug = true
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# LR Scheduler settings
+
+use_scheduler = true
+[lr_scheduler_config]
+name = 'CosineAnnealingLR'
+gamma = 0.96  	# Used for ExponentialLR and StepLR
+T_max = 2 		# Used for CosineAnnealingLR
+eta_min = 0 	# Used for CosineAnnealingLR
+step_size = 5	# Used for StepLR

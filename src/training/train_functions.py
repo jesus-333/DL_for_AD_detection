@@ -15,7 +15,7 @@ except ImportError :
     print('Warning: wandb is not installed. If you want to use it, please install it using "pip install wandb"')
     print('The functionality of the code will not be affected, but you will not be able to use wandb to monitor the training')
 
-from . import metrics
+from . import metrics, support_training
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -37,8 +37,9 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
             Number of epochs to use for training. If missing or it has a value <= 0 an error will be raised.
         - use_scheduler : bool
             If True, a learning rate scheduler will be used. If not specified, False will be used as default value.
-        - lr_decay_rate : float
-            Learning rate decay rate. This parameter is used only if use_scheduler is set to True. If not specified, 0.99 will be used as default value.
+        - lr_scheduler_config : dict
+            Dictionary with the configuration of the selected lr scheduler. The possible keys depend from the selected scheduler (see https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate for a complete list).
+            Scheduler currently implemented : ExponentialLR, CosineAnnealingLR.
         - optimizer_weight_decay : float
             Weight decay for the AdamW optimizer. If not specified, 0.01 will be used as default value.
         - device : str
@@ -49,6 +50,9 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
             Path to save the model. If not specified, "model_weights" will be used as default value.
         - measure_metrics_during_training : bool
             If True, additional metrics will be computed during training (e.g. accuracy, sensitivity). If not specified, True will be used as default value.
+        - seed : float
+            Seed to use for training. Note that this parameter is not used inside this function. Usually it is used before in the functions to split the data. See for example in demnet_kaggle_wandb.py in scripts/training.
+            Keep the seed in the train_config dictionary is still useful for reproducibility (you can save locally the dictionary or log it on wandb if you use the function wandb_train)
         - print_var : bool
             If True, additional information will be printed during training (e.g. loss, learning rate). If not specified, True will be used as default value.
         - wandb_training : bool
@@ -81,11 +85,11 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
     # Chek config and Dataloader creation
 
     # Check if the training configuration 
-    check_train_config(train_config)
+    support_training.check_train_config(train_config)
     
     # Create DataLoaders
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
-    if validation_dataset is not None :  validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
+    if validation_dataset is not None : validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
     else : validation_dataloader = None
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -104,7 +108,7 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
 
     # (OPTIONAL) Setup lr scheduler
     if train_config['use_scheduler'] :
-        lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = train_config['lr_decay_rate'])
+        lr_scheduler = support_training.get_lr_scheduler(train_config['lr_scheduler_config'], optimizer)
     else:
         lr_scheduler = None
 
@@ -205,8 +209,8 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
         
             # Save the metrics in the log 
             if train_config['measure_metrics_during_training']:
-                update_log_dict_metrics(train_metrics_dict, log_dict, 'train')
-                if validation_loader is not None: update_log_dict_metrics(validation_metrics_dict, log_dict, 'validation')
+                support_training.update_log_dict_metrics(train_metrics_dict, log_dict, 'train')
+                if validation_loader is not None: support_training.update_log_dict_metrics(validation_metrics_dict, log_dict, 'validation')
             
             # Add the model to the artifact
             if (epoch + 1) % train_config['epoch_to_save_model'] == 0:
@@ -351,95 +355,3 @@ def validation_epoch_function(model, validation_dataloader, loss_function, devic
     return validation_loss 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-def check_train_config(config : dict) :
-
-    if 'batch_size' not in config :
-        raise ValueError('The training configuration must contain the key "batch_size"')
-
-    if 'lr' not in config :
-        raise ValueError('The training configuration must contain the key "lr"')
-
-    if config['lr'] <= 0 : 
-        raise ValueError(f"The learning rate must be greater than 0. Current value: {config['lr']}")
-
-    if 'epochs' not in config :
-        raise ValueError('The training configuration must contain the key "epochs"')
-
-    if config['epochs'] <= 0 :
-        raise ValueError(f"The number of epochs must be greater than 0. Current value: {config['epochs']}")
-
-    if 'use_scheduler' not in config :
-        print('Warning: the training configuration does not contain the key "use_scheduler". Default value will be used (False)')
-        config['use_scheduler'] = False
-
-    if 'lr_decay_rate' not in config :
-        print('Warning: the training configuration does not contain the key "lr_decay_rate". 0.99 will be used as default value')
-        print('Note that this parameter is used only if "use_scheduler" is set to True')
-        config['lr_decay_rate'] = 0.99
-
-    if 'optimizer_weight_decay' not in config :
-        print('Warning: the training configuration does not contain the key "optimizer_weight_decay" for the AdamW optimizer. 0.01 will be used as default value')
-        config['optimizer_weight_decay'] = 0.01
-
-    if 'device' not in config :
-        print('Warning: the training configuration does not contain the key "device". "cpu" will be used as default value')
-        config['device'] = "cpu" 
-
-    if 'path_to_save_model' not in config :
-        print('Warning: the training configuration does not contain the key "path_to_save_model". "model_weights" will be used as default value')
-        config['path_to_save_model'] = "model_weights"
-
-    if 'epoch_to_save_model' not in config :
-        print('Warning: the training configuration does not contain the key "epoch_to_save_model".')
-        print('The model will be saved only at the end of the training')
-        config['epoch_to_save_model'] = config['epochs'] + 2
-
-    if config['epoch_to_save_model'] <= 0 :
-        print('Warning: the training configuration contains the key "epoch_to_save_model" with a value <= 0.')
-        print('The model will be saved only at the end of the training')
-        config['epoch_to_save_model'] = config['epochs'] + 2
-
-    if 'measure_metrics_during_training' not in config :
-        print('Warning: the training configuration does not contain the key "measure_metrics_during_training". True will be used as default value')
-        config['measure_metrics_during_training'] = True 
-
-    if 'print_var' not in config :
-        print('Warning: the training configuration does not contain the key "print_var". True will be used as default value')
-        print('This values set to True print the metrics and the loss during training, and other information before the start of the training')
-        config['print_var'] = True
-
-    if 'wandb_training' not in config :
-        print('Warning: the training configuration does not contain the key "wandb_training". False will be used as default value')
-        print('If you want to use wandb to monitor the training, please set this value to True and make sure to have wandb installed')
-        config['wandb_training'] = False
-
-    if config['wandb_training'] :
-        if 'project_name' not in config :
-            raise ValueError('The training configuration must contain the key "project_name" if "wandb_training" is set to True')
-
-        if 'model_artifact_name' not in config :
-            raise ValueError('The training configuration must contain the key "model_artifact_name" if "wandb_training" is set to True')
-
-        if 'log_freq' not in config :
-            print('Warning: the training configuration does not contain the key "log_freq". 1 will be used as default value')
-            print('This means that the metrics will be logged every epoch')
-            config['log_freq'] = 1
-
-        if 'name_training_run' not in config :
-            print('Warning: the training configuration does not contain the key "name_training_run". None will be used as default value')
-            print('A random name will be assigned by wandb to the training run')
-            config['name_training_run'] = None
-
-        if 'debug' not in config :
-            print('Warning: the training configuration does not contain the key "debug". False will be used as default value')
-            print('This key is not used in the training functions. It is only useful if you want to quickly filter the training run in wandb')
-            config['debug'] = False
-
-def update_log_dict_metrics(metrics_dict, log_dict, label = None):
-    for key, value in metrics_dict.items() :
-        if label is not None :
-            log_dict['{}_{}'.format(key, label)] = value
-        else :
-            log_dict['{}'.format(key)] = value
-

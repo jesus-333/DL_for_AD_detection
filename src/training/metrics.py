@@ -61,8 +61,8 @@ def compute_metrics_from_labels(true_label, predict_label):
         sensitivity = recall_score(true_label, predict_label, average = 'weighted'),
         specificity = compute_specificity_multiclass(true_label, predict_label),
         f1          = f1_score(true_label, predict_label, average = 'weighted'),
-        # confusion_matrix = multilabel_confusion_matrix(true_label, predict_label),
-        confusion_matrix = compute_multiclass_confusion_matrix(true_label, predict_label),
+        # confusion_matrix = multilabel_confusion_matrix(true_label, predict_label), 
+        # confusion_matrix = compute_multiclass_confusion_matrix(true_label, predict_label), # TODO for now the computation/upload is suspended. 
     )
     
     return computed_metrics
