@@ -124,9 +124,9 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
         self.model = model
 
-    def __del__(self):
-        print("END SERVER AND WANDB LOG")
-        self.wandb_run.finish()
+    # def __del__(self):
+    #     print("END SERVER AND WANDB LOG")
+    #     self.wandb_run.finish()
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Override methods from FedAvg
@@ -239,7 +239,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             self.wandb_run.log(test_metrics_dict, step = self.count_rounds)
 
             # Close wandb run if I'm at the last round
-            if self.count_rounds == self.num_rounds and not self.all_config['server_config']['centralized_evaluation'] :
+            if self.count_rounds == self.num_rounds and self.all_config['server_config']['centralized_evaluation'] :
                 self.end_wandb_run_and_log_artifact()
                 print("End training rounds")
 
