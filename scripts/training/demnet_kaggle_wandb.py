@@ -51,7 +51,7 @@ all_config = dict(
 # train_config['epoch_to_save_model'] = train_config['epochs'] + 2
 
 # Note that toml file din't have (yet) the null type
-if train_config['seed'] == -1 : train_config['seed'] = None
+if train_config['seed'] == -1 : train_config['seed'] = np.random.randint(0, 1e8)
 
 # This values are precomputed with the script compute_avg_std_dataset.py (withoug using the CenterCrop and Resize)
 # dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816])

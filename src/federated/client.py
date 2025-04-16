@@ -6,17 +6,10 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Imports
 
-import toml
-
-import torch
-
-from flwr.client import Client, NumPyClient
-from flwr.common import Context
+from flwr.client import NumPyClient
 
 from . import support_federated_generic
 from ..training import train_functions, test_functions
-from ..model import demnet
-from ..dataset import dataset, support_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -25,14 +18,23 @@ class flower_client_v1(NumPyClient):
         # Save model, dataset_config and training_config
         self.model = model
         self.training_config = training_config 
+        if 'print_var' not in self.training_config : self.training_config['print_var'] = False
 
         # Save dataset
         self.train_dataset = train_dataset
         self.validation_dataset = validation_dataset
 
         # Check if client id is saved inside training_config
+        # Note that usually the client_id is not speciefied in the toml file. It is added during the client creation in through the client_fn functions
+        # E.g. see the function client_fn_demnet in scripts/training_FL/fedavg_with_wandb/client_app.py
         self.client_id = training_config["client_id"] if 'client_id' in training_config else -1
         if self.client_id == -1 : print('WARNING: client id not found in training_config. Set to -1')
+
+        # Print information 
+        if self.training_config['print_var'] :
+            print(f"Client n. {self.client_id}")
+            print(f"N. training samples = {len(self.train_dataset)}")
+            print(f"N. validation_dataset samples = {len(self.validation_dataset)}")
 
     def get_weights(self, config):
         return support_federated_generic.get_weights(self.model)
@@ -41,8 +43,15 @@ class flower_client_v1(NumPyClient):
         # Set the parameters (received from the server) 
         support_federated_generic.set_weights(self.model, parameters)
 
+        # Update training config
+        for key in config : 
+            if key in self.training_config : 
+                self.training_config[key] = config[key]
+
         # Train the model
+        if self.training_config['print_var'] : print(f"START TRAINING Client {self.client_id}")
         self.model, training_metrics = train_functions.train(self.training_config, self.model, self.train_dataset, self.validation_dataset)
+        if self.training_config['print_var'] : print(f"END TRAINING Client {self.client_id}")
 
         # Convert metrics (see notes in the function description)
         converted_training_metrics = self.convert_training_metrics_for_upload(training_metrics)

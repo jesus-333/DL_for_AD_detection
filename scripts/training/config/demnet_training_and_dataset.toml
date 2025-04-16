@@ -1,9 +1,7 @@
 [train_config]
 batch_size = 64
 lr = 0.01
-epochs = 2
-use_scheduler = true
-lr_decay_rate = 0.95
+epochs = 80
 optimizer_weight_decay = 0.01
 device = "mps"
 epoch_to_save_model = 10
@@ -18,6 +16,22 @@ log_freq = 1
 name_training_run = ""
 notes = ""
 debug = true
+use_scheduler = true
+# [train_config.lr_scheduler_config]
+# name = 'CosineAnnealingLR'
+# T_max = 20
+# eta_min = 1e-5
+# gamma = 0.96 
+# step_size = 5
+[train_config.lr_scheduler_config]
+name = 'ChainedScheduler'
+[train_config.lr_scheduler_config.list_config_schedulers.config_1]
+name = 'CosineAnnealingLR'
+T_max = 9
+eta_min = 1e-5
+[train_config.lr_scheduler_config.list_config_schedulers.config_2]
+name = 'ExponentialLR'
+gamma = 0.92
 
 [dataset_config]
 merge_AD_class = 2

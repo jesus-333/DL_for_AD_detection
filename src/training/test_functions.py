@@ -10,7 +10,8 @@ TODO : Implement in the future.
 
 import torch
 
-from .train_functions import validation_epoch_function, update_log_dict_metrics
+from .train_functions import validation_epoch_function
+from .support_training import update_log_dict_metrics
 from . import metrics
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

@@ -57,3 +57,5 @@ def extract_metric_from_log_dict(log_dict : dict) -> (list, list):
     
     return metrics_values_list, metrics_name_list
 
+def compute_lr_after_round(lr_value : float, server_round : int) :
+    pass

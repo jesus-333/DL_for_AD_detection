@@ -1,4 +1,4 @@
-batch_size = 64
+batch_size = 48
 lr = 0.01
 epochs = 20
 optimizer_weight_decay = 0.01
@@ -25,8 +25,12 @@ debug = true
 
 use_scheduler = true
 [lr_scheduler_config]
+name = 'ChainedScheduler'
+[lr_scheduler_config.list_config_schedulers.config_1]
 name = 'CosineAnnealingLR'
-gamma = 0.96  	# Used for ExponentialLR and StepLR
-T_max = 2 		# Used for CosineAnnealingLR
-eta_min = 0 	# Used for CosineAnnealingLR
-step_size = 5	# Used for StepLR
+T_max = 9
+eta_min = 1e-5
+[lr_scheduler_config.list_config_schedulers.config_2]
+name = 'ExponentialLR'
+gamma = 0.92
+
