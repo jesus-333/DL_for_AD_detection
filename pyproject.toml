@@ -54,7 +54,7 @@ clientapp = "scripts.training_FL.fedavg_with_wandb.client_app:app"
 path_dataset_config  = './scripts/training_FL/fedavg_with_wandb/config/dataset.toml'
 path_model_config    = './scripts/training_FL/fedavg_with_wandb/config/model.toml'
 path_server_config   = './scripts/training_FL/fedavg_with_wandb/config/server.toml'
-path_training_config = './scripts/training_FL/fedavg_with_wandb/config/training.toml'
+path_training_config = './scripts/training_FL/fedavg_with_wandb/config/training_client.toml'
 
 [tool.flwr.federations]
 default = "local-simulation"
