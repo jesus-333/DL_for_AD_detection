@@ -6,6 +6,9 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Imports
 
+import os
+import torch
+
 from flwr.client import NumPyClient
 
 from . import support_federated_generic
@@ -29,6 +32,9 @@ class flower_client_v1(NumPyClient):
         # E.g. see the function client_fn_demnet in scripts/training_FL/fedavg_with_wandb/client_app.py
         self.client_id = training_config["client_id"] if 'client_id' in training_config else -1
         if self.client_id == -1 : print('WARNING: client id not found in training_config. Set to -1')
+
+        # Update path to save weights with client id
+        self.training_config['path_to_save_model'] += f'_{self.client_id}' 
 
         # Print information 
         if self.training_config['print_var'] :
@@ -59,6 +65,11 @@ class flower_client_v1(NumPyClient):
         # Add extra information to the metrics
         converted_training_metrics['client_id'] = self.client_id
         converted_training_metrics['epochs']    = self.training_config['epochs']
+
+        # (OPTIONAL) Load the weights that obtain the lower validation error (I.e. early stop)
+        if self.training_config['use_weights_with_lower_validation_error'] :
+            path_weights_early_stop = os.path.join(self.training_config['path_to_save_model'], 'model_BEST.pth') 
+            self.model.load_state_dict(torch.load(path_weights_early_stop, map_location = self.training_config['device']))
 
         return support_federated_generic.get_weights(self.model), len(self.train_dataset), converted_training_metrics
 

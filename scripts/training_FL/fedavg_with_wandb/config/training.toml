@@ -1,6 +1,6 @@
 batch_size = 48
 lr = 0.01
-epochs = 20
+epochs = 2
 optimizer_weight_decay = 0.01
 device = "mps"
 epoch_to_save_model = 10
@@ -8,6 +8,7 @@ path_to_save_model = "model_weights"
 measure_metrics_during_training = true
 print_var = true
 seed = -1
+use_weights_with_lower_validation_error = true
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Wandb settings
