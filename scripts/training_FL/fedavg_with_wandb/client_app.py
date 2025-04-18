@@ -34,7 +34,7 @@ def client_fn_demnet(context : Context) -> Client :
     # On flower slack I found a reply that say that the node_config should be used for the deployment while the run_config for the simulation
     
     # Set the seed
-    training_config['seed'] = context.run_config["seed"] if 'seed' in context.run_config else None
+    training_config['seed'] = context.run_config["seed"] if 'seed' in context.run_config else np.random.randint(0, 1e8)
 
     # Load model
     model = demnet.demnet(model_config)

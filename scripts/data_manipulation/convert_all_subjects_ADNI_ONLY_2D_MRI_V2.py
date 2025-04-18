@@ -1,7 +1,7 @@
 """
 From the ADNI dataset it is possible to download only the 2D MRI images, saved in dcm format.
-This files takes the path, find all dcm files and converts all the dcm files to png files.
-This is similar to V1 but in this case the structure of the subfolder is not preserved, so all images will be saved in the path specified by path_to_save
+This script takes the path, find all dcm files and converts all the dcm files to png files.
+This is similar to the single subject version but in this case the structure of the subfolder is not preserved, so all images will be saved in the path specified by path_to_save
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -19,9 +19,9 @@ from src.dataset import support_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-type_data = 'AD'
-path_data = './data/ADNI_MRI_2D_Axial/{}/'.format(type_data)
-path_to_save = './data/ADNI_MRI_2D_Axial_png/{}/'.format(type_data)
+type_data = 'MCI'
+path_data = './data/ADNI_PD_T2_TSE/{}/'.format(type_data)
+path_to_save = './data/ADNI_PD_T2_TSE_png/{}_2/'.format(type_data)
 
 # Conversion settigns
 conversion_method = 'matplotlib'
@@ -30,6 +30,7 @@ minumum_size = 100
 apply_hist_filter = True
 
 idx_to_skip_1 = np.arange(31798, 31902)
+idx_to_skip_1 = []
 idx_files_ignored_with_hist = []
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -72,7 +73,13 @@ for i in range(len(list_files)) :
         # I chose this values after plotting somes histograms of normal iamges and corrupted images.
         if np.sum(hist[bins > 1500]) > 20000  :
             idx_files_ignored_with_hist.append(i)
-            print(f"\tImage skipped due to hist values. Skipping {file_path}")
+            print(f"\tImage skipped due to hist values (1). Skipping {file_path}")
+            continue
+        n_el = len(pixel_data.flatten())
+        value_2 = np.sum(hist[np.logical_and(bins > 6, bins < 90)]) / n_el
+        if value_2 >= 0.65 :
+            idx_files_ignored_with_hist.append(i)
+            print(f"\tImage skipped due to hist values (2). Skipping {file_path}")
             continue
 
     # Save image
@@ -94,8 +101,9 @@ for i in range(len(list_files)) :
 print("Saving histograms of the images that were ignored due to hist values")
 path_to_save_hist = './TMP_{}/'.format(type_data)
 os.makedirs(path_to_save_hist, exist_ok = True)
-for idx in idx_files_ignored_with_hist :
-    print(f"Processing file {idx}/{len(idx_files_ignored_with_hist)}\t({round(idx/len(idx_files_ignored_with_hist) * 100, 2)}%)")
+for i in range(len(idx_files_ignored_with_hist)) :
+    idx = idx_files_ignored_with_hist[i]
+    print(f"Processing file {i}/{len(idx_files_ignored_with_hist)}\t({round(i/len(idx_files_ignored_with_hist) * 100, 2)}%)")
     try : 
         file_path = list_files[idx]
         data = dicom.dcmread(file_path)
@@ -112,3 +120,31 @@ for idx in idx_files_ignored_with_hist :
     except Exception as e :
         print(f"Error saving image {file_path}:\n{e}")
 
+
+# Code used for ad-hoc analysis
+# idx_analysis = [5516, 5517, 5561, 5562, 5563]
+# for i in range(len(idx_analysis)) :
+#
+#     file_path = list_files[idx_analysis[i]]
+#
+#     # Load the data
+#     data = dicom.dcmread(file_path)
+#
+#     # Get the pixel data
+#     pixel_data = data.pixel_array
+#
+#     hist, bins = np.histogram(pixel_data.flatten(), bins = 256)
+#     bins = bins[:-1]
+#
+#     n_el = len(pixel_data.flatten())
+#     
+#     thresh = 90
+#     value_1 = np.sum(hist[bins <= 6])
+#     value_2 = np.sum(hist[np.logical_and(bins > 6, bins < thresh)]) 
+#     value_3 = np.sum(hist[bins >= thresh])
+#
+#     print(f"Image {idx_analysis[i]}:")
+#     print(f"\tValue 1: {value_1} ({round(value_1/n_el * 100, 2)}%)")
+#     print(f"\tValue 2: {value_2} ({round(value_2/n_el * 100, 2)}%)")
+#     print(f"\tValue 3: {value_3} ({round(value_3/n_el * 100, 2)}%)\n")
+#

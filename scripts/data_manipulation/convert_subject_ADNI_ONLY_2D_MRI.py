@@ -1,6 +1,6 @@
 """
 From the ADNI dataset it is possible to download only the 2D MRI images, saved in dcm format.
-This files takes the path to a single subject from the ADNI dataset, and converts all the dcm files to png files.
+This script takes the path to a single subject from the ADNI dataset, and converts all the dcm files to png files.
 The folder structure is preserved, so the images are saved in the same subfolder as the original dcm files.
 Notes that this files is created to work with my specific directory structure, so it may need to be adapted to work in other cases.
 """

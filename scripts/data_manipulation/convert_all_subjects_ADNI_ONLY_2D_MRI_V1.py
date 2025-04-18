@@ -1,5 +1,5 @@
 """
-Similar to V1 but convert all subjects. The subject is not preserved but the type of image is preserved (e.g. T1, T2, etc).
+Similar to single subjcet version but convert all subjects. The subject is not preserved but the type of image is preserved (e.g. T1, T2, etc).
 Note that this is not used to prepare the dataset for training. 
 I only want to see the differences between the various types of images.
 Note that due to the ADNI folder structure, different subjects have different types of images, or, sometims, the same type of image is named differently.

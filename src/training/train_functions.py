@@ -117,8 +117,8 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
     # Create a folder (if not exist already) to store temporary file during training
     os.makedirs(train_config['path_to_save_model'], exist_ok = True)
 
-    # (OPTIONAL) If wandb is installed, tell wandb to track the model
-    if train_config['wandb_training']: wandb.watch(model, log = "all", log_freq = train_config['log_freq'])
+    # (OPTIONAL) If wandb is installed, tell wandb to track the model parameters
+    if train_config['wandb_training']: wandb.watch(model, criterion = loss_function, log = "all", log_freq = train_config['log_freq'])
 
     # Variable to track best losses
     best_loss_val = sys.maxsize # Best total loss for the validation data

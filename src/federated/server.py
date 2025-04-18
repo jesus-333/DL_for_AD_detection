@@ -125,6 +125,9 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
         self.model = model
 
+        # TODO test this features. Especially the log_freq
+        wandb.watch(self.model, log = "all", log_freq = 1, log_graph = True)
+
     # def __del__(self):
     #     print("END SERVER AND WANDB LOG")
     #     self.wandb_run.finish()
@@ -246,8 +249,6 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
             # Store and log
             return loss, test_metrics_dict 
-
-
         else :
             if self.count_rounds == 0 :
                 print("")
