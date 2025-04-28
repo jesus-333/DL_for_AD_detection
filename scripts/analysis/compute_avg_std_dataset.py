@@ -19,22 +19,21 @@ from src.dataset import support_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-path_dataset = './data/ADNI_MRI_2D_Axial_png/'
-path_dataset = './data/ADNI_MRI_2D_Axial_png_sampled_6400/'
+path_dataset = './data/ADNI_axial_PD_T2_TSE_png/'
 # path_dataset = './data/Kaggle_Alzheimer_MRI_4_classes_dataset'
 
 mode_image_load = torchvision.io.image.ImageReadMode.RGB
 
 n_elements_to_use = -1
 
-preprocess_functions  = torchvision.transforms.Compose([
-    torchvision.transforms.Resize((256, 256)),
-    torchvision.transforms.CenterCrop(224),
-])
-
 # preprocess_functions  = torchvision.transforms.Compose([
-#     torchvision.transforms.Resize((176, 176)),
+#     torchvision.transforms.Resize((256, 256)),
+#     torchvision.transforms.CenterCrop(224),
 # ])
+
+preprocess_functions  = torchvision.transforms.Compose([
+    torchvision.transforms.Resize((176, 176)),
+])
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

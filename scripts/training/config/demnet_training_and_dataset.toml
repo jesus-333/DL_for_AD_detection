@@ -1,7 +1,7 @@
 [train_config]
-batch_size = 64
+batch_size = 128
 lr = 0.01
-epochs = 80
+epochs = 90
 optimizer_weight_decay = 0.01
 device = "mps"
 epoch_to_save_model = 10
@@ -10,12 +10,12 @@ measure_metrics_during_training = true
 print_var = true
 seed = -1
 wandb_training = false
-project_name = "demnet_training"
+project_name = "demnet_training_ADNI"
 model_artifact_name = "demnet_training_ADNI"
 log_freq = 1
 name_training_run = ""
 notes = ""
-debug = true
+debug = false
 use_scheduler = true
 # [train_config.lr_scheduler_config]
 # name = 'CosineAnnealingLR'
@@ -31,11 +31,14 @@ T_max = 9
 eta_min = 1e-5
 [train_config.lr_scheduler_config.list_config_schedulers.config_2]
 name = 'ExponentialLR'
-gamma = 0.92
+gamma = 0.93
 
 [dataset_config]
-merge_AD_class = 2
-load_data_in_memory = true
+use_normalization = false
+n_samples = 19200
+# n_samples = 6400
+merge_AD_class = 0
+load_data_in_memory = false
 percentage_train = 0.7
 percentage_validation = 0.15
 percentage_test = 0.15

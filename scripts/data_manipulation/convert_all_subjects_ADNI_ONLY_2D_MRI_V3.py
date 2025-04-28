@@ -1,10 +1,10 @@
 """
 From the ADNI dataset it is possible to download only the 2D MRI images, saved in dcm format.
 This script takes the path, find all dcm files and converts all the dcm files to png files.
-This is similar to the single subject version but in this case the structure of the subfolder IS NOT PRESERVED, so all images will be saved in the path specified by path_to_save
+This is similar to the single subject version but in this case the structure of the subfolder IS PRESERVED.
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
 import os
@@ -17,42 +17,51 @@ import PIL
 
 from src.dataset import support_dataset
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-type_data = 'AD'
-dataset_name = 'ADNI_axial_PD_150_TSE'
-dataset_folder = f'./data/{dataset_name}'
+type_data = "AD"
+dataset_name = "ADNI_axial_PD_TSE"
+dataset_name = "test_collection"
+dataset_folder = f"./data/{dataset_name}"
 
-path_data = os.path.join(dataset_folder, type_data + '/')
-path_to_save = os.path.join(dataset_folder + '_png', type_data + '/')
+path_data = os.path.join(dataset_folder, type_data + "/")
+path_to_save = os.path.join(dataset_folder + "_png_V3", type_data + "/")
 
 # Conversion settigns
-conversion_method = 'matplotlib'
+conversion_method = "matplotlib"
 apply_pixel_filter = False
-minumum_size = 100 
-apply_hist_filter = True
+minumum_size = 100
+apply_hist_filter = False
 
 idx_to_skip_1 = np.arange(31798, 31902)
 idx_to_skip_1 = []
 idx_files_ignored_with_hist = []
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get all the files and filter only the dcm files
 list_files = support_dataset.get_all_files_from_path(path_data, filetype_filter = 'dcm')
 
-# Ensure the path to save the images exists
-os.makedirs(path_to_save , exist_ok = True)
- 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Convert the data to images
 
 for i in range(len(list_files)) :
-    print(f"Processing file {i}/{len(list_files)}\t({round(i/len(list_files) * 100, 2)}%)")
+    print(f"Processing file {i}/{len(list_files)}\t({round(i / len(list_files) * 100, 2)}%)")
     
     if i in idx_to_skip_1 :
         print(f"\tSkipping file {i}")
 
+    # Get file path
     file_path = list_files[i]
+
+    # Create file path for the image
+    file_path_decomposition = file_path.split('/')
+    file_name = file_path_decomposition[-1].split('.')[0] + '.png'
+    # file_path_save = f'{path_to_save}{file_path_decomposition[4]}/{file_path_decomposition[5]}/{file_path_decomposition[6]}/{file_path_decomposition[7]}/'
+    file_path_save = f'{path_to_save}{file_path_decomposition[4]}_{file_path_decomposition[6]}_{file_path_decomposition[7]}/'
+
+    # Ensure the path to save the images exists
+    os.makedirs(file_path_save , exist_ok = True)
+    file_path_save += file_name
 
     # Load the data
     data = dicom.dcmread(file_path)
@@ -88,18 +97,18 @@ for i in range(len(list_files)) :
     # Save image
     try :
         if conversion_method == 'matplotlib' :
-            matplotlib.image.imsave(path_to_save + f'img_{i}.png', pixel_data, cmap = 'gray')
+            matplotlib.image.imsave(file_path_save, pixel_data, cmap = 'gray')
         elif conversion_method == 'cv' : 
-                cv.imwrite(path_to_save + f'img_{i}.png', pixel_data)
+                cv.imwrite(file_path_save, pixel_data)
         elif conversion_method == 'PIL' :
             image = PIL.Image.fromarray(pixel_data)
-            image.save(path_to_save + f'img_{i}.png')
+            image.save(file_path_save)
         else :
             raise ValueError(f"Conversion method {conversion_method} not recognized. Use 'matplotlib', 'cv' or 'PIL'.")
     except Exception as e :
         print(f"Error saving image {i}:\n{e}")
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 print("Saving histograms of the images that were ignored due to hist values")
 path_to_save_hist = f'./TMP_{dataset_name}/{type_data}/'
@@ -140,14 +149,13 @@ for i in range(len(idx_files_ignored_with_hist)) :
 #     bins = bins[:-1]
 #
 #     n_el = len(pixel_data.flatten())
-#     
+#
 #     thresh = 90
 #     value_1 = np.sum(hist[bins <= 6])
-#     value_2 = np.sum(hist[np.logical_and(bins > 6, bins < thresh)]) 
+#     value_2 = np.sum(hist[np.logical_and(bins > 6, bins < thresh)])
 #     value_3 = np.sum(hist[bins >= thresh])
 #
 #     print(f"Image {idx_analysis[i]}:")
 #     print(f"\tValue 1: {value_1} ({round(value_1/n_el * 100, 2)}%)")
 #     print(f"\tValue 2: {value_2} ({round(value_2/n_el * 100, 2)}%)")
 #     print(f"\tValue 3: {value_3} ({round(value_3/n_el * 100, 2)}%)\n")
-#

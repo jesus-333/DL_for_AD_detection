@@ -7,7 +7,7 @@ Note that the script is created to be used with my folder structure.
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
 import numpy as np
@@ -16,24 +16,25 @@ import shutil
 
 from src.dataset import support_dataset_ADNI
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-path_to_data = './data/ADNI_MRI_2D_Axial_png/'
+dataset_name = 'ADNI_axial_PD_T2_TSE_png'
+path_to_data = f"./data/{dataset_name}/"
 
 n_samples = 20000
-seed = None
+seed = 333
 
 print_var = True
-path_to_save = f'./data/ADNI_MRI_2D_Axial_png_sampled_{n_samples}/'
+path_to_save = f'./data/{dataset_name}_sampled_{n_samples}/'
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Create the folder if it does not exist
 if not os.path.exists(path_to_save) : 
     os.makedirs(path_to_save)
 else :
     raise ValueError(f"Path to save {path_to_save} already exists. Please delete it (or rename it) before running the script again. This will avoid bug")
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Sample data
 
 if seed is not None :
@@ -72,7 +73,6 @@ for i in range(len(unique_labels)) :
     label_list_int_sampled += list(label_list_int[idx_label])
     label_list_str_sampled += list(label_list_str[idx_label])
 
-
 # Check if the number of samples is correct (should be n_samples but if the number of samples is not divisible by the number of classes, it will be less)
 if len(file_path_list_sampled) != n_samples :
     print(f"WARNING: The number of samples is not equal to {n_samples}. It is {len(file_path_list_sampled)}. This is due to the fact that the number of samples is not divisible by the number of classes.")
@@ -104,9 +104,8 @@ if print_var :
         print(f"\t{label} : {len(idx_label)}")
     print("Total number of samples in the sampled dataset: ", len(file_path_list_sampled))
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save data
-
 
 # Save the sampled data
 for i in range(len(unique_labels)) :
@@ -117,5 +116,9 @@ for i in range(len(unique_labels)) :
 
     for j in range(len(idx_label)) :
         file_path = file_path_list_sampled[idx_label[j]]
-        shutil.copy(file_path, path_to_save + label + '/' + os.path.basename(file_path))
+        
+        file_name = os.path.basename(file_path).split('.')[0]
+        file_extension = os.path.basename(file_path).split('.')[1]
+        new_file_name_with_extension = f'{file_name}_{label}.{file_extension}'
 
+        shutil.copy(file_path, path_to_save + label + '/' + os.path.basename(new_file_name_with_extension))

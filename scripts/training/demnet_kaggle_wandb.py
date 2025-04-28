@@ -62,32 +62,35 @@ if model_config['input_size'] == 224 :
     dataset_mean = torch.tensor([0.4233, 0.4233, 0.4233]) if not dataset_config['grey_scale_image'] else torch.tensor([0.4233])
     dataset_std  = torch.tensor([0.3179, 0.3179, 0.3179]) if not dataset_config['grey_scale_image'] else torch.tensor([0.3179])
 
-    preprocess_functions  = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(model_config['input_size']),
-        transforms.Normalize(mean = dataset_mean, std = dataset_std),
-    ])
+    tmp_list = [transforms.Resize((model_config['input_size'], model_config['input_size']))]
+    if dataset_config['use_normalization'] : tmp_list.append(transforms.Normalize(mean = dataset_mean, std = dataset_std))
+
+    preprocess_functions  = transforms.Compose(tmp_list)
 elif model_config['input_size'] == 176 :
     # This values are precomputed with the script compute_avg_std_dataset.py (using the Resize(176)  before computation)
     dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816]) if not dataset_config['grey_scale_image'] else torch.tensor([0.2816])
     dataset_std  = torch.tensor([0.3259, 0.3259, 0.3259]) if not dataset_config['grey_scale_image'] else torch.tensor([0.3259])
 
-    preprocess_functions  = transforms.Compose([
-        transforms.Resize((model_config['input_size'], model_config['input_size'])),
-        transforms.Normalize(mean = dataset_mean, std = dataset_std),
-    ])
+    tmp_list = [transforms.Resize((model_config['input_size'], model_config['input_size']))]
+    if dataset_config['use_normalization'] : tmp_list.append(transforms.Normalize(mean = dataset_mean, std = dataset_std))
+
+    preprocess_functions  = transforms.Compose(tmp_list)
 else :
-    raise ValueError("Input size not supported. Use 224 or 176")
+    raise ValueError("dataset_config['input_size'] value not valid")
 
 # Save in the settings dataset_mean and dataset_std
-dataset_config['dataset_mean'] = dataset_mean
-dataset_config['dataset_std'] = dataset_std
+if dataset_config['use_normalization'] :
+    dataset_config['dataset_mean'] = dataset_mean
+    dataset_config['dataset_std'] = dataset_std
 
 # Wand Setting
 train_config['wandb_training'] = True
 train_config['project_name'] = "demnet_training"
-train_config['name_training_run'] = None
 train_config['model_artifact_name'] = "demnet_training_AD_kaggle"
+if 'name_training_run' in train_config :
+    if train_config['name_training_run'] == "" : train_config['name_training_run'] = None
+else :
+    train_config['name_training_run'] = None
 
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
@@ -95,7 +98,7 @@ percentage_split_list = [dataset_config['percentage_train'], dataset_config['per
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Get data path
 file_path_list, label_list_int, label_list_str = support_dataset_kaggle.get_data(path_files_Moderate_Demented, path_files_Mild_Demented, path_files_Very_Mild_Demented, path_files_Non_Demented, 
-                                                                                      dataset_config['merge_AD_class'], print_var)
+                                                                                 dataset_config['merge_AD_class'], print_var)
 
 idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, train_config['seed'])
 idx_train, idx_validation, idx_test = idx_list

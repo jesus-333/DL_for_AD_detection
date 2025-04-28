@@ -123,7 +123,7 @@ def server_fn(context : Context):
     
     # Save (separately) data for central evaluation
     if all_config['server_config']['centralized_evaluation'] :
-        data_server = data_per_client[-1]
+        data_server   = data_per_client[-1]
         labels_server = labels_per_client[-1]
     else :
         data_server = labels_server = None

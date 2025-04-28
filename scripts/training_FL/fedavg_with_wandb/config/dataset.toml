@@ -1,5 +1,5 @@
 path_data = 'TMP/'
-merge_AD_class = 0
+merge_AD_class = 1
 load_data_in_memory = true
 percentage_split_train_val = 0.9
 grey_scale_image = true
