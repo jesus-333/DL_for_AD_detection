@@ -67,14 +67,14 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
             raise ValueError("Length of path_list and label_list must be the same. Current length of path_list : {}, current length of label_list : {}".format(len(path_list), len(label_list)))
 
         self.path_list = np.asarray(path_list)
-        self.labels = torch.asarray(label_list) 
+        self.labels = torch.asarray(label_list)
 
         self.preprocess_functions = preprocess_functions
         self.apply_preprocess_functions = True if preprocess_functions is not None else False
         self.grey_scale_image = grey_scale_image
         self.add_extra_dimensions_to_single_sample = False
 
-        if load_data_in_memory : 
+        if load_data_in_memory :
             self.load_dataset()
             self.load_data_in_memory = True
         else :
@@ -88,8 +88,8 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
         """
 
         if self.load_data_in_memory :
-            image = self.data_loaded[idx] 
-        else : 
+            image = self.data_loaded[idx]
+        else :
             image = self.load_image(self.path_list[idx])
 
         return image, self.labels[idx]
@@ -121,8 +121,7 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
 
         return image
 
-
-    def __load_single_image(self, path : str) : 
+    def __load_single_image(self, path : str) :
         # Load the image
         if self.grey_scale_image :
             image = torchvision.io.read_image(path, mode = torchvision.io.image.ImageReadMode.GRAY).float()

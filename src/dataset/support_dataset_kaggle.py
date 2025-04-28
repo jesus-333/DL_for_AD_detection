@@ -9,9 +9,8 @@ This file contains the functions to get the kaggle AD dataset.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Imports
 
-import os 
+import os
 import numpy as np
-import cv2 as cv
 import shutil
 
 import torch
@@ -26,10 +25,10 @@ except ImportError :
     print("kagglehub not installed. The function download_and_get_kaggle_AD_dataset will not work.")
     kagglehub_installed = False
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_data(path_files_Moderate_Demented : str, path_files_Mild_Demented : str, path_files_Very_Mild_Demented : str, path_files_Non_Demented : str, 
-                          merge_AD_class : int = 0, print_var : bool = True) :
+             merge_AD_class : int = 0, print_var : bool = True) :
     """
     Given the path to the folders with the images of the AD dataset, return the list with the paths of the files and the labels.
     The dataset can be find at the following link : https://www.kaggle.com/datasets/marcopinamonti/alzheimer-mri-4-classes-dataset
@@ -45,7 +44,7 @@ def get_data(path_files_Moderate_Demented : str, path_files_Mild_Demented : str,
     path_files_Very_Mild_Demented : str
         Path to the folder with the images of the VeryMildDemented class
     merge_AD_class : int
-        An int that represent how to merge the AD class. 
+        An int that represent how to merge the AD class.
         If 0 no merge will be applied
         If 1 all the AD class will be merged in a single class. I.e. the MildDemented, ModerateDemented and VeryMildDemented will be merged in a single class.
         If 2 only the MildDemented and VeryMildDemented will be merged in a single class.
@@ -149,7 +148,7 @@ def download_and_get_data(path_to_save_data : str = './data/', merge_AD_class : 
         path_files_Mild_Demented        = os.path.join(path_to_save_data, 'Alzheimer_MRI_4_classes_dataset/ModerateDemented')
         path_files_Very_Mild_Demented   = os.path.join(path_to_save_data, 'Alzheimer_MRI_4_classes_dataset/VeryMildDemented')
         path_files_Non_Demented         = os.path.join(path_to_save_data, 'Alzheimer_MRI_4_classes_dataset/NonDemented')
-        print(path_files_Moderate_Demented    )
+        print(path_files_Moderate_Demented)
 
     return get_data(path_files_Non_Demented, path_files_Mild_Demented, path_files_Moderate_Demented, path_files_Very_Mild_Demented, merge_AD_class, print_var)
 

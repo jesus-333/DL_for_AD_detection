@@ -17,7 +17,7 @@ from . import support_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def get_dataset(list_of_path_to_data : list, n_samples : int = -1, print_var : bool = True) :
+def get_dataset(list_of_path_to_data : list, n_samples : int = -1, merge_AD_class : int = 0, print_var : bool = True, seed : int = None) :
     """
     This function is similar to get_kaggle_AD_dataset but for the ADNI dataset. It basically works as support_dataset_kaggle.get_dataset(), 
     Note that also this function is written with my folder structure in mind.
@@ -30,19 +30,37 @@ def get_dataset(list_of_path_to_data : list, n_samples : int = -1, print_var : b
     n_samples : int, optional
         Number of samples to get from each the dataset. The default is -1, which means that all samples are used.
         This can be specified to reduce the size of the dataset, due to the large size of the ADNI dataset.
+        When specified the dataset is balanced, i.e. the same number of samples for each class.
+    merge_AD_class : int
+        An int that represent how to merge the AD class. 
+        If 0 no merge will be applied
+        If 1 all the AD class will be merged in a single class. I.e. the AD and CN will be merged in a single class.
+        Other value will raise error. Default value is 0.
     print_var : bool, optional
         If True, print the number of samples for each class. The default is True.
+    seed : int, optional
+        Seed for the random number generator. The default is None, which means that the seed is not set.
+        Note that this is used only if n_samples is not -1 (i.e. you samples a subset of the dataset).
     """
 
-    label_to_int = dict(
-        CN = 0,
-        AD = 1,
-        MCI = 2,
-    )
+    if merge_AD_class == 0 :
+        label_to_int = dict(
+            CN = 0,
+            AD = 1,
+            MCI = 2,
+        )
+    elif merge_AD_class == 1 :
+        label_to_int = dict(
+            CN = 0,
+            AD = 1,
+            MCI = 1,
+        )
+    else :
+        raise ValueError(f"merge_AD_class not valid. Must be 0 (no merge), 1 (merge all AD class). Current value : {merge_AD_class}")
     
     # Get the path to all files
     file_path_list = []
-    for path_to_explore in list_of_path_to_data : file_path_list += support_dataset.get_all_files_from_path(path_to_explore)
+    for path_to_explore in list_of_path_to_data : file_path_list += support_dataset.get_all_files_from_path(path_to_explore, filetype_filter = 'png')
 
     # Convert to numpy array
     file_path_list = np.asarray(file_path_list)
@@ -63,18 +81,21 @@ def get_dataset(list_of_path_to_data : list, n_samples : int = -1, print_var : b
     # (OPTIONAL) Sample the dataset
     if n_samples > 0 :
         if n_samples >= len(np.unique(label_list_int)) :
-            return create_ADNI_partition(file_path_list, label_list_int, label_list_str, n_samples)
+            return create_ADNI_partition(file_path_list, label_list_int, label_list_str, n_samples, seed)
         else :
             raise ValueError(f"The number of samples is less than the number of classes. Please increase the number of samples. The number of samples is {n_samples} and the number of classes is {len(np.unique(label_list_int))}.") 
     else :
         return file_path_list, label_list_int, label_list_str
 
 
-def create_ADNI_partition(file_path_list : list, label_list_int : list, label_list_str : list, n_samples : int) :
+def create_ADNI_partition(file_path_list : list, label_list_int : list, label_list_str : list, n_samples : int, seed : int = None) :
     """
     This function is used to create a partition of the ADNI dataset, i.e. a subset of the dataset with a specific number of samples. 
     The function is the same code of the script create_ADNI_partition.py, it is simply encapsulated in a function.
     """
+    
+    # Set the seed for the random number generator
+    if seed is not None : np.random.seed(seed)
 
     # Get unique labels
     label_list_str = np.array(label_list_str)

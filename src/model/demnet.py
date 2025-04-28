@@ -19,7 +19,6 @@ except :
     print("Warning: pytorch-grad-cam not found. The XAI functions will not work. You can install the package with 'pip install grad-cam'")
     print('See here for more details : https://github.com/jacobgil/pytorch-grad-cam')
     gradcam_available = False
-
 try :
     import wandb
     wandb_available = True
@@ -350,8 +349,41 @@ class demnet(torch.nn.Module) :
         """
         Check, for each layer, if the layer is freezed or not (i.e. if the layer requires gradient or not)
         """
+        self.print_debug(0)
+
+    def check_average_parameters_value_per_layer(self) :
+        """
+        This method is used to check the average value of the parameters of each layer.
+        It was implmented beacause I noticed that during training with some datasets, I noticed a gradient near zero from the beginning of the training.
+        So basically this methods is used for debugging purposes.
+        """
+        self.print_debug(1)
+
+    def check_average_grad_value_per_layer(self) :
+        """
+        This method is used to check the average value of the gradients of each layer.
+        It was implmented beacause I noticed that during training with some datasets, I noticed a gradient near zero from the beginning of the training.
+        So basically this methods is used for debugging purposes.
+        """
+        self.print_debug(2)
+
+    def print_debug(self, print_mode : int = 0) :
+        str_to_print = ""
         for name, param in self.named_parameters():
-            print(name, "\t", param.requires_grad)
+            str_to_print += name + "\n"
+
+            if print_mode == 0 : # Print all info
+                str_to_print += f"\tRequire grad  : {param.requires_grad}\n"
+                str_to_print += f"\tAverage param : {float(param.mean())}\n"
+                str_to_print += f"\tAverage grad  : {float(param.grad.mean())}\n"
+            elif print_mode == 1 : # Print only require grad
+                str_to_print += f"\tRequire grad  : {param.requires_grad}\n"
+            elif print_mode == 2 : # Print average param
+                str_to_print += f"\tAverage param : {float(param.mean())}\n"
+            elif print_mode == 3 : # Print average grad
+                str_to_print += f"\tAverage grad  : {float(param.grad.mean())}\n"
+
+        print(str_to_print)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -522,8 +554,6 @@ def check_demnet_config(config : dict) :
         print('Warning: use_as_features_extractor not found in config. Using default value of False.')
         config['use_as_features_extractor'] = False
 
-
-
 def check_demnet_block_config(config : dict) :
     """
     Check if the configuration of the demnet model is correct.
@@ -550,11 +580,3 @@ def check_demnet_block_config(config : dict) :
     if 'batch_norm' not in config :
         print('Warning: batch_norm not found in config. Using default value of True.')
         config['batch_norm'] = True
-
-
-
-
-
-
-
-

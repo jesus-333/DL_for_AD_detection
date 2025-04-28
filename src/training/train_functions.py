@@ -118,7 +118,7 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
     os.makedirs(train_config['path_to_save_model'], exist_ok = True)
 
     # (OPTIONAL) If wandb is installed, tell wandb to track the model parameters
-    if train_config['wandb_training']: wandb.watch(model, criterion = loss_function, log = "all", log_freq = train_config['log_freq'])
+    if train_config['wandb_training']: wandb.watch(model, criterion = loss_function, log = "all", log_freq = train_config['log_freq'], log_graph = True)
 
     # Variable to track best losses
     best_loss_val = sys.maxsize # Best total loss for the validation data
@@ -199,6 +199,13 @@ def train(train_config : dict, model, train_dataset, validation_dataset = None, 
             if train_config['measure_metrics_during_training']:
                 print("\t Accuracy (TRAIN)  = {}".format(train_metrics_dict['accuracy']))
                 print("\t Accuracy (VALID)  = {}".format(validation_metrics_dict['accuracy']))
+
+            if train_config['debug'] :
+                print_debug = getattr(model, "print_debug", None)
+                if callable(print_debug):
+                    model.print_debug()
+
+            print(" - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # (OPTIONAL) Log data on wandb
