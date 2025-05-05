@@ -11,12 +11,12 @@ E.g. of the final results
     - img_1.png
     ...
     -img_n.png
-- {recording_id} subj 1 :
+- {recording_id}_subj 1 :
     - img_0.png
     - img_1.png
     ...
     -img_n.png 
-- {recording_id} subj n :
+- {recording_id}_subj n :
     - img_0.png
     - img_1.png
     ...

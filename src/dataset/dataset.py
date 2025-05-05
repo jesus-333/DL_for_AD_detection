@@ -29,7 +29,7 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
     ----------
     - path_list : list of str
         List of paths to the images. Each path must be a string that can be used to load the image with torchvision.io.read_image
-    - label_list : list of int
+    - labels_list : list of int
         List of labels
     - load_data_in_memory : bool
         If True the data are loaded in memory, otherwise they are loaded on the fly when an image is requested
@@ -45,7 +45,7 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
     - path_list : np.ndarray
         List of paths to the images. Each path must be a string that can be used to load the image with torchvision.io.read_image
     - labels : torch.Tensor
-        List of labels. It is a tensor of int. The values are the same as the input label_list.
+        List of labels. It is a tensor of int. The values are the same as the input labels_list.
     - preprocess_functions : torchvision.transforms.Compose
         List of functions to apply to the image before returning it, if passed in the constructor. If None no preprocessing is applied.
     - apply_preprocess_functions : bool
@@ -59,14 +59,14 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
         This attribute is set automatically by the constructor. It specifies if the data are loaded in memory or not and is later used in the __getitem__ method.
     """
 
-    def __init__(self, path_list : list, label_list : list, load_data_in_memory : bool = False, preprocess_functions = None, grey_scale_image : bool = False) :
+    def __init__(self, path_list : list, labels_list : list, load_data_in_memory : bool = False, preprocess_functions = None, grey_scale_image : bool = False) :
     
         # Check input
-        if len(path_list) != len(label_list) :
-            raise ValueError("Length of path_list and label_list must be the same. Current length of path_list : {}, current length of label_list : {}".format(len(path_list), len(label_list)))
+        if len(path_list) != len(labels_list) :
+            raise ValueError("Length of path_list and labels_list must be the same. Current length of path_list : {}, current length of labels_list : {}".format(len(path_list), len(labels_list)))
 
         self.path_list = np.asarray(path_list)
-        self.labels = torch.asarray(label_list)
+        self.labels = torch.asarray(labels_list)
 
         self.preprocess_functions = preprocess_functions
         self.apply_preprocess_functions = True if preprocess_functions is not None else False
@@ -308,9 +308,9 @@ class MRI_2D_dataset_dicom(MRI_2D_dataset):
     NOT USED FOR NOW.
     """
 
-    def __init__(self, path_list : list, label_list : list, load_data_in_memory : bool = True, preprocess_functions = None) :
+    def __init__(self, path_list : list, labels_list : list, load_data_in_memory : bool = True, preprocess_functions = None) :
 
-        super().__init__(path_list, label_list, load_data_in_memory, preprocess_functions, grey_scale_image = True)
+        super().__init__(path_list, labels_list, load_data_in_memory, preprocess_functions, grey_scale_image = True)
 
     def load_image(self, path : str, create_copy_for_depth : bool = True) :
         """
@@ -368,17 +368,19 @@ class MRI_3D_dataset(MRI_2D_dataset) :
     TODO complete docstring
     """
 
-    def __init__(self, paths_dict : dict, depth_map_order_dict : dict, label_list : list, load_data_in_memory : bool = False, preprocess_functions = None) :
+    def __init__(self, paths_dict : dict, depth_map_order_dict : dict, label_dict : dict, load_data_in_memory : bool = False, preprocess_functions = None) :
         # Temporary variable to save informations
         folder_list = []                    # List with all the folders
         files_per_folder = []               # List where each element is a list with the files of the folder. E.g. files_per_folder[0] is a list with the files of the folder folder_list[0]
         depth_map_order_per_folder = []     # List where each element is a list with the depth map order of the folder. E.g. depth_map_order_per_folder[0] is a list with the depth map order of the files inside folder folder_list[0]
+        labels_list = []                     # List of the labels
 
         # Convert key of the dictionary to an array and save the files for each folder
         for (idx, folder) in enumerate(paths_dict.keys()) :
             folder_list.append(folder)
             files_per_folder.append([])
             depth_map_order_per_folder.append([])
+            labels_list.append(label_dict[folder])
 
             # Check if list of files in the paths_dict and depth_map_order_dict have the same number of elements.
             if len(paths_dict[folder]) != len(depth_map_order_dict[folder]) :
@@ -397,7 +399,7 @@ class MRI_3D_dataset(MRI_2D_dataset) :
         self.folder_list = np.asarray(folder_list)
         self.files_per_folder = np.asarray(files_per_folder)
         self.depth_map_order_per_folder = np.asarray(depth_map_order_per_folder)
-        self.labels = torch.asarray(label_list)
+        self.labels = torch.asarray(labels_list)
     
         # Used in the parent class
         self.grey_scale_image = True

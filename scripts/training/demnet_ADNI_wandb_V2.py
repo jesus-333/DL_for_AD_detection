@@ -1,7 +1,9 @@
 """
 With this script you can train the DEMNET model to classify MRI and fMRI data for alzheimer detection.
 For more information about the model see https://ieeexplore.ieee.org/abstract/document/9459692
-For the dataset we used the the Kaggle alzheimer 4 class dataset (https://www.kaggle.com/datasets/marcopinamonti/alzheimer-mri-4-classes-dataset/data)
+
+This version is used to training the model on THE converted ADNI Dataset.
+I.e. I download the dataset (using the 2D filter), convert all the images in png and keep each recording of the subject as a sample of the dataset (see the script convert_all_subjects_ADNI_ONLY_2D_MRI_V4_2.py).
 
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
@@ -12,30 +14,26 @@ For the dataset we used the the Kaggle alzheimer 4 class dataset (https://www.ka
 import toml
 import numpy as np
 import torch
+import json
 from torchvision import transforms
 
 from src.dataset import dataset, support_dataset, support_dataset_ADNI
-from src.model import demnet 
+from src.model import demnet
 from src.training import train_functions
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# wandb login
-
-# if os.path.exists("~/keys.json"):
-#     os.environ["WANDB_API_KEY"] = json.loads("~/keys.json")["work_account"]
-#     wandb.login()
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Settings
 
 path_config_train_and_dataset = './scripts/training/config/demnet_training_and_dataset.toml'
 path_config_model             = './scripts/training/config/demnet_model.toml'
 
-path_to_data = './data/ADNI_axial_PD_T2_TSE_png/'
+dataset_name = 'ADNI_axial_PD_z_44_slice_4'
+path_to_data = f'./data/{dataset_name}_png_V4_2/'
+z_matrix = 44 # Number of slice per sample
 
 print_var = True
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load train and dataset config
 train_and_dataset_config = toml.load(path_config_train_and_dataset)
 train_config = train_and_dataset_config['train_config']
@@ -43,7 +41,7 @@ dataset_config = train_and_dataset_config['dataset_config']
 
 # Load model config
 model_config = toml.load(path_config_model)
-model_config['input_channels'] = 1 if dataset_config['grey_scale_image'] else 3
+model_config['input_channels'] = z_matrix
 
 # Create single dictionary with all the config
 all_config = dict(
@@ -89,13 +87,22 @@ train_config['model_artifact_name'] = "demnet_training_ADNI"
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Get data path
-list_of_path_to_data = [path_to_data + 'AD/', path_to_data + 'CN/', path_to_data + 'MCI/']
-file_path_list, label_list_int, label_list_str = support_dataset_ADNI.get_dataset(list_of_path_to_data, n_samples = dataset_config['n_samples'], merge_AD_class = dataset_config['merge_AD_class'],
-                                                                                  print_var = print_var, seed = train_config['seed'])
+# Get all the files divided per folder
+folders_paths_dict = support_dataset.get_all_files_from_path_divided_per_folder(path_to_data, filetype_filter = 'png')
+
+# Get depth map order for each folder
+depth_map_order_dict = support_dataset_ADNI.get_depth_map_order_all_dataset(folders_paths_dict)
+
+# Get labels
+with open(f'./data/ADNI_Labels/{dataset_name}_int.json') as fp: subj_to_label_int = json.load(fp)
+with open(f'./data/ADNI_Labels/{dataset_name}_str.json') as fp: subj_to_label_str = json.load(fp)
+label_list_int = support_dataset_ADNI.get_labels_from_path_dict_V4_2(folders_paths_dict, subj_to_label_int)
+label_list_str = support_dataset_ADNI.get_labels_from_path_dict_V4_2(folders_paths_dict, subj_to_label_str)
 
 idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, train_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
+
+raise ValueError("STOP")
 
 # Save indices in the config
 train_config['idx_train']      = idx_train

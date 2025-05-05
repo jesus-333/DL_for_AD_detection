@@ -125,7 +125,6 @@ def create_ADNI_partition(file_path_list : list, label_list_int : list, label_li
         label_list_int_sampled += list(label_list_int[idx_label])
         label_list_str_sampled += list(label_list_str[idx_label])
 
-
     # Check if the number of samples is correct (should be n_samples but if the number of samples is not divisible by the number of classes, it will be less)
     if len(file_path_list_sampled) != n_samples :
         print(f"WARNING: The number of samples is not equal to {n_samples}. It is {len(file_path_list_sampled)}. This is due to the fact that the number of samples is not divisible by the number of classes.")
@@ -171,7 +170,6 @@ def get_depth_map_order_single_sample_from_files_list(files_list : list) :
 
     return np.array(depth_map_order)
 
-
 def get_depth_map_order_all_dataset(folders_paths_dict  : list) :
     """
     Works as get_depth_map_order_single_sample_from_files_list but for the entire dataset.
@@ -191,4 +189,21 @@ def get_depth_map_order_all_dataset(folders_paths_dict  : list) :
         depth_map_order_dict[folder] = depth_map_order
     
     return depth_map_order_dict
+
+def get_labels_from_path_dict_V4_2(folders_paths_dict : dict, subj_to_label_dict : dict) :
+    """
+    Obtain the labels from the path to the folders.
+    The input dict must be obtained with the following steps:
+        1)Convert the data with the script convert_all_subjects_ADNI_ONLY_2D_MRI_V4_2.py
+        2) Use the function get_all_files_from_path_divided_per_folder to obtain the dictionary with the path to the folders and the files in them.
+    """
+
+    labels_list = []
+
+    for folder in folders_paths_dict.keys() :
+        subj_id = folder.split("__")[0].split("/")[-1]
+        print(subj_id)
+        labels_list.append(subj_to_label_dict[subj_id])
+
+    return labels_list
 
