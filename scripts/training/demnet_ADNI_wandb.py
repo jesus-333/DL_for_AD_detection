@@ -1,17 +1,14 @@
 """
 With this script you can train the DEMNET model to classify MRI and fMRI data for alzheimer detection.
-For more information about the model see https://ieeexplore.ieee.org/abstract/document/9459692 
+For more information about the model see https://ieeexplore.ieee.org/abstract/document/9459692
 For the dataset we used the the Kaggle alzheimer 4 class dataset (https://www.kaggle.com/datasets/marcopinamonti/alzheimer-mri-4-classes-dataset/data)
 
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-import os
-import wandb
-import json
 import toml
 import numpy as np
 import torch
@@ -91,10 +88,10 @@ train_config['model_artifact_name'] = "demnet_training_ADNI"
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get data path
 list_of_path_to_data = [path_to_data + 'AD/', path_to_data + 'CN/', path_to_data + 'MCI/']
-file_path_list, label_list_int, label_list_str = support_dataset_ADNI.get_dataset(list_of_path_to_data, n_samples = dataset_config['n_samples'], merge_AD_class = dataset_config['merge_AD_class'], 
+file_path_list, label_list_int, label_list_str = support_dataset_ADNI.get_dataset(list_of_path_to_data, n_samples = dataset_config['n_samples'], merge_AD_class = dataset_config['merge_AD_class'],
                                                                                   print_var = print_var, seed = train_config['seed'])
 
 idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, train_config['seed'])
@@ -110,7 +107,7 @@ train_file_path_list,      label_train_list_int      = file_path_list[idx_train]
 validation_file_path_list, label_validation_list_int = file_path_list[idx_validation], label_list_int[idx_validation]
 test_file_path_list,       label_test_list_int       = file_path_list[idx_test],       label_list_int[idx_test]
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Select training device 
 
 if torch.cuda.is_available() :
@@ -122,6 +119,7 @@ elif torch.backends.mps.is_available():
 else:
     device = torch.device("cpu")
     print("\nNo backend in use. Device set to cpu")
+train_config['device'] = device
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load model

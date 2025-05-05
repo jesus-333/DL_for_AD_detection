@@ -182,6 +182,35 @@ def convert_label_from_str_to_int(labels_str_list : list, convert_MCI_to_AD : bo
 
     return labels_int_list
 
+def get_all_files_from_path_divided_per_folder(path_to_explore : str, filetype_filter : str = None) :
+    """
+    This method work similar to get_all_files_from_path, but instead of returning a list with all the files, it returns a dictionary with the folder as key and the list of files in that folder as value.
+    Note that the dict used the path to the folder as key, and the path to the file as value.
+    """
+
+    folders_paths_dict = {}
+    all_files_paths_list = get_all_files_from_path(path_to_explore, filetype_filter)
+    
+    # Analyze each file in the directory
+    for file_path in all_files_paths_list :
+        # Get the name of the folder that contains the file
+        file_name = file_path.split('/')[-1].split('.')[0]
+        folder_name = file_path.split(file_name)[0]
+        
+        # Check if the folder is already inside the dict
+        if folder_name not in folders_paths_dict :
+            # If not insert the folder in the dict
+            folders_paths_dict[folder_name] = []
+        
+            # Get all files inside the folder
+            files_paths_list_specific_directory = get_all_files_from_path(folder_name, filetype_filter)
+            
+            # Save all the files inside the dict
+            for file_path_specific_directory in files_paths_list_specific_directory :
+                folders_paths_dict[folder_name].append(file_path_specific_directory)
+
+    return folders_paths_dict
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Function specific for me code repository
 

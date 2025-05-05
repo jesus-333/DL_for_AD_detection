@@ -2,7 +2,9 @@
 
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+import os
 
 import torch
 import torchvision
@@ -15,10 +17,8 @@ try :
 except ImportError :
     print("The pydicom library is not installed. The MRI_2D_dataset_dicom class will not work.")
 
-from . import support_dataset
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Dataset 2D
 
 class MRI_2D_dataset(torch.utils.data.Dataset):
     """
@@ -27,7 +27,6 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
 
     Parameters
     ----------
-
     - path_list : list of str
         List of paths to the images. Each path must be a string that can be used to load the image with torchvision.io.read_image
     - label_list : list of int
@@ -82,9 +81,11 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
             
     def __getitem__(self, idx) :
         """
-        Note if yout want to load multiple images when self.load_data_in_memory is False and you not use any preprocess functions (i.e. preprocess_functions is None).
-        In this case you must be sure that each image has the same shape. If the images have different shapes an error will occur.
+        Note in case you want to load multiple images when self.load_data_in_memory is False and you not use any preprocess functions (i.e. preprocess_functions is None).
+        You must be sure that each image has the same shape. If the images have different shapes an error will occur!
         This is also true if the preprocess functions do not change the shape of the images.
+
+        Also notes that when a single image is requested, the shape of the image is (1, H, W) if add_extra_dimensions_to_single_sample is False (i.e. no batch dimension), otherwise it is (1, 1, H, W).
         """
 
         if self.load_data_in_memory :
@@ -111,17 +112,17 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
 
             tmp_list = []
             for i in range(len(path)) :
-                tmp_list.append(self.__load_single_image(path[i]))
+                tmp_list.append(self.load_single_image(path[i]))
             
             image = torch.stack(tmp_list)
         else :
             # In this case someone use int idx to get a single item
-            image = self.__load_single_image(path)
+            image = self.load_single_image(path)
             if self.add_extra_dimensions_to_single_sample : image = image.unsqueeze(0)
 
         return image
 
-    def __load_single_image(self, path : str) :
+    def load_single_image(self, path : str) :
         # Load the image
         if self.grey_scale_image :
             image = torchvision.io.read_image(path, mode = torchvision.io.image.ImageReadMode.GRAY).float()
@@ -142,7 +143,7 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
         """
 
         tmp_list = []
-        for path in self.path_list : tmp_list.append(self.__load_single_image(path))
+        for path in self.path_list : tmp_list.append(self.load_single_image(path))
         
         self.data_loaded = torch.stack(tmp_list)
         self.load_data_in_memory = True
@@ -299,14 +300,15 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
         else :
             raise ValueError("The preprocess_functions must be an instance of torchvision.transforms.Compose")
 
-
 class MRI_2D_dataset_dicom(MRI_2D_dataset):
+    """
+    This class work exaclty as MRI_2D_dataset but it expects to receive in input a list with dcm file.
+    The only function that change behavior is load_image since it has to load dcm image and convert them in pytorch tensor.
+    
+    NOT USED FOR NOW.
+    """
 
     def __init__(self, path_list : list, label_list : list, load_data_in_memory : bool = True, preprocess_functions = None) :
-        """
-        This class work exaclty as MRI_2D_dataset but it expects to receive in input a list with dcm file.
-        The only function that change behavior is load_image since it has to load dcm image and convert them in pytorch tensor
-        """
 
         super().__init__(path_list, label_list, load_data_in_memory, preprocess_functions, grey_scale_image = True)
 
@@ -341,3 +343,219 @@ class MRI_2D_dataset_dicom(MRI_2D_dataset):
         image = torch.cat([image, image, image])
 
         return image
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Dataset 3D
+
+class MRI_3D_dataset(MRI_2D_dataset) :
+    """
+    This class is used to create a dataset of 3D MRI images.
+    Each sample of the dataset is a single MRI scan, with a single label. The shape of each sample is (1, D, H, W), where D is the depth of the image (number of slices), H is the height and W is the width.
+    Note that the D dimension is also referred to as z-dimension in the MRI field.
+
+    The class expects that each image is a greymap png file. The images are loaded using the torchvision.io.read_image function and normalized in the range [0, 1].
+    Since the class reads images it is creaated as an extension of the MRI_2D_dataset class. Therefore it inherits the methods load_image, __len__, and load_single_image. The methods __init__, __getitem__, and load_dataset are overridden to adapt them to the 3D images.
+
+    Parameters
+    ----------
+    - paths_dict : dict
+        Dictionary with the paths to the images. The keys are the paths to folder containing the images. The values are lists of paths to the images. An example of the dictionary can be obtained using the get_all_files_from_path_divided_per_folder function inside the support_dataset module.
+    - depth_map_order_dict : dict
+        Dictionary with the order of the slices for each image. The keys are the paths to folder containing the images. The values are lists of integers, that specify the order of the slices. This is necessary to create the depth map of the image. The order of the slices is important because it determines the order of the slices in the 3D image.
+        E.g. Let's assume that in the path_dict and depth_map_order_dict we have a key "folder_1" with the following values: paths_dict["folder_1"] = ["img_2.png", "img_0.png", "img_1.png"]. Then the depth_map_order_dict["folder_1"] must be a list/array with the following values : [1, 2, 0].
+             So thhe first element of depth_map_order_dict["folder_1"] contains the position of the first slice in paths_dict["folder_1"] and so on.
+
+    TODO complete docstring
+    """
+
+    def __init__(self, paths_dict : dict, depth_map_order_dict : dict, label_list : list, load_data_in_memory : bool = False, preprocess_functions = None) :
+        # Temporary variable to save informations
+        folder_list = []                    # List with all the folders
+        files_per_folder = []               # List where each element is a list with the files of the folder. E.g. files_per_folder[0] is a list with the files of the folder folder_list[0]
+        depth_map_order_per_folder = []     # List where each element is a list with the depth map order of the folder. E.g. depth_map_order_per_folder[0] is a list with the depth map order of the files inside folder folder_list[0]
+
+        # Convert key of the dictionary to an array and save the files for each folder
+        for (idx, folder) in enumerate(paths_dict.keys()) :
+            folder_list.append(folder)
+            files_per_folder.append([])
+            depth_map_order_per_folder.append([])
+
+            # Check if list of files in the paths_dict and depth_map_order_dict have the same number of elements.
+            if len(paths_dict[folder]) != len(depth_map_order_dict[folder]) :
+                raise ValueError(f"Length of paths_dict and depth_map_order_dict must be the same for each folder. Folder currently analyzed : {folder}. Current length of paths_dict : {len(paths_dict[folder])}, current length of depth_map_order_dict : {len(depth_map_order_dict[folder])}")
+            
+            for j in range(len(paths_dict[folder])) :
+                # Save the files
+                file_path = paths_dict[folder][j]
+                files_per_folder[idx].append(file_path)
+
+                # Save the depth map order
+                depth_map_order = depth_map_order_dict[folder][j]
+                depth_map_order_per_folder[idx].append(depth_map_order)
+        
+        # Convert the lists to numpy arrays
+        self.folder_list = np.asarray(folder_list)
+        self.files_per_folder = np.asarray(files_per_folder)
+        self.depth_map_order_per_folder = np.asarray(depth_map_order_per_folder)
+        self.labels = torch.asarray(label_list)
+    
+        # Used in the parent class
+        self.grey_scale_image = True
+        self.preprocess_functions = preprocess_functions
+        self.add_extra_dimensions_to_single_sample = False
+        self.apply_preprocess_functions = True if preprocess_functions is not None else False
+
+        # Load the data in memory if requested
+        if load_data_in_memory :
+            self.load_dataset()
+            self.load_data_in_memory = True
+        else :
+            self.load_data_in_memory = False
+
+    def __getitem__(self, idx) :
+        """
+        Get the item at the specified index. The return value is a tuple (image, label).
+
+        Notes that when a single image is requested, the shape of the image is (n_depth_map, H, W) if add_extra_dimensions_to_single_sample is False (i.e. no batch dimension), otherwise it is (1, 1, H, W).
+        """
+        if self.load_data_in_memory :
+            image = self.data_loaded[idx]
+        else :
+            image = self.load_sample(idx)
+
+        return image, self.labels[idx]
+
+    def load_sample(self, idx) :
+        """
+        Load the sample(s) specified by the idx parameter.
+        """
+
+        if type(idx) is np.ndarray :
+            # In this case someone use a slice idx to get multiple item
+
+            tmp_list = []
+            for i in range(len(idx)) :
+                tmp_list.append(self.load_singe_sample(idx[i]))
+            
+            image = torch.stack(tmp_list)
+        else :
+            # In this case someone use int idx to get a single item
+            image = self.load_singe_sample(idx)
+            if self.add_extra_dimensions_to_single_sample : image = image.unsqueeze(0)
+
+        return image
+
+    def load_singe_sample(self, idx : int) :
+        """
+        Load a single sample from the dataset, specified by the idx parameter.
+        The order of the depth map is specified by the depth_map_order_per_folder attribute.
+        """
+    
+        files_in_the_current_folder = self.files_per_folder[idx]
+        depth_map_order = self.depth_map_order_per_folder[idx]
+
+        single_sample_images = []
+
+        for i in range(len(files_in_the_current_folder)) :
+            # Create the path to the image
+            path_image = files_in_the_current_folder[depth_map_order[i]]
+
+            # Load the image
+            image = self.load_single_image(path_image).squeeze()
+
+            # Add the image to the sample
+            single_sample_images.append(image)
+
+        # Stack the images along the depth dimension
+        single_sample_images = torch.stack(single_sample_images)
+
+        # Return the image
+        return single_sample_images
+
+    def load_dataset(self) :
+        """
+        Loaded the data inside the memory. This is useful if the dataset is small and can be loaded in memory.
+        """
+
+        tmp_list = []
+        for i in range(len(self.folder_list)) :
+            if (i + 1) % 10 == 0 : print(f"Loading sample {i + 1}/{len(self.folder_list)}\t({round((i + 1) / len(self.folder_list) * 100, 2)}%)")
+
+            sample = self.load_singe_sample(i)
+            tmp_list.append(sample)
+        
+        self.data_loaded = torch.stack(tmp_list)
+        self.load_data_in_memory = True
+
+    def check_single_sample_V1(self, idx : int, figsize : tuple = None) :
+        """
+        Plot a single sample of the dataset. This is used to check graphically if the depth map order is correct.
+        Note that the depth map should be sorted when the sample is loaded.
+        """
+    
+        # Get image and ensure that the image is a 3D image (i.e. no batch dimension)
+        image = self.load_sample(idx).squeeze()
+    
+        # Get the number of images
+        n_depth_map = image.shape[0]
+
+        # Compute the number of rows and columns for the plot
+        n_row = int(np.ceil(np.sqrt(n_depth_map)))
+        n_col = int(np.ceil(n_depth_map / n_row))
+    
+        # Create the figure and the axes
+        if figsize is None : figsize = (n_col * 3, n_row * 3)
+        fig, axs = plt.subplots(n_row, n_col, figsize = figsize)
+
+        for i in range(n_depth_map) :
+            # Get the image
+            img = image[i].squeeze()
+        
+            # Plot the image
+            axs[i // n_col, i % n_col].imshow(img, cmap = 'gray')
+            axs[i // n_col, i % n_col].set_title(f"Depth map order : {i}")
+
+        # Remove the empty subplots
+        for i in range(n_depth_map, n_row * n_col) :
+            fig.delaxes(axs[i // n_col, i % n_col])
+    
+        # Show the plot
+        fig.tight_layout()
+        fig.show()
+
+    def check_single_sample_V2(self, idx : int, figsize : tuple = None) :
+        """
+        Similar to V1 but it visualize a single image that can be update with a slider.
+        """
+
+        # Get image and ensure that the image is a 3D image (i.e. no batch dimension)
+        image = self.load_sample(idx).squeeze()
+    
+        # Get the number of images
+        n_depth_map = image.shape[0]
+
+        # Create the figure and the axes
+        if figsize is None : figsize = (10, 10)
+        fig, ax = plt.subplots(figsize = figsize)
+
+        # Create the slider
+        ax_slider = plt.axes([0.1, 0.01, 0.8, 0.03])
+        slider = plt.Slider(ax_slider, 'Depth map', 0, n_depth_map - 1, valinit = 0, valstep = 1)
+
+        ax.imshow(image[0], cmap = 'gray')
+        ax.set_title(f"Depth map order : {0}")
+
+        # Function to update the plot when the slider is moved
+        def update(val) :
+            idx = int(slider.val)
+            img = image[idx].squeeze()
+            ax.imshow(img, cmap = 'gray')
+            ax.set_title(f"Depth map order : {idx}")
+            fig.canvas.draw_idle()
+
+        # Connect the slider to the update function
+        slider.on_changed(update)
+
+        # Show the plot
+        fig.tight_layout()
+        fig.show()

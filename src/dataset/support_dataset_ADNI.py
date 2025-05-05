@@ -90,7 +90,7 @@ def get_dataset(list_of_path_to_data : list, n_samples : int = -1, merge_AD_clas
 
 def create_ADNI_partition(file_path_list : list, label_list_int : list, label_list_str : list, n_samples : int, seed : int = None) :
     """
-    This function is used to create a partition of the ADNI dataset, i.e. a subset of the dataset with a specific number of samples. 
+    This function is used to create a partition of the ADNI dataset, i.e. a subset of the dataset with a specific number of samples.
     The function is the same code of the script create_ADNI_partition.py, it is simply encapsulated in a function.
     """
     
@@ -149,3 +149,46 @@ def create_ADNI_partition(file_path_list : list, label_list_int : list, label_li
     label_list_str_sampled = np.array(label_list_str_sampled)
 
     return file_path_list_sampled, label_list_int_sampled, label_list_str_sampled
+
+def get_depth_map_order_single_sample_from_files_list(files_list : list) :
+    """
+    Given a list with the name of the files of a single sample (i.e. a single MRI scan), this function with analyze the name of the files to obtain the correct order of the depth map.
+    Note that this function was written with the data/folder structure obtained from the script convert_all_subjects_ADNI_ONLY_2D_MRI_V4_2.py in mind.
+    So you basically need to have a list of folder where each folder is a sample of the dataset.
+    Then you can read the files from that specific folder, create a list with them and pass it to this function.
+    The name of each files must be in the following format: idx_name.png, where idx is the index of the slice in the depth map and name is the name of the file (whatever name you want).
+    """
+
+    depth_map_order = np.zeros(len(files_list), dtype = int)
+
+    for i in range(len(files_list)) :
+        # Get the current file
+        current_file = os.path.basename(files_list[i])
+
+        # Get the index of the slice
+        idx = int(current_file.split("_")[0])
+        depth_map_order[idx] = i
+
+    return np.array(depth_map_order)
+
+
+def get_depth_map_order_all_dataset(folders_paths_dict  : list) :
+    """
+    Works as get_depth_map_order_single_sample_from_files_list but for the entire dataset.
+    The input must be in the form of a dictionary where the key is the path to the folder and the value is a list with the files in that folder (e.g. the output of get_all_files_from_path_divided_per_folder).
+    """
+
+    depth_map_order_dict = {}
+
+    for folder in folders_paths_dict.keys() :
+        # Get the files in the folder
+        files_list_current_folder = folders_paths_dict[folder]
+
+        # Get the depth map order
+        depth_map_order = get_depth_map_order_single_sample_from_files_list(files_list_current_folder)
+
+        # Add to the dictionary
+        depth_map_order_dict[folder] = depth_map_order
+    
+    return depth_map_order_dict
+
