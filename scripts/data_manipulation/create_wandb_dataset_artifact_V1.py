@@ -15,7 +15,7 @@ from src.dataset import support_dataset_ADNI
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-dataset_name = 'ADNI_axial_PD_T2_TSE_png_sampled_20000'
+dataset_name = 'ADNI_axial_PD_z_44_slice_4_png_V4_2'
 path_to_data = f"./data/{dataset_name}/"
 
 wandb_project_name = 'demnet_training_ADNI'
@@ -35,7 +35,7 @@ if len(list_of_path_to_data) == 0 :
 # Create and log artifact
 
 # Start run
-run = wandb.init(project = wandb_project_name, job_type = "upload-dataset", name = f'upload_{dataset_name}')
+# run = wandb.init(project = wandb_project_name, job_type = "upload-dataset", name = f'upload_{dataset_name}')
 
 # Create artifact
 artifact = wandb.Artifact(name = "dataset_name", type = "dataset")
@@ -53,5 +53,5 @@ for i in range(len(file_path_list)) :
 
 # Log files
 print("Log artifact")
-run.log_artifact(artifact)
-run.finish()
+# run.log_artifact(artifact)
+# run.finish()
