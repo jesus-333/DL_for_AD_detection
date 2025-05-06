@@ -144,9 +144,10 @@ def get_idx_to_split_data_V3(labels_list : list, percentage_split_list : list, s
 
         # Get split for current indices
         tmp_split_for_current_label = get_idx_to_split_data_V2(len(idx_for_current_label), percentage_split_list, seed)
-
+    
+        # For each unique values of the labels add the indices to the various list
         for i in range(len(percentage_split_list)) :
-            idx_list[i] = idx_list[i] + list(idx_for_current_label[tmp_split_for_current_label[i]]) 
+            idx_list[i] = idx_list[i] + list(idx_for_current_label[tmp_split_for_current_label[i]])
     
     return idx_list
 

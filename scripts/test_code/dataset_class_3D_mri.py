@@ -55,7 +55,8 @@ for i in range(min(n_elment_to_print, len(depth_map_order_dict[folder_name]))) :
 # Create dataset
 
 # Create fake labels
-labels = np.ones(len(folders_paths_dict))
+labels = {}
+for folder in folders_paths_dict : labels[folder] = 1
 
 # Create dataset
 example_dataset = dataset.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, labels, preprocess_functions = preprocess_functions)

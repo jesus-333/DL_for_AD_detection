@@ -11,11 +11,16 @@ import json
 
 name_dataset = 'ADNI_axial_PD_z_44_slice_4'
 path_labels = f'./data/ADNI_Labels/{name_dataset}.csv'
+path_labels = './data/ADNI_Labels/ALL_subject_MRI.csv'
 
 label_to_int = dict(
-    CN = 0,
-    AD = 1,
-    MCI = 2,
+    CN    = 0,
+    AD    = 1,
+    MCI   = 2,
+    EMCI  = 3,
+    LMCI  = 4,
+    SMC   = 5,
+    Patient = 6,
 )
 
 df = pandas.read_csv(path_labels)

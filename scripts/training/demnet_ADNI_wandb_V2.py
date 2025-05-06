@@ -96,26 +96,25 @@ depth_map_order_dict = support_dataset_ADNI.get_depth_map_order_all_dataset(fold
 # Get labels
 with open(f'./data/ADNI_Labels/{dataset_name}_int.json') as fp: subj_to_label_int = json.load(fp)
 with open(f'./data/ADNI_Labels/{dataset_name}_str.json') as fp: subj_to_label_str = json.load(fp)
-label_list_int = support_dataset_ADNI.get_labels_from_path_dict_V4_2(folders_paths_dict, subj_to_label_int)
-label_list_str = support_dataset_ADNI.get_labels_from_path_dict_V4_2(folders_paths_dict, subj_to_label_str)
+folder_to_labels_dict_int = support_dataset_ADNI.get_labels_dict_from_path_dict_V4_2(folders_paths_dict, subj_to_label_int)
+folder_to_labels_dict_str = support_dataset_ADNI.get_labels_dict_from_path_dict_V4_2(folders_paths_dict, subj_to_label_str)
 
-idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, train_config['seed'])
+# Create dataset with all the sample
+load_data_in_memory = dataset_config['load_data_in_memory']
+MRI_all_dataset = dataset.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, folder_to_labels_dict_int, load_data_in_memory = False, preprocess_functions = preprocess_functions)
+
+# Create random indices to train/validation/test split
+# P.s. this function has the side effect to sort the samples according to labels (so the first you will have all the samples with label 0, then all the samples with label 1 and so on)
+idx_list = support_dataset.get_idx_to_split_data_V3(MRI_all_dataset.labels, percentage_split_list, train_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
-
-raise ValueError("STOP")
 
 # Save indices in the config
 train_config['idx_train']      = idx_train
 train_config['idx_test']       = idx_test
 train_config['idx_validation'] = idx_validation
 
-# Split the data
-train_file_path_list,      label_train_list_int      = file_path_list[idx_train],      label_list_int[idx_train]
-validation_file_path_list, label_validation_list_int = file_path_list[idx_validation], label_list_int[idx_validation]
-test_file_path_list,       label_test_list_int       = file_path_list[idx_test],       label_list_int[idx_test]
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Select training device 
+# Select training device
 
 if torch.cuda.is_available() :
     device = torch.device("cuda")
@@ -128,23 +127,21 @@ else:
     print("\nNo backend in use. Device set to cpu")
 train_config['device'] = device
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load model
-model_config['num_classes'] = len(set(label_list_int))
+model_config['num_classes'] = len(np.unique(MRI_all_dataset.labels))
 model = demnet.demnet(model_config)
 
-# Create datasets
-load_data_in_memory = dataset_config['load_data_in_memory']
-MRI_train_dataset      = dataset.MRI_2D_dataset(train_file_path_list, label_train_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
-MRI_validation_dataset = dataset.MRI_2D_dataset(validation_file_path_list, label_validation_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
-MRI_test_dataset       = dataset.MRI_2D_dataset(test_file_path_list, label_test_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
-print("\nDatasets CREATED")
-print(f"\tSamples used = {dataset_config['n_samples']}")
+# Split data in train/validation/test
+MRI_train_dataset      = torch.utils.data.Subset(MRI_all_dataset, idx_train)
+MRI_validation_dataset = torch.utils.data.Subset(MRI_all_dataset, idx_validation)
+MRI_test_dataset       = torch.utils.data.Subset(MRI_all_dataset, idx_test)
+print("\nDataset split in train/validation/test")
 print(f"\tTrain samples      = {len(MRI_train_dataset)}")
 print(f"\tValidation samples = {len(MRI_validation_dataset)}")
 print(f"\tTest samples       = {len(MRI_test_dataset)}")
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model
 
-model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
+# model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)

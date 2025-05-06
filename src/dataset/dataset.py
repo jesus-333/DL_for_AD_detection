@@ -107,7 +107,7 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
         This is also true if the preprocess functions do not change the shape of the images.
         """
 
-        if type(path) is np.ndarray :
+        if type(path) is np.ndarray or type(path) is list :
             # In this case someone use a slice idx to get multiple item
 
             tmp_list = []
@@ -368,7 +368,7 @@ class MRI_3D_dataset(MRI_2D_dataset) :
     TODO complete docstring
     """
 
-    def __init__(self, paths_dict : dict, depth_map_order_dict : dict, label_dict : dict, load_data_in_memory : bool = False, preprocess_functions = None) :
+    def __init__(self, paths_dict : dict, depth_map_order_dict : dict, labels_dict : dict, load_data_in_memory : bool = False, preprocess_functions = None) :
         # Temporary variable to save informations
         folder_list = []                    # List with all the folders
         files_per_folder = []               # List where each element is a list with the files of the folder. E.g. files_per_folder[0] is a list with the files of the folder folder_list[0]
@@ -380,7 +380,7 @@ class MRI_3D_dataset(MRI_2D_dataset) :
             folder_list.append(folder)
             files_per_folder.append([])
             depth_map_order_per_folder.append([])
-            labels_list.append(label_dict[folder])
+            labels_list.append(labels_dict[folder])
 
             # Check if list of files in the paths_dict and depth_map_order_dict have the same number of elements.
             if len(paths_dict[folder]) != len(depth_map_order_dict[folder]) :
@@ -432,7 +432,7 @@ class MRI_3D_dataset(MRI_2D_dataset) :
         Load the sample(s) specified by the idx parameter.
         """
 
-        if type(idx) is np.ndarray :
+        if type(idx) is np.ndarray or type(idx) is list:
             # In this case someone use a slice idx to get multiple item
 
             tmp_list = []

@@ -190,20 +190,39 @@ def get_depth_map_order_all_dataset(folders_paths_dict  : list) :
     
     return depth_map_order_dict
 
-def get_labels_from_path_dict_V4_2(folders_paths_dict : dict, subj_to_label_dict : dict) :
+def get_labels_list_from_path_dict_V4_2(folders_paths_dict : dict, subj_to_label_dict : dict) :
     """
     Obtain the labels from the path to the folders.
-    The input dict must be obtained with the following steps:
+    The input folder_to_labels_dict must be obtained with the following steps:
         1)Convert the data with the script convert_all_subjects_ADNI_ONLY_2D_MRI_V4_2.py
         2) Use the function get_all_files_from_path_divided_per_folder to obtain the dictionary with the path to the folders and the files in them.
+    The input subj_to_label_dict must be a dictionary where each key is the ID of the a subject and the values are the corresponding labels.
     """
 
     labels_list = []
 
     for folder in folders_paths_dict.keys() :
         subj_id = folder.split("__")[0].split("/")[-1]
-        print(subj_id)
-        labels_list.append(subj_to_label_dict[subj_id])
+        try :
+            labels_list.append(subj_to_label_dict[subj_id])
+        except :
+            raise ValueError("problem with subj_id : ", subj_id)
 
-    return labels_list
+    return np.asarray(labels_list)
+
+def get_labels_dict_from_path_dict_V4_2(folders_paths_dict : dict, subj_to_label_dict : dict) :
+    """
+    Similar to get_labels_dict_from_path_dict_V4_2() but instead of returning a list it return a dict, where each key is a key in the folders_paths_dict and each value is the corresponding label.
+    """
+
+    folder_to_labels_dict = dict()
+
+    for folder in folders_paths_dict.keys() :
+        subj_id = folder.split("__")[0].split("/")[-1]
+        try :
+            folder_to_labels_dict[folder] = subj_to_label_dict[subj_id]
+        except :
+            print(f"problem with subj_id : {subj_id}. The key wil not be inserted in the database")
+
+    return folder_to_labels_dict
 
