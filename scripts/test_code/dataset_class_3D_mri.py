@@ -25,6 +25,7 @@ tmp_list = [transforms.Resize((176, 176))]
 preprocess_functions  = transforms.Compose(tmp_list)
 
 try_load_dataset_in_memory = True
+load_data_type = 0
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -55,24 +56,28 @@ for i in range(min(n_elment_to_print, len(depth_map_order_dict[folder_name]))) :
 # Create dataset
 
 # Create fake labels
-labels = {}
-for folder in folders_paths_dict : labels[folder] = 1
+labels_dict = {}
+for folder in folders_paths_dict : labels_dict[folder] = 1
 
 # Create dataset
-example_dataset = dataset.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, labels, preprocess_functions = preprocess_functions)
+example_dataset = dataset.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, labels_dict , preprocess_functions = preprocess_functions)
 
 # Get a sample
 idx = np.random.randint(0, len(folders_paths_dict))
 sample, _ = example_dataset[idx]
 print("\nSingle sample shape : ", sample.shape)
 
+# Get a slice 
+sample, _ = example_dataset[2:10]
+print("\nSlice sample shape :  ", sample.shape)
+
 dataloader = torch.utils.data.DataLoader(example_dataset, batch_size = 4, shuffle = True)
 
 # Get a batch
 print("\nBatch sample shape : ")
 for i, (images, labels) in enumerate(dataloader) :
-    print(images.shape, labels.shape)
-    break
+	print("Batch samples shape : ", images.shape, labels.shape)
+	break
 
 
 # Check a single sample
@@ -83,9 +88,8 @@ if plot_sample :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if try_load_dataset_in_memory :
-    example_dataset = dataset.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, labels, 
-                                             preprocess_functions = preprocess_functions, load_data_in_memory = try_load_dataset_in_memory
-                                             )
-    
-    print("Data loaded shape :")
-    print(example_dataset.data_loaded.shape)
+	example_dataset = dataset.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, labels_dict, preprocess_functions = preprocess_functions, load_data_in_memory = try_load_dataset_in_memory, load_data_type = load_data_type )
+	print("DATA LOADED")
+	if load_data_type == 1 :
+		print("Data loaded shape :")
+		print(example_dataset.data_loaded.shape)

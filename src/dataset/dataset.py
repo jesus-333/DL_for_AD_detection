@@ -364,11 +364,23 @@ class MRI_3D_dataset(MRI_2D_dataset) :
         Dictionary with the order of the slices for each image. The keys are the paths to folder containing the images. The values are lists of integers, that specify the order of the slices. This is necessary to create the depth map of the image. The order of the slices is important because it determines the order of the slices in the 3D image.
         E.g. Let's assume that in the path_dict and depth_map_order_dict we have a key "folder_1" with the following values: paths_dict["folder_1"] = ["img_2.png", "img_0.png", "img_1.png"]. Then the depth_map_order_dict["folder_1"] must be a list/array with the following values : [1, 2, 0].
              So thhe first element of depth_map_order_dict["folder_1"] contains the position of the first slice in paths_dict["folder_1"] and so on.
+    - labels_dict : dict
+        Dictionary with the labels for each folder. It must have the same key of paths_dict and depth_map_order_dict.
+    - load_data_in_memory : bool
+        If True the data are loaded in memory, otherwise they are loaded on the fly when an image is requested. Default is False.
+    - load_data_type : int
+        If 0 the data are loaded in memory as a list of tensors. If 1 the data are loaded in memory as a single tensor. Default is 0. This parameter is used only if load_data_in_memory is True.
+    - preprocess_functions : list of functions
+        List of functions to apply to the image before returning it. They must be from the torchvision.transforms module. If None (the default value) no preprocessing is applied.
+        They can be set after the creation of the object with the set_preprocess_functions method (the method is inherited from the MRI_2D_dataset class).
 
-    TODO complete docstring
+    Attributes
+    ----------
+    TODO
+
     """
 
-    def __init__(self, paths_dict : dict, depth_map_order_dict : dict, labels_dict : dict, load_data_in_memory : bool = False, preprocess_functions = None) :
+    def __init__(self, paths_dict : dict, depth_map_order_dict : dict, labels_dict : dict, load_data_in_memory : bool = False, load_data_type : int = 0, preprocess_functions = None) :
         # Temporary variable to save informations
         folder_list = []                    # List with all the folders
         files_per_folder = []               # List where each element is a list with the files of the folder. E.g. files_per_folder[0] is a list with the files of the folder folder_list[0]
@@ -409,10 +421,10 @@ class MRI_3D_dataset(MRI_2D_dataset) :
 
         # Load the data in memory if requested
         if load_data_in_memory :
-            self.load_dataset()
-            self.load_data_in_memory = True
+            self.load_dataset(load_data_type)
         else :
             self.load_data_in_memory = False
+            self.load_data_type = -1
 
     def __getitem__(self, idx) :
         """
@@ -422,6 +434,13 @@ class MRI_3D_dataset(MRI_2D_dataset) :
         """
         if self.load_data_in_memory :
             image = self.data_loaded[idx]
+
+            # If the data are loaded as a list of tensors I create a single tensor to return
+            # The check of the type is done to avoid the error when I ask a single sample i.e. idx = n, with n an integer
+            # In that case self.data_loaded[idx] is a tensor with a shape of (D, H, W) and not a list of tensors
+            # Instaead if idx is something like n:m (i.e. a slice) the self.data_loaded[idx] is a list of tensors
+            # In that case I stack the tensors to create a single tensor
+            if self.load_data_type == 0 and type(image) is not torch.Tensor : image = torch.stack(image)
         else :
             image = self.load_sample(idx)
 
@@ -474,19 +493,29 @@ class MRI_3D_dataset(MRI_2D_dataset) :
         # Return the image
         return single_sample_images
 
-    def load_dataset(self) :
+    def load_dataset(self, load_data_type : int = 0) :
         """
         Loaded the data inside the memory. This is useful if the dataset is small and can be loaded in memory.
         """
 
         tmp_list = []
+        n_element_to_print = int(len(self.labels) / 10)
         for i in range(len(self.folder_list)) :
-            if (i + 1) % 10 == 0 : print(f"Loading sample {i + 1}/{len(self.folder_list)}\t({round((i + 1) / len(self.folder_list) * 100, 2)}%)")
+            if (i + 1) % n_element_to_print == 0 : print(f"Loading sample {i + 1}/{len(self.folder_list)}   \t({round((i + 1) / len(self.folder_list) * 100, 2)}%)")
 
             sample = self.load_singe_sample(i)
             tmp_list.append(sample)
         
-        self.data_loaded = torch.stack(tmp_list)
+        if load_data_type == 0 :
+            # In this case the data are loaded as a list of tensors
+            self.data_loaded = tmp_list
+        elif load_data_type == 1 :
+            # In this case the data are loaded as a single tensor
+            self.data_loaded = torch.stack(tmp_list)
+        else :
+            raise ValueError(f"load_data_type must be 0 (list of tensors) or 1 (single tensor). Current value : {load_data_type}")
+
+        self.load_data_type = load_data_type
         self.load_data_in_memory = True
 
     def check_single_sample_V1(self, idx : int, figsize : tuple = None) :
