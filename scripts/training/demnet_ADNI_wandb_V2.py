@@ -131,4 +131,4 @@ print(f"\tTest samples       = {len(MRI_test_dataset)}")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model
 
-# model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)
+model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)
