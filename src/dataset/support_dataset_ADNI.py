@@ -12,6 +12,8 @@ Note that some of the functions are specific for my folder structure.
 
 import os 
 import numpy as np
+import torch
+import torchvision
 
 from . import support_dataset
 
@@ -226,3 +228,31 @@ def get_labels_dict_from_path_dict_V4_2(folders_paths_dict : dict, subj_to_label
 
     return folder_to_labels_dict
 
+def get_preprocess_functions_ADNI_3D(input_size : int, use_normalization : bool = False, z_matrix : int = None, slice : int = None) :
+
+    if input_size == 224 :
+        raise ValueError("Invalid values for input_size")
+    elif input_size == 176 :
+        tmp_list = [torchvision.transforms.Resize((input_size, input_size))]
+
+        if use_normalization :
+            if z_matrix == 44 and slice == 4 :
+                dataset_mean = torch.tensor([0.0694, 0.0674, 0.0668, 0.0681, 0.0694, 0.0718, 0.0736, 0.0767, 0.0792,
+                                    0.0807, 0.0834, 0.0868, 0.0897, 0.0957, 0.1033, 0.1099, 0.1164, 0.1220,
+                                    0.1242, 0.1264, 0.1272, 0.1260, 0.1284, 0.1319, 0.1339, 0.1360, 0.1367,
+                                    0.1343, 0.1314, 0.1284, 0.1236, 0.1187, 0.1138, 0.1067, 0.0991, 0.0907,
+                                    0.0805, 0.0686, 0.0569, 0.0492, 0.0490, 0.0557, 0.0795, 0.1302])
+
+                dataset_std = torch.tensor([0.1019, 0.1015, 0.1020, 0.1056, 0.1096, 0.1151, 0.1199, 0.1260, 0.1312,
+                                    0.1348, 0.1392, 0.1430, 0.1447, 0.1487, 0.1545, 0.1601, 0.1668, 0.1732,
+                                    0.1761, 0.1785, 0.1789, 0.1781, 0.1825, 0.1885, 0.1938, 0.1990, 0.2013,
+                                    0.1997, 0.1975, 0.1964, 0.1952, 0.1944, 0.1939, 0.1911, 0.1875, 0.1822,
+                                    0.1737, 0.1581, 0.1361, 0.1164, 0.1091, 0.1069, 0.1005, 0.1000])
+            else :
+                raise ValueError("Invalid value for z_matrix and slice")
+
+            tmp_list.append(torchvision.transforms.Normalize(mean = dataset_mean, std = dataset_std))
+
+    preprocess_functions  = torchvision.transforms.Compose(tmp_list)
+
+    return preprocess_functions

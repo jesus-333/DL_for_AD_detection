@@ -115,9 +115,13 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
                 tmp_list.append(self.load_single_image(path[i]))
             
             image = torch.stack(tmp_list)
+
+            if self.preprocess_functions is not None and self.apply_preprocess_functions : image = self.preprocess_functions(image)
         else :
             # In this case someone use int idx to get a single item
             image = self.load_single_image(path)
+
+            if self.preprocess_functions is not None and self.apply_preprocess_functions : image = self.preprocess_functions(image)
             if self.add_extra_dimensions_to_single_sample : image = image.unsqueeze(0)
 
         return image
@@ -131,8 +135,6 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
 
         # Normalize in [0, 1] range
         image = image / 255.0
-
-        if self.preprocess_functions is not None and self.apply_preprocess_functions : image = self.preprocess_functions(image)
 
         return image
 
@@ -463,6 +465,8 @@ class MRI_3D_dataset(MRI_2D_dataset) :
             # In this case someone use int idx to get a single item
             image = self.load_singe_sample(idx)
             if self.add_extra_dimensions_to_single_sample : image = image.unsqueeze(0)
+
+        if self.preprocess_functions is not None and self.apply_preprocess_functions : image = self.preprocess_functions(image)
 
         return image
 

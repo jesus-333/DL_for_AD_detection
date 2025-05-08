@@ -15,7 +15,6 @@ import toml
 import numpy as np
 import torch
 import json
-from torchvision import transforms
 
 from src.dataset import dataset, support_dataset, support_dataset_ADNI
 from src.model import demnet
@@ -30,6 +29,7 @@ path_config_model             = './scripts/training/config/demnet_model.toml'
 dataset_name = 'ADNI_axial_PD_z_44_slice_4'
 path_to_data = f'./data/{dataset_name}_png_V4_2/'
 z_matrix = 44 # Number of slice per sample
+slice = 4
 
 print_var = True
 
@@ -56,26 +56,12 @@ if 'path_to_data' in dataset_config : path_to_data = dataset_config['path_to_dat
 # Note that toml file din't have (yet) the null type
 if train_config['seed'] == -1 : train_config['seed'] = np.random.randint(0, 1e9)
 
-if model_config['input_size'] == 224 :
-    raise ValueError("Value not actually computed")
-elif model_config['input_size'] == 176 :
-    # This values are precomputed with the script compute_avg_std_dataset.py (using the Resize(176)  before computation)
-    mean_to_use = 0.14556307
-    std_to_use  = 0.17802857 
-    dataset_mean = torch.tensor([mean_to_use, mean_to_use, mean_to_use]) if not dataset_config['grey_scale_image'] else torch.tensor([mean_to_use])
-    dataset_std  = torch.tensor([std_to_use, std_to_use, std_to_use]) if not dataset_config['grey_scale_image'] else torch.tensor([std_to_use])
+preprocess_functions = support_dataset_ADNI.get_preprocess_functions_ADNI_3D(model_config['input_size'], dataset_config['use_normalization'], z_matrix = z_matrix, slice = slice)
 
-    tmp_list = [transforms.Resize((model_config['input_size'], model_config['input_size']))]
-    if dataset_config['use_normalization'] : tmp_list.append(transforms.Normalize(mean = dataset_mean, std = dataset_std))
-
-    preprocess_functions  = transforms.Compose(tmp_list)
-else :
-    raise ValueError("dataset_config['input_size'] value not valid")
-
-# Save in the settings dataset_mean and dataset_std
-if dataset_config['use_normalization'] :
-    dataset_config['dataset_mean'] = dataset_mean
-    dataset_config['dataset_std'] = dataset_std
+# # Save in the settings dataset_mean and dataset_std
+# if dataset_config['use_normalization'] :
+#     dataset_config['dataset_mean'] = dataset_mean
+#     dataset_config['dataset_std'] = dataset_std
 
 # Wand Setting
 train_config['wandb_training'] = True
@@ -101,7 +87,8 @@ folder_to_labels_dict_str = support_dataset_ADNI.get_labels_dict_from_path_dict_
 
 # Create dataset with all the sample
 load_data_in_memory = dataset_config['load_data_in_memory']
-MRI_all_dataset = dataset.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, folder_to_labels_dict_int, load_data_in_memory = False, preprocess_functions = preprocess_functions)
+load_data_type = dataset_config['load_data_type'] if 'load_data_type' in dataset_config else 0
+MRI_all_dataset = dataset.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, folder_to_labels_dict_int, load_data_in_memory = load_data_in_memory, load_data_type = load_data_type, preprocess_functions = preprocess_functions)
 
 # Create random indices to train/validation/test split
 # P.s. this function has the side effect to sort the samples according to labels (so the first you will have all the samples with label 0, then all the samples with label 1 and so on)
@@ -144,4 +131,4 @@ print(f"\tTest samples       = {len(MRI_test_dataset)}")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model
 
-model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)
+# model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)

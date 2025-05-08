@@ -71,7 +71,7 @@ np.random.shuffle(idx_to_use)
 mean_list = []
 std_list = []
 n_elements_to_print = int(len(idx_to_use) / 20)
-n_elements_to_print = 250
+# n_elements_to_print = 250
 
 tmp_mean_list = []
 tmp_std_list = []
