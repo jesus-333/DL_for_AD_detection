@@ -6,7 +6,7 @@ This file contains the functions to get the kaggle AD dataset.
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
 import os
@@ -16,7 +16,7 @@ import shutil
 import torch
 from torchvision import transforms
 
-from . import support_dataset, dataset
+from . import dataset_png, support_dataset
 
 try :
     import kagglehub
@@ -176,9 +176,9 @@ def get_dataset_with_preprocess_function_from_data(file_path_list : list, label_
         raise ValueError("Input size not supported. Use 224 or 176")
 
     load_data_in_memory = dataset_config['load_data_in_memory']
-    test_dataset = dataset.MRI_2D_dataset(file_path_list, label_list_int, load_data_in_memory = load_data_in_memory, 
-                                          preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image']
-                                          )
+    test_dataset = dataset_png.MRI_2D_dataset(file_path_list, label_list_int, load_data_in_memory = load_data_in_memory, 
+                                              preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image']
+                                              )
 
     return test_dataset
 

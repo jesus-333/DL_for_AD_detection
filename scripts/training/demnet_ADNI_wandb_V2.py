@@ -16,7 +16,7 @@ import numpy as np
 import torch
 import json
 
-from src.dataset import dataset, support_dataset, support_dataset_ADNI
+from src.dataset import dataset_png, support_dataset, support_dataset_ADNI
 from src.model import demnet
 from src.training import train_functions
 
@@ -56,7 +56,7 @@ if 'path_to_data' in dataset_config : path_to_data = dataset_config['path_to_dat
 # Note that toml file din't have (yet) the null type
 if train_config['seed'] == -1 : train_config['seed'] = np.random.randint(0, 1e9)
 
-preprocess_functions = support_dataset_ADNI.get_preprocess_functions_ADNI_3D(model_config['input_size'], dataset_config['use_normalization'], z_matrix = z_matrix, slice = slice)
+preprocess_functions = support_dataset_ADNI.get_preprocess_functions_ADNI_3D_png(model_config['input_size'], dataset_config['use_normalization'], z_matrix = z_matrix, slice = slice)
 
 # # Save in the settings dataset_mean and dataset_std
 # if dataset_config['use_normalization'] :
@@ -88,7 +88,7 @@ folder_to_labels_dict_str = support_dataset_ADNI.get_labels_dict_from_path_dict_
 # Create dataset with all the sample
 load_data_in_memory = dataset_config['load_data_in_memory']
 load_data_type = dataset_config['load_data_type'] if 'load_data_type' in dataset_config else 0
-MRI_all_dataset = dataset.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, folder_to_labels_dict_int, load_data_in_memory = load_data_in_memory, load_data_type = load_data_type, preprocess_functions = preprocess_functions)
+MRI_all_dataset = dataset_png.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, folder_to_labels_dict_int, load_data_in_memory = load_data_in_memory, load_data_type = load_data_type, preprocess_functions = preprocess_functions)
 
 # Create random indices to train/validation/test split
 # P.s. this function has the side effect to sort the samples according to labels (so the first you will have all the samples with label 0, then all the samples with label 1 and so on)

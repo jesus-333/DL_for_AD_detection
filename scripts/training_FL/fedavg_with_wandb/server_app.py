@@ -14,7 +14,7 @@ from flwr.server import ServerConfig, ServerAppComponents, ServerApp
 from flwr.common import Context, ndarrays_to_parameters
 
 from src.model import demnet
-from src.dataset import dataset, support_dataset, support_dataset_kaggle
+from src.dataset import support_dataset_kaggle
 from src.federated import server, support_federated_generic
 from src.training import test_functions
 

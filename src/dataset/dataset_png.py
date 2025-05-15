@@ -1,5 +1,5 @@
 """
-
+Implementations of dataset classes that require png (or images) as inputs.
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

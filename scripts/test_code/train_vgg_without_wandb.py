@@ -2,18 +2,18 @@
 Check if the training functions are working correctly
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
 import numpy as np
 import toml
 import torch
 
-from src.dataset import dataset, support_dataset
+from src.dataset import dataset_png, support_dataset
 from src.model import vgg_nets
 from src.training import train_functions
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 path_files_Moderate_Demented    = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/ModerateDemented'
 path_files_Mild_Demented        = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/MildDemented'
@@ -34,7 +34,7 @@ seed = None
 
 path_train_config = './scripts_training/config/vgg_finetuning.toml'
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Datasets creation
 
 # Dictionary used to convert textural labels to integers
@@ -91,7 +91,7 @@ train_file_path_list,      label_train_list_int      = file_path_list[idx_train]
 validation_file_path_list, label_validation_list_int = file_path_list[idx_validation], label_list_int[idx_validation]
 test_file_path_list,       label_test_list_int       = file_path_list[idx_test],       label_list_int[idx_test]
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Select training device 
 
 if torch.cuda.is_available() :
@@ -104,7 +104,7 @@ else:
     device = torch.device("cpu")
     print("No backend in use. Device set to cpu")
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Create model and dataset 
 
 # Get config
@@ -122,9 +122,9 @@ vgg_model, preprocess_functions = vgg_nets.get_vgg(config['model_config'])
 print("Model CREATED")
 
 # Create datasets
-MRI_train_dataset      = dataset.MRI_2D_dataset(train_file_path_list, label_train_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
-MRI_validation_dataset = dataset.MRI_2D_dataset(validation_file_path_list, label_validation_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
-MRI_test_dataset       = dataset.MRI_2D_dataset(test_file_path_list, label_test_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
+MRI_train_dataset      = dataset_png.MRI_2D_dataset(train_file_path_list, label_train_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
+MRI_validation_dataset = dataset_png.MRI_2D_dataset(validation_file_path_list, label_validation_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
+MRI_test_dataset       = dataset_png.MRI_2D_dataset(test_file_path_list, label_test_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
 print("Datasets CREATED")
 
 # Check training 

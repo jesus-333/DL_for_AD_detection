@@ -9,7 +9,7 @@ import json
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-name_dataset = 'ADNI_axial_PD_z_44_slice_4'
+name_dataset = 'ADNI_axial_PD_z_35_slice_5'
 path_labels = f'./data/ADNI_Labels/{name_dataset}.csv'
 path_labels = './data/ADNI_Labels/ALL_subject_MRI.csv'
 

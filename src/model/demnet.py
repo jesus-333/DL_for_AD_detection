@@ -26,7 +26,6 @@ except :
     print("Warning: wandb not found. The functions to download the pretrained model from wandb will not work. You can install the package with 'pip install wandb'")
     wandb_available = False
 
-
 from . import support_model
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -111,7 +110,6 @@ class demnet(torch.nn.Module) :
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Convolutional layers (feature extraction)
-
 
         self.conv_1 = torch.nn.Sequential(
             torch.nn.Conv2d(config['input_channels'], 16, kernel_size = config['kernel_size_conv_1'], padding = 'same'),
@@ -385,7 +383,7 @@ class demnet(torch.nn.Module) :
 
         print(str_to_print)
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class demnet_block(torch.nn.Module) :
 
@@ -437,7 +435,7 @@ class demnet_block(torch.nn.Module) :
 
         return x
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_model_pretrained_with_kaggle_dataset(version : int, load_early_stop_weights : bool = True, epoch_to_load : int = -1) -> (torch.nn.Module, dict) :
     """
@@ -493,8 +491,7 @@ def get_model_pretrained_with_kaggle_dataset(version : int, load_early_stop_weig
 
     return model, artifact.metadata
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def check_demnet_config(config : dict) :
     """

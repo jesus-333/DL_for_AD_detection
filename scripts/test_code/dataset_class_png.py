@@ -6,7 +6,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
-from src.dataset import support_dataset, dataset
+from src.dataset import dataset_png, support_dataset
 from src.model import download_published_model 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -42,7 +42,7 @@ model, preprocess_functions = download_published_model.download_vgg_nets(version
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 # Create the dataset
-MRI_dataset = dataset.MRI_2D_dataset(file_path_list, label_list, load_data_in_memory = False, preprocess_functions = preprocess_functions)
+MRI_dataset =  dataset_png.MRI_2D_dataset(file_path_list, label_list, load_data_in_memory = False, preprocess_functions = preprocess_functions)
 
 # Get a random index
 idx_random = np.random.randint(0, len(MRI_dataset))

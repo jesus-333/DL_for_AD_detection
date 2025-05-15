@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from torchvision import transforms
 
-from src.dataset import dataset, support_dataset, support_dataset_ADNI
+from src.dataset import dataset_png, support_dataset, support_dataset_ADNI
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -60,7 +60,7 @@ labels_dict = {}
 for folder in folders_paths_dict : labels_dict[folder] = 1
 
 # Create dataset
-example_dataset = dataset.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, labels_dict , preprocess_functions = preprocess_functions)
+example_dataset = dataset_png.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, labels_dict , preprocess_functions = preprocess_functions)
 
 # Get a sample
 idx = np.random.randint(0, len(folders_paths_dict))
@@ -88,7 +88,7 @@ if plot_sample :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if try_load_dataset_in_memory :
-	example_dataset = dataset.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, labels_dict, preprocess_functions = preprocess_functions, load_data_in_memory = try_load_dataset_in_memory, load_data_type = load_data_type )
+	example_dataset = dataset_png.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, labels_dict, preprocess_functions = preprocess_functions, load_data_in_memory = try_load_dataset_in_memory, load_data_type = load_data_type )
 	print("DATA LOADED")
 	if load_data_type == 1 :
 		print("Data loaded shape :")

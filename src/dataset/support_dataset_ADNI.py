@@ -228,7 +228,7 @@ def get_labels_dict_from_path_dict_V4_2(folders_paths_dict : dict, subj_to_label
 
     return folder_to_labels_dict
 
-def get_preprocess_functions_ADNI_3D(input_size : int, use_normalization : bool = False, z_matrix : int = None, slice : int = None) :
+def get_preprocess_functions_ADNI_3D_png(input_size : int, use_normalization : bool = False, z_matrix : int = None, slice : int = None) :
 
     if input_size == 224 :
         raise ValueError("Invalid values for input_size")

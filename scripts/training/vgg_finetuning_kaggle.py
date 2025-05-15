@@ -6,17 +6,17 @@ For the dataset we used the the Kaggle alzheimer 4 class dataset (https://www.ka
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import toml
 import numpy as np
 import torch
 
-from src.dataset import dataset, support_dataset
+from src.dataset import dataset_png, support_dataset
 from src.model import vgg_nets
 from src.training import train_functions
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Settings
 
 path_config = './scripts_training/config/vgg_finetuning.toml'
@@ -34,7 +34,7 @@ dataset_std  = torch.tensor([0.3269, 0.3269, 0.3269])
 dataset_mean = torch.tensor([0.4233, 0.4233, 0.4233])
 dataset_std  = torch.tensor([0.3179, 0.3179, 0.3179])
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load config
 all_config = toml.load(path_config)
 
@@ -51,7 +51,7 @@ if train_config['seed'] == -1 : train_config['seed'] = None
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load model
 
 label_to_int = dict(
@@ -106,7 +106,7 @@ train_file_path_list,      label_train_list_int      = file_path_list[idx_train]
 validation_file_path_list, label_validation_list_int = file_path_list[idx_validation], label_list_int[idx_validation]
 test_file_path_list,       label_test_list_int       = file_path_list[idx_test],       label_list_int[idx_test]
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Select training device 
 
 if torch.cuda.is_available() :
@@ -119,7 +119,7 @@ else:
     device = torch.device("cpu")
     print("No backend in use. Device set to cpu")
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load model
 model_config['num_classes'] = len(set(label_list_int))
 vgg_model, preprocess_functions = vgg_nets.get_vgg(model_config)
@@ -133,11 +133,11 @@ vgg_model.check_freeze_layer()
 
 # Create datasets
 load_data_in_memory = dataset_config['load_data_in_memory']
-MRI_train_dataset      = dataset.MRI_2D_dataset(train_file_path_list, label_train_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
-MRI_validation_dataset = dataset.MRI_2D_dataset(validation_file_path_list, label_validation_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
-MRI_test_dataset       = dataset.MRI_2D_dataset(test_file_path_list, label_test_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
+MRI_train_dataset      = dataset_png.MRI_2D_dataset(train_file_path_list, label_train_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
+MRI_validation_dataset = dataset_png.MRI_2D_dataset(validation_file_path_list, label_validation_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
+MRI_test_dataset       = dataset_png.MRI_2D_dataset(test_file_path_list, label_test_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
 print("Datasets CREATED")
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # model = train_functions.train(train_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 

@@ -6,18 +6,20 @@ Script to explore and play a little with ADNI 3Yr 3T data.
 # Imports
 
 import nibabel as nib
+import numpy as np
 
 from src import support_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-path_CN  = './data/ADNI1_3Yr_3T/ADNI1_3Yr_3T_CN'
-path_AD  = './data/ADNI1_3Yr_3T/ADNI1_3Yr_3T_AD'
-path_MCI = './data/ADNI1_3Yr_3T/ADNI1_3Yr_3T_MCI'
+path_CN  = './data/ADNI1_3Yr_3T/CN'
+path_AD  = './data/ADNI1_3Yr_3T/AD'
+path_MCI = './data/ADNI1_3Yr_3T/MCI'
 
-file_path_list_CN = support_dataset.get_all_files_from_path(path_CN)
-file_path_list_AD = support_dataset.get_all_files_from_path(path_AD)
-file_path_list_MCI = support_dataset.get_all_files_from_path(path_MCI)
+file_path_list_CN = support_dataset.get_all_files_from_path(path_CN, filetype_filter = 'nii')
+file_path_list_AD = support_dataset.get_all_files_from_path(path_AD, filetype_filter = 'nii')
+file_path_list_MCI = support_dataset.get_all_files_from_path(path_MCI, filetype_filter = 'nii')
+file_path_list_all = file_path_list_CN + file_path_list_AD + file_path_list_MCI
 
 subj_list_CN = []
 for file_path in file_path_list_CN :
@@ -70,3 +72,20 @@ data = nib.load(tmp_file_path)
 # print("Total number of b1 files : {}".format(len(b1_list)))
 # print("Total number of n3 files : {}".format(len(n3_list)))
 # print("Total number of files with all preprocess : {}".format(len(all_preprocess_list))) 
+
+
+tmp_list = []
+for file in file_path_list_CN :
+    data = nib.load(file)
+    tmp_list.append(data.shape)
+tmp_list = np.asarray(tmp_list)
+
+possible_shape_list = np.unique(tmp_list, axis = 0)
+
+for possible_shape in possible_shape_list : 
+    idx_0 = tmp_list[:, 0] == possible_shape[0]
+    idx_1 = tmp_list[:, 1] == possible_shape[1]
+    idx_2 = tmp_list[:, 2] == possible_shape[2]
+
+    idx = np.logical_and(idx_0, np.logical_and(idx_1, idx_2))
+    print(possible_shape, sum(idx))

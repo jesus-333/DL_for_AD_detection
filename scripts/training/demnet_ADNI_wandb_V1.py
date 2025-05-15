@@ -16,18 +16,18 @@ import numpy as np
 import torch
 from torchvision import transforms
 
-from src.dataset import dataset, support_dataset, support_dataset_ADNI
-from src.model import demnet 
+from src.dataset import dataset_png, support_dataset, support_dataset_ADNI
+from src.model import demnet
 from src.training import train_functions
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # wandb login
 
 # if os.path.exists("~/keys.json"):
 #     os.environ["WANDB_API_KEY"] = json.loads("~/keys.json")["work_account"]
 #     wandb.login()
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Settings
 
 path_config_train_and_dataset = './scripts/training/config/demnet_training_and_dataset.toml'
@@ -37,7 +37,7 @@ path_to_data = './data/ADNI_axial_PD_T2_TSE_png/'
 
 print_var = True
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load train and dataset config
 train_and_dataset_config = toml.load(path_config_train_and_dataset)
 train_config = train_and_dataset_config['train_config']
@@ -65,7 +65,7 @@ if model_config['input_size'] == 224 :
 elif model_config['input_size'] == 176 :
     # This values are precomputed with the script compute_avg_std_dataset.py (using the Resize(176)  before computation)
     mean_to_use = 0.14556307
-    std_to_use  = 0.17802857 
+    std_to_use  = 0.17802857
     dataset_mean = torch.tensor([mean_to_use, mean_to_use, mean_to_use]) if not dataset_config['grey_scale_image'] else torch.tensor([mean_to_use])
     dataset_std  = torch.tensor([std_to_use, std_to_use, std_to_use]) if not dataset_config['grey_scale_image'] else torch.tensor([std_to_use])
 
@@ -130,9 +130,9 @@ model = demnet.demnet(model_config)
 
 # Create datasets
 load_data_in_memory = dataset_config['load_data_in_memory']
-MRI_train_dataset      = dataset.MRI_2D_dataset(train_file_path_list, label_train_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
-MRI_validation_dataset = dataset.MRI_2D_dataset(validation_file_path_list, label_validation_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
-MRI_test_dataset       = dataset.MRI_2D_dataset(test_file_path_list, label_test_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
+MRI_train_dataset      = dataset_png.MRI_2D_dataset(train_file_path_list, label_train_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
+MRI_validation_dataset = dataset_png.MRI_2D_dataset(validation_file_path_list, label_validation_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
+MRI_test_dataset       = dataset_png.MRI_2D_dataset(test_file_path_list, label_test_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions, grey_scale_image = dataset_config['grey_scale_image'])
 print("\nDatasets CREATED")
 print(f"\tSamples used = {dataset_config['n_samples']}")
 print(f"\tTrain samples      = {len(MRI_train_dataset)}")

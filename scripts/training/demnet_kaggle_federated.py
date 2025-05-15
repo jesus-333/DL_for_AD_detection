@@ -14,7 +14,7 @@ import numpy as np
 import torch
 from torchvision import transforms
 
-from src.dataset import dataset, support_dataset, support_dataset_kaggle
+from src.dataset import dataset_png, support_dataset, support_dataset_kaggle
 from src.model import demnet 
 from src.training import train_functions
 from src.federated import support_federated
