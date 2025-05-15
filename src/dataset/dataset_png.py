@@ -172,7 +172,7 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
         ax.set_title(f'Label : {label}')
 
         fig.tight_layout()
-        fig.show()       
+        fig.show()
 
 
     def visualize_preprocess_effect(self, idx : int) :
@@ -213,7 +213,9 @@ class MRI_2D_dataset(torch.utils.data.Dataset):
             axs[1].set_title('Preprocessed Image')
 
             fig.tight_layout()
-            fig.show()       
+            fig.show()
+
+            self.apply_preprocess_functions = original_setting
 
     def compute_avg_and_std_for_dataset(self, n_samples : int = -1) :
         """
