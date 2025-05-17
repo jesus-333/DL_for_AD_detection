@@ -31,14 +31,14 @@ class MRI_dataset(torch.utils.data.Dataset):
         if data.shape[0] != len(labels) :
             raise ValueError(f"N. of sampels and n. of labels must be the same. Current n. of samples : {data.shape[0]}, current n. of labels : {len(labels)}")
         
-        self.data   = preprocess_functions(torch.asarray(data)) if preprocess_functions is not None else torch.asarray(data)
+        self.data = preprocess_functions(torch.asarray(data)) if preprocess_functions is not None else torch.asarray(data)
         print("DATA LOADED")
 
         self.labels = torch.asarray(labels)
         print("LABELS LOADED")
             
     def __getitem__(self, idx) :
-        return self.data_loaded[idx], self.labels[idx]
+        return self.data[idx], self.labels[idx]
     
     def __len__(self) -> int :
         return len(self.labels)

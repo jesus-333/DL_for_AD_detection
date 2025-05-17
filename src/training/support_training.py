@@ -109,12 +109,36 @@ def check_lr_scheduler_config(lr_scheduler_config : dict) :
         if 'eta_min' not in lr_scheduler_config :
             print('Warning: the learning rate scheduler configuration does not contain the key "eta_min". 0 will be used as default value')
             lr_scheduler_config['eta_min'] = 0
+    elif lr_scheduler_config['name'] == 'CosineAnnealingWarmRestarts' :
+        if 'T_0' not in lr_scheduler_config :
+            raise ValueError('The learning rate scheduler configuration must contain the key "T_0" if the name is CosineAnnealingWarmRestarts')
+        if 'T_mult' not in lr_scheduler_config :
+            print('Warning: the learning rate scheduler configuration does not contain the key "T_mult". 1 will be used as default value')
+            lr_scheduler_config['T_mult'] = 1
+        if 'eta_min' not in lr_scheduler_config :
+            print('Warning: the learning rate scheduler configuration does not contain the key "eta_min". 0 will be used as default value')
+            lr_scheduler_config['eta_min'] = 0
     elif lr_scheduler_config['name'] == 'StepLR' :
         if 'step_size' not in lr_scheduler_config :
             raise ValueError('The learning rate scheduler configuration must contain the key "step_size" if the name is StepLR')
         if 'gamma' not in lr_scheduler_config :
             print('Warning: the learning rate scheduler configuration does not contain the key "gamma". 0.1 will be used as default value')
             lr_scheduler_config['gamma'] = 0.1
+    elif lr_scheduler_config['name'] == 'CyclicLR' :
+        if 'base_lr' not in lr_scheduler_config :
+            raise ValueError('The learning rate scheduler configuration must contain the key "base_lr" if the name is CyclicLR')
+        if 'max_lr' not in lr_scheduler_config :
+            raise ValueError('The learning rate scheduler configuration must contain the key "max_lr" if the name is CyclicLR')
+        if 'step_size_up' not in lr_scheduler_config :
+            raise ValueError('The learning rate scheduler configuration must contain the key "step_size_up" if the name is CyclicLR')
+        if 'step_size_down' not in lr_scheduler_config :
+            raise ValueError('The learning rate scheduler configuration must contain the key "step_size_down" if the name is CyclicLR')
+        if 'mode' not in lr_scheduler_config :
+            print('Warning: the learning rate scheduler configuration does not contain the key "mode". "triangular2" will be used as default value')
+            lr_scheduler_config['mode'] = 'triangular2'
+        if 'gamma' not in lr_scheduler_config :
+            print('Warning: the learning rate scheduler configuration does not contain the key "gamma". 1 will be used as default value')
+            lr_scheduler_config['gamma'] = 1
     elif lr_scheduler_config['name'] == 'ChainedScheduler' :
         if 'list_config_schedulers' not in lr_scheduler_config :
             raise ValueError('The learning rate scheduler configuration must contain the key "list_config_schedulers" if the name is ChainedScheduler. See chained_lr_scheduler_example.toml in /scripts/training/config/ for an example.') 
@@ -135,8 +159,12 @@ def get_lr_scheduler(lr_scheduler_config : dict, optimizer)  :
         lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = lr_scheduler_config['gamma'])
     elif lr_scheduler_config['name'] == 'CosineAnnealingLR' :
         lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = lr_scheduler_config['T_max'], eta_min = lr_scheduler_config['eta_min'])
+    elif lr_scheduler_config['name'] == 'CosineAnnealingWarmRestarts' :
+        lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0 = lr_scheduler_config['T_0'], T_mult = lr_scheduler_config['T_mult'], eta_min = lr_scheduler_config['eta_min'])
     elif lr_scheduler_config['name'] == 'StepLR' :
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = lr_scheduler_config['step_size'], gamma = lr_scheduler_config['gamma'])
+    elif lr_scheduler_config['name'] == 'CyclicLR' :
+        lr_scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr = lr_scheduler_config['base_lr'], max_lr = lr_scheduler_config['max_lr'], step_size_up = lr_scheduler_config['step_size_up'], step_size_down = lr_scheduler_config['step_size_down'], mode = lr_scheduler_config['mode'], gamma = lr_scheduler_config['gamma'])
     elif lr_scheduler_config['name'] == 'ChainedScheduler' :
         schedulers_list = []
         for name_config in lr_scheduler_config['list_config_schedulers'] :
@@ -145,7 +173,7 @@ def get_lr_scheduler(lr_scheduler_config : dict, optimizer)  :
             schedulers_list.append(tmp_scheduler)
         lr_scheduler = torch.optim.lr_scheduler.ChainedScheduler(schedulers_list, optimizer)
     else :
-        raise ValueError(f'The learning rate scheduler name is not valid. Curretly implemented: ExponentialLR, CosineAnnealingLR, StepLR. Value given: {lr_scheduler_config["name"]}')
+        raise ValueError(f'The learning rate scheduler name is not valid. Curretly implemented: ExponentialLR, CosineAnnealingLR, CosineAnnealingWarmRestarts, StepLR, CyclicLR. Value given: {lr_scheduler_config["name"]}')
 
     return lr_scheduler
 

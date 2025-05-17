@@ -91,7 +91,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
     def __init__(self, model, all_config : dict, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Get config dictionaries
         server_config   = all_config['server_config']
         training_config = all_config['training_config']
@@ -99,24 +99,24 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
         self.all_config = all_config
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Wandb attributes
         
         if not wandb_installed : raise ImportError('wandb is not installed. Please it using "pip install wandb"')
 
         # Initialise wandb
-        self.wandb_run = wandb.init(project = wandb_config['project_name'], 
-                                    job_type = "train", config = all_config, 
-                                    notes = wandb_config['notes'], 
+        self.wandb_run = wandb.init(project = wandb_config['project_name'],
+                                    job_type = "train", config = all_config,
+                                    notes = wandb_config['notes'],
                                     name = wandb_config['name_training_run']
                                     )
 
         # Wandb artifact to save model weights
-        self.model_artifact = wandb.Artifact(wandb_config['model_artifact_name'], type = "model", 
+        self.model_artifact = wandb.Artifact(wandb_config['model_artifact_name'], type = "model",
                                              description = wandb_config['description'] if 'description' in wandb_config else None,
                                              metadata = all_config)
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Other attributes
 
         self.count_rounds = 0
@@ -132,7 +132,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
     #     print("END SERVER AND WANDB LOG")
     #     self.wandb_run.finish()
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Override methods from FedAvg
 
     def aggregate_fit(self, server_round: int, results, failures) :
@@ -145,12 +145,12 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
         aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
         
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Parameters logging, clients metrics logging
 
         if aggregated_parameters is not None:
             # Convert `Parameters` to `List[np.ndarray]`
-            model_weights = flwr.common.parameters_to_ndarrays(aggregated_parameters) 
+            model_weights = flwr.common.parameters_to_ndarrays(aggregated_parameters)
             self.model_weights = model_weights
 
             # Load updated weights into the model
@@ -181,7 +181,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
                     # Plot(s) creation and log
                     if self.metrics_to_log_from_clients == 'all' :
-                        self.create_and_log_wandb_metric_plot_separately(metrics_values_list, training_epochs,  metrics_name_list, client_id)
+                        self.create_and_log_wandb_metric_plot_separately(metrics_values_list, training_epochs, metrics_name_list, client_id)
                     else :
                         # Get the metrics to plot
                         idx_of_metrics_to_plot = [i for i in range(len(metrics_values_list)) if metrics_name_list[i] in self.metrics_to_log_from_clients]
@@ -200,7 +200,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         else :
             model_weights = None
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Server metrics logging
 
         if aggregated_metrics is not None :
@@ -222,7 +222,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             print("Warning. No aggregated metrics obtained during aggregation phase. fit_metrics_aggregation_fn must is None or there are error with the function code.")
             print("Only the aggregated weights and the metrics of the clients will be uploaded ")
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         if self.count_rounds == self.num_rounds and not self.all_config['server_config']['centralized_evaluation'] :
             self.end_wandb_run_and_log_artifact()
@@ -254,7 +254,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
                 print("")
                 print("NO centralized evaluation funciton provided.")
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # New function (i.e. all this funciton are not inherited from FedAvg)
     # TODO : consider if move them to support_federated_server
 
@@ -270,7 +270,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         Create a plot with matplotlib for the metrics in metrics_to_plot_list. Each element of the list must be an array/list with the value of the metric for each epoch.
         """
         
-        # Apparently matplotlib is not thread safe. 
+        # Apparently matplotlib is not thread safe.
         # The creation of fig and ax with the command plt.subplots() without using the default backend will cause the following warning and the crash of python.
         # UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
         # A possibile solution suggested online was the use of a non-interactive backend
@@ -304,7 +304,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         if len(metrics_name_list) == 1 :
             # Only 1 metric
             metric_name = metrics_name_list[0]
-        else : 
+        else :
             # More than 1 metric
             metric_name = 'all'
         
@@ -329,7 +329,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             # Convert the metric for wandb upload
             data = [[current_epoch, metric_value_current_epoch] for (current_epoch, metric_value_current_epoch) in zip(range(len(metric)), metric)]
 
-            # Create the table 
+            # Create the table
             table = wandb.Table(data = data, columns=["epochs", metric_name])
 
             # Log the plot in wandb

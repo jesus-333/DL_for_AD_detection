@@ -3,7 +3,7 @@
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
 import os
@@ -14,13 +14,13 @@ from flwr.client import NumPyClient
 from . import support_federated_generic
 from ..training import train_functions, test_functions
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class flower_client_v1(NumPyClient):
     def __init__(self, model, train_dataset, validation_dataset, training_config):
         # Save model, dataset_config and training_config
         self.model = model
-        self.training_config = training_config 
+        self.training_config = training_config
         if 'print_var' not in self.training_config : self.training_config['print_var'] = False
 
         # Save dataset
@@ -34,9 +34,9 @@ class flower_client_v1(NumPyClient):
         if self.client_id == -1 : print('WARNING: client id not found in training_config. Set to -1')
 
         # Update path to save weights with client id
-        self.training_config['path_to_save_model'] += f'/client_{self.client_id}' 
+        self.training_config['path_to_save_model'] += f'/client_{self.client_id}'
 
-        # Print information 
+        # Print information
         if self.training_config['print_var'] :
             print(f"Client n. {self.client_id}")
             print(f"N. training samples = {len(self.train_dataset)}")
@@ -46,12 +46,12 @@ class flower_client_v1(NumPyClient):
         return support_federated_generic.get_weights(self.model)
 
     def fit(self, parameters, config):
-        # Set the parameters (received from the server) 
+        # Set the parameters (received from the server)
         support_federated_generic.set_weights(self.model, parameters)
 
         # Update training config
-        for key in config : 
-            if key in self.training_config : 
+        for key in config :
+            if key in self.training_config :
                 self.training_config[key] = config[key]
 
         # Train the model

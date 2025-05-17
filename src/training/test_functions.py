@@ -27,7 +27,7 @@ def test(training_config : dict, model, test_dataset) :
     # Move model to training device
     model.to(training_config['device'])
 
-    # Create loss function and optimizer
+    # Create loss function 
     loss_function = torch.nn.CrossEntropyLoss()
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
