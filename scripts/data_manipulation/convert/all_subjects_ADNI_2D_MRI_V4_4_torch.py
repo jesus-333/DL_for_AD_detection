@@ -10,9 +10,8 @@ import json
 import numpy as np
 import os
 import pandas as pd
-import pickle
 import pydicom as dicom
-import torch 
+import torch
 import torchvision
 
 from src.dataset import support_dataset
@@ -179,8 +178,8 @@ if conversion_type == 1 or conversion_type == 2 :
     for i in range(len(dataset_tensor)) : dataset_tensor[i] = dataset_tensor[i].squeeze()
     dataset_tensor = torch.from_numpy(np.asarray(dataset_tensor))
     dataset_tensor_path = f'{path_to_save}dataset_tensor'
-    if preprocess_function is not None : dataset_tensor_path += f'_{resize_size}'
-    if apply_pixel_rescaling : dataset_tensor_path += '_pixel_rescaling'
+    if preprocess_function is not None : dataset_tensor_path += f'___{resize_size}_resize'
+    if apply_pixel_rescaling : dataset_tensor_path += '___pixel_rescaling'
     dataset_tensor_path += '.pt'
     torch.save(dataset_tensor, dataset_tensor_path)
     
