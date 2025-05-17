@@ -1,7 +1,7 @@
 [train_config]
-batch_size = 128
-lr = 0.01
-epochs = 5
+batch_size = 42
+lr = 0.009
+epochs = 125
 optimizer_weight_decay = 0.01
 device = "mps"
 epoch_to_save_model = 10
@@ -17,27 +17,50 @@ name_training_run = ""
 notes = ""
 debug = false
 use_scheduler = true
+
+# lr scheduler config
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# CosineAnnealingLR Config
 # [train_config.lr_scheduler_config]
 # name = 'CosineAnnealingLR'
 # T_max = 20
 # eta_min = 1e-5
 # gamma = 0.96 
 # step_size = 5
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# CosineAnnealingLR + ExponentialLR
+# [train_config.lr_scheduler_config]
+# name = 'ChainedScheduler'
+# [train_config.lr_scheduler_config.list_config_schedulers.config_1]
+# name = 'CosineAnnealingLR'
+# T_max = 9
+# eta_min = 1e-5
+# [train_config.lr_scheduler_config.list_config_schedulers.config_2]
+# name = 'ExponentialLR'
+# gamma = 0.93
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# CosineAnnealingWarmRestarts 
 [train_config.lr_scheduler_config]
-name = 'ChainedScheduler'
-[train_config.lr_scheduler_config.list_config_schedulers.config_1]
-name = 'CosineAnnealingLR'
-T_max = 9
+name = 'CosineAnnealingWarmRestarts'
+T_0 = 10
+T_mult = 2
 eta_min = 1e-5
-[train_config.lr_scheduler_config.list_config_schedulers.config_2]
-name = 'ExponentialLR'
-gamma = 0.93
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# [train_config.lr_scheduler_config]
+# name = ' CyclicLR'
+# base_lr = 1e-5
+# max_lr = starting_lr
+# gamma = gamma
+# mode = 'exp_range'
+# step_size_up = 10
+# step_size_down = 15
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 [dataset_config]
 use_normalization = true
 n_samples = 19200
 # n_samples = 6400
-merge_AD_class = 0
+merge_AD_class = 1
 load_data_in_memory = false
 load_data_type = 0
 percentage_train = 0.7

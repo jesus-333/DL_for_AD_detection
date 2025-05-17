@@ -2,31 +2,42 @@
 With this script you can train the DEMNET model to classify MRI and fMRI data for alzheimer detection.
 For more information about the model see https://ieeexplore.ieee.org/abstract/document/9459692
 
+
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-import toml
-import numpy as np
-import torch
-import json
+# This specific import was added to allow the execution of the script with the python command from the root folder of the repository
+# If the code is execute from another folder you have to modifu the path appended to include the src folder
+# The path is meant from where you run the python command
+import sys
+sys.path.append('./')
 
-from src.dataset import dataset_png, support_dataset, support_dataset_ADNI
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+import numpy as np
+import pandas
+import toml
+import torch
+import torchvision
+
+from src.dataset import dataset, support_dataset
 from src.model import demnet
 from src.training import train_functions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Settings
+print("hello world")
 
 path_config_train_and_dataset = './scripts/training/config/demnet_training_and_dataset.toml'
 path_config_model             = './scripts/training/config/demnet_model.toml'
 
 dataset_name = 'ADNI_axial_PD_z_44_slice_4'
-path_to_data = f'./data/{dataset_name}_png_V4_2/'
-z_matrix = 44 # Number of slice per sample
-slice = 4
+path_to_data = f'./data/{dataset_name}_png_V4_3/'
+z_matrix = int(dataset_name.split('_')[4])
+# slice    = int(dataset_name.split('_')[-1])
 
 print_var = True
 
@@ -50,15 +61,9 @@ all_config = dict(
 if 'path_to_data' in dataset_config : path_to_data = dataset_config['path_to_data']
 
 # train_config['epoch_to_save_model'] = train_config['epochs'] + 2
+
 # Note that toml file din't have (yet) the null type
 if train_config['seed'] == -1 : train_config['seed'] = np.random.randint(0, 1e9)
-
-preprocess_functions = support_dataset_ADNI.get_preprocess_functions_ADNI_3D_png(model_config['input_size'], dataset_config['use_normalization'], z_matrix = z_matrix, slice = slice)
-
-# # Save in the settings dataset_mean and dataset_std
-# if dataset_config['use_normalization'] :
-#     dataset_config['dataset_mean'] = dataset_mean
-#     dataset_config['dataset_std'] = dataset_std
 
 # Wand Setting
 train_config['wandb_training'] = True
@@ -71,25 +76,50 @@ percentage_split_list = [dataset_config['percentage_train'], dataset_config['per
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get all the files divided per folder
-folders_paths_dict = support_dataset.get_all_files_from_path_divided_per_folder(path_to_data, filetype_filter = 'png')
 
-# Get depth map order for each folder
-depth_map_order_dict = support_dataset_ADNI.get_depth_map_order_all_dataset(folders_paths_dict)
+# Get mean and std for normalization
+mean = torch.load(f'{path_to_data}dataset_mean.pt')
+std = torch.load(f'{path_to_data}dataset_std.pt')
+preprocess_functions  = torchvision.transforms.Compose([torchvision.transforms.Normalize(mean = mean, std = std)])
+
+# Get data
+data = torch.load(f'{path_to_data}dataset_tensor___176_resize___pixel_rescaling.pt')
+data = data.type(torch.float) / 4095
 
 # Get labels
-with open(f'./data/ADNI_Labels/{dataset_name}_int.json') as fp: subj_to_label_int = json.load(fp)
-with open(f'./data/ADNI_Labels/{dataset_name}_str.json') as fp: subj_to_label_str = json.load(fp)
-folder_to_labels_dict_int = support_dataset_ADNI.get_labels_dict_from_path_dict_V4_2(folders_paths_dict, subj_to_label_int)
-folder_to_labels_dict_str = support_dataset_ADNI.get_labels_dict_from_path_dict_V4_2(folders_paths_dict, subj_to_label_str)
+dataset_info = pandas.read_csv(f'{path_to_data}info_dataframe.csv')
+labels = dataset_info['labels_int'].to_numpy()
+labels_str = dataset_info['labels_str'].to_numpy()
 
-# Create dataset with all the sample
-load_data_in_memory = dataset_config['load_data_in_memory']
-load_data_type = dataset_config['load_data_type'] if 'load_data_type' in dataset_config else 0
-MRI_all_dataset = dataset_png.MRI_3D_dataset(folders_paths_dict, depth_map_order_dict, folder_to_labels_dict_int, load_data_in_memory = load_data_in_memory, load_data_type = load_data_type, preprocess_functions = preprocess_functions)
+if dataset_config['merge_AD_class'] == 1 :
+    label_to_int = dict(
+        CN    = 0,
+        AD    = 1,
+        MCI   = 1,
+        EMCI  = 1,
+        LMCI  = 1,
+        SMC   = 1,
+    )
+    for i in range(len(labels)) : labels[i] = label_to_int[labels_str[i]]
+elif dataset_config['merge_AD_class'] == 2 :
+    label_to_int = dict(
+        CN    = 0,
+        AD    = 1,
+        MCI   = 2,
+        EMCI  = 2,
+        LMCI  = 2,
+        SMC   = 3,
+    )
+    for i in range(len(labels)) : labels[i] = label_to_int[labels_str[i]]
 
 # Create random indices to train/validation/test split
 # P.s. this function has the side effect to sort the samples according to labels (so the first you will have all the samples with label 0, then all the samples with label 1 and so on)
-idx_list = support_dataset.get_idx_to_split_data_V3(MRI_all_dataset.labels, percentage_split_list, train_config['seed'])
+idx_list = support_dataset.get_idx_to_split_data_V3(labels, percentage_split_list, train_config['seed'])
+idx_train, idx_validation, idx_test = idx_list
+
+# Create random indices to train/validation/test split
+# P.s. this function has the side effect to sort the samples according to labels (so the first you will have all the samples with label 0, then all the samples with label 1 and so on)
+idx_list = support_dataset.get_idx_to_split_data_V3(labels, percentage_split_list, train_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
 # Save indices in the config
@@ -113,17 +143,20 @@ train_config['device'] = device
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load model
-model_config['num_classes'] = len(np.unique(MRI_all_dataset.labels))
+model_config['num_classes'] = len(np.unique(labels))
 model = demnet.demnet(model_config)
 
 # Split data in train/validation/test
-MRI_train_dataset      = torch.utils.data.Subset(MRI_all_dataset, idx_train)
-MRI_validation_dataset = torch.utils.data.Subset(MRI_all_dataset, idx_validation)
-MRI_test_dataset       = torch.utils.data.Subset(MRI_all_dataset, idx_test)
+MRI_train_dataset      = dataset.MRI_dataset(data[idx_train],      labels[idx_train],      preprocess_functions = preprocess_functions)
+MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation], labels[idx_validation], preprocess_functions = preprocess_functions)
+MRI_test_dataset       = dataset.MRI_dataset(data[idx_test],       labels[idx_test],       preprocess_functions = preprocess_functions)
 print("\nDataset split in train/validation/test")
 print(f"\tTrain samples      = {len(MRI_train_dataset)}")
 print(f"\tValidation samples = {len(MRI_validation_dataset)}")
-print(f"\tTest samples       = {len(MRI_test_dataset)}")
+# print(f"\tTest samples       = {len(MRI_test_dataset)}")
+
+# Delete original data tensor to free memory
+del data
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model

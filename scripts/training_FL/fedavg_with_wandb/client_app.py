@@ -3,13 +3,11 @@
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Imports 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Imports
 
 import toml
 import numpy as np
-import torch
-from torchvision import transforms
 
 from flwr.client import ClientApp, Client
 from flwr.common import Context
@@ -18,11 +16,11 @@ from src.model import demnet
 from src.dataset import support_dataset, support_dataset_kaggle
 from src.federated import client, support_federated_generic
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def client_fn_demnet(context : Context) -> Client :
     """
-    Create a Flower client. 
+    Create a Flower client.
     """
 
     # Get train and dataset config for the client.
