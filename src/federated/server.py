@@ -318,7 +318,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
     def create_and_log_wandb_metric_plot_separately(self, metrics_to_plot_list, training_epochs, metrics_name_list, client_id) :
         """
         Similar to create_and_log_matplotlib_metric_plot but the plot is created through wandb functions.
-        Note that in this function create a single plot for every metric you want to log. If you want to log more metrics in a single plot use create_and_log_wandb_metric_plot_together
+        Note that this function create a single plot for every metric you want to log. If you want to log more metrics in a single plot use create_and_log_wandb_metric_plot_together
         Here more info https://docs.wandb.ai/guides/track/log/plots/ and https://wandb.ai/wandb/plots/reports/Custom-Line-Plots--VmlldzoyNjk5NTA
         """
         

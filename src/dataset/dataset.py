@@ -26,7 +26,7 @@ class MRI_dataset(torch.utils.data.Dataset):
     TODO
     """
 
-    def __init__(self, data , labels, preprocess_functions = None) :
+    def __init__(self, data, labels, preprocess_functions = None) :
         # Check input
         if data.shape[0] != len(labels) :
             raise ValueError(f"N. of sampels and n. of labels must be the same. Current n. of samples : {data.shape[0]}, current n. of labels : {len(labels)}")
@@ -144,3 +144,11 @@ class MRI_dataset(torch.utils.data.Dataset):
         # Show the plot
         fig.tight_layout()
         fig.show()
+
+    def move_data_and_labels_to_device(self, device : torch.device) :
+        """
+        Move the data and labels to the specified device.
+        """
+
+        self.data = self.data.to(device)
+        self.labels = self.labels.to(device)

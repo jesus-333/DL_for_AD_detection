@@ -154,7 +154,7 @@ def create_ADNI_partition(file_path_list : list, label_list_int : list, label_li
 def get_depth_map_order_single_sample_from_files_list(files_list : list) :
     """
     Given a list with the name of the files of a single sample (i.e. a single MRI scan), this function with analyze the name of the files to obtain the correct order of the depth map.
-    Note that this function was written with the data/folder structure obtained from the script convert_all_subjects_ADNI_ONLY_2D_MRI_V4_2.py in mind.
+    Note that this function was written with the data/folder structure obtained from the script convert/all_subjects_ADNI_ONLY_2D_MRI_V4_2.py in mind.
     So you basically need to have a list of folder where each folder is a sample of the dataset.
     Then you can read the files from that specific folder, create a list with them and pass it to this function.
     The name of each files must be in the following format: idx_name.png, where idx is the index of the slice in the depth map and name is the name of the file (whatever name you want).
