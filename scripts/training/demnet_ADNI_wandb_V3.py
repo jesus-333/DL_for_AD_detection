@@ -18,7 +18,7 @@ sys.path.append('./')
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import numpy as np
-import pandas
+import pandas as pd
 import toml
 import torch
 import torchvision
@@ -40,6 +40,7 @@ z_matrix = int(dataset_name.split('_')[4])
 # slice    = int(dataset_name.split('_')[-1])
 
 print_var = True
+move_dataset_to_device =  True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load train and dataset config
@@ -87,7 +88,7 @@ data = torch.load(f'{path_to_data}dataset_tensor___176_resize___pixel_rescaling.
 data = data.type(torch.float) / 4095
 
 # Get labels
-dataset_info = pandas.read_csv(f'{path_to_data}info_dataframe.csv')
+dataset_info = pd.read_csv(f'{path_to_data}info_dataframe.csv')
 labels = dataset_info['labels_int'].to_numpy()
 labels_str = dataset_info['labels_str'].to_numpy()
 
@@ -149,7 +150,7 @@ model = demnet.demnet(model_config)
 # Split data in train/validation/test
 MRI_train_dataset      = dataset.MRI_dataset(data[idx_train],      labels[idx_train],      preprocess_functions = preprocess_functions)
 MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation], labels[idx_validation], preprocess_functions = preprocess_functions)
-MRI_test_dataset       = dataset.MRI_dataset(data[idx_test],       labels[idx_test],       preprocess_functions = preprocess_functions)
+# MRI_test_dataset       = dataset.MRI_dataset(data[idx_test],       labels[idx_test],       preprocess_functions = preprocess_functions)
 print("\nDataset split in train/validation/test")
 print(f"\tTrain samples      = {len(MRI_train_dataset)}")
 print(f"\tValidation samples = {len(MRI_validation_dataset)}")
@@ -158,7 +159,12 @@ print(f"\tValidation samples = {len(MRI_validation_dataset)}")
 # Delete original data tensor to free memory
 del data
 
+# (OPTIONAL) Move dataset to device
+if move_dataset_to_device :
+    MRI_train_dataset.move_data_and_labels_to_device(device)
+    MRI_validation_dataset.move_data_and_labels_to_device(device)
+    # MRI_test_dataset.move_data_and_labels_to_device(device)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model
-
 model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)
