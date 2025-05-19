@@ -18,7 +18,7 @@ path_data = './data/ADNI PET/ADNI/002_S_4521/AV45_Coreg,_Avg,_Std_Img_and_Vox_Si
 
 sort_files = True # Remember to check if you switch from PET to MRI data
 
-figsize = (10, 10) 
+figsize = (8, 8)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get the data

@@ -101,33 +101,25 @@ for i in range(len(list_files)) :
         # Create folders to save the data
         recording_id = f'{subj_id}___{date_aquisition}___{tmp_id}'
 
-        # Get order of the image
+        # Get indices of the image
         idx_images_list = []
         for j in range(len(list_files_specific_recording)) :
             file_name = list_files_specific_recording[j].split('/')[-1].split('.')[0]
             idx_image = file_name.split('_')[-3]
             idx_images_list.append(int(idx_image) - 1)
         
-        # I noticed that some images have not pixel with a +1 progression (i.e. they are not 0, 1, 2 etc)
-        # In 1 case I noticed that the progression is 0, 2, 4 etc
-        # To avoid problem I convert the indices in the scale from 0 to n_slice - 1
-        # TODO Check if the code work
-        idx_to_use = dict()
-        sorted_idx = np.sort(idx_images_list)
-        for i in range(len(idx_images_list)) :
-            idx = sorted_idx[i]
-            idx_to_use[idx] = i
+        # Sort indices to convert map in the correct order
+        idx_to_use = np.argsort(idx_images_list)
 
         tmp_image = []
         tmp_info = []
         for j in range(len(list_files_specific_recording)) :
-            # idx = idx_images_list[j]
-            idx = idx_to_use[idx_images_list[j]]
-            file_name = list_files_specific_recording[j].split('/')[-1].split('.')[0]
+            idx = idx_to_use[j]
+            file_name = list_files_specific_recording[idx].split('/')[-1].split('.')[0]
             file_path_save = f'{path_to_save}{recording_id}_{file_name}.pt'
 
             # Load the data
-            data = dicom.dcmread(list_files_specific_recording[j])
+            data = dicom.dcmread(list_files_specific_recording[idx])
 
             # Get the pixel data
             pixel_data = data.pixel_array
