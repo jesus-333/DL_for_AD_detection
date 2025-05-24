@@ -46,9 +46,9 @@ from src.training import train_functions
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Settings
 
-path_config_training  = args.path_training_config if args.path_training_config is not None else './scripts/training/config/demnet_training.toml'
-path_config_dataset   = args.path_dataset_config if args.path_dataset_config is not None else './scripts/training/config/demnet_dataset.toml'
-path_config_model     = args.path_config_model if args.path_config_model is not None else './scripts/training/config/demnet_model.toml'
+path_config_dataset  = args.path_dataset_config if args.path_dataset_config is not None else './scripts/training/config/demnet_dataset.toml'
+path_config_model    = args.path_model_config if args.path_model_config is not None else './scripts/training/config/demnet_model.toml'
+path_config_training = args.path_training_config if args.path_training_config is not None else './scripts/training/config/demnet_training.toml'
 
 dataset_name = 'ADNI_axial_middle_slice'
 dataset_tensor_file_name = 'dataset_tensor___176_resize.pt' if args.name_tensor_file is None else args.name_tensor_file
@@ -179,4 +179,4 @@ if move_dataset_to_device :
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model
-# model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)
+model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)

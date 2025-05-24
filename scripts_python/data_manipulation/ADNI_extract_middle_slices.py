@@ -29,12 +29,12 @@ path_dataset_info = "./data/ADNI_dicom_converted_axial/data_info.json"
 
 path_to_save = './data/ADNI_axial_middle_slice/'
 
-conversion_type = 2
+conversion_type = 1
 
 apply_resize = True
 resize_size = 176
 
-create_png_backup = True # If True for each slice saved it creates also a copy in png
+create_png_backup = False# If True for each slice saved it creates also a copy in png
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get data and create preprocess function
@@ -72,6 +72,7 @@ total_pixels = 0
 dataset_tensor = []
 
 n_element_to_print = len(list_of_files) // 50
+count_error = 0
 
 for i in range(len(list_of_files)) :
     if i % n_element_to_print == 0 : print(f"Processing file {i}/{len(list_of_files)}\t({round(i / len(list_of_files) * 100, 2)}%)")
@@ -95,13 +96,17 @@ for i in range(len(list_of_files)) :
     
     # Load sample and rescale in 0-1 range
     sample = torch.from_numpy(np.load(file_path))
+    if sample.int().max() > 4095 :
+        print(f"Problem with file {file_name}")
+        count_error += 1
     sample = sample / 4095
 
     # Get indices for the middle slides
     if z_matrix % 2 == 0 : # Even number of slices
         indices = [int(z_matrix / 2), int(z_matrix / 2 + 1)]
     else : # Odd numbero of slices
-        indices = [z_matrix // 2 - 1, z_matrix // 2, z_matrix // 2 + 1]
+        # indices = [z_matrix // 2 - 1, z_matrix // 2, z_matrix // 2 + 1]
+        indices = [z_matrix // 2]
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Iterate through the middle slices
@@ -121,9 +126,14 @@ for i in range(len(list_of_files)) :
         channel_squared_sum += torch.sum(slice ** 2)
         total_pixels += slice.shape[1] * slice.shape[2]
 
+        # Name of the files if I decide to save the single tensor
+        # Note that when I have conversion_type == 1 those files are not created.
+        # Still the information is saved in the csv/json files.
+        # This was made to avoid a different number of fields in the csv/json based on conversion_type value.
+        file_name_save = f'{i}_{idx}_{subj_id}_{label_str}.pth'
+
         # Save single slice
         if conversion_type == 0 or conversion_type == 2 :
-            file_name_save = f'{i}_{idx}_{subj_id}_{label_str}.pth'
             file_path_save = f'{path_to_save}{file_name_save}'
             torch.save(slice, file_path_save)
         
@@ -167,10 +177,10 @@ if conversion_type == 1 or conversion_type == 2 :
     torch.save(dataset_tensor, f"{dataset_tensor_path}.pt")
 
 # Save slice info (csv)
-slice_info_csv.to_csv(f'{path_to_save}data_info.csv', index = False)
+slice_info_csv.to_csv(f'{path_to_save}dataset_info.csv', index = False)
 
 # Save slice info (dict)
-with open(f'{path_to_save}data_info.json', 'w') as f : json.dump(slice_info_dict, f, indent = 3)
+with open(f'{path_to_save}dataset_info.json', 'w') as f : json.dump(slice_info_dict, f, indent = 3)
 
 # Compute mean and std and save them
 mean = channel_sum / total_pixels
