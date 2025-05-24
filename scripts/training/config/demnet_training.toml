@@ -1,7 +1,6 @@
-[train_config]
-batch_size = 42
-lr = 0.009
-epochs = 125
+batch_size = 69
+lr = 0.01
+epochs = 80
 optimizer_weight_decay = 0.01
 device = "mps"
 epoch_to_save_model = 10
@@ -29,22 +28,22 @@ use_scheduler = true
 # step_size = 5
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # CosineAnnealingLR + ExponentialLR
-# [train_config.lr_scheduler_config]
-# name = 'ChainedScheduler'
-# [train_config.lr_scheduler_config.list_config_schedulers.config_1]
-# name = 'CosineAnnealingLR'
-# T_max = 9
-# eta_min = 1e-5
-# [train_config.lr_scheduler_config.list_config_schedulers.config_2]
-# name = 'ExponentialLR'
-# gamma = 0.93
+[train_config.lr_scheduler_config]
+name = 'ChainedScheduler'
+[train_config.lr_scheduler_config.list_config_schedulers.config_1]
+name = 'CosineAnnealingLR'
+T_max = 9
+eta_min = 1e-5
+[train_config.lr_scheduler_config.list_config_schedulers.config_2]
+name = 'ExponentialLR'
+gamma = 0.93
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # CosineAnnealingWarmRestarts 
-[train_config.lr_scheduler_config]
-name = 'CosineAnnealingWarmRestarts'
-T_0 = 10
-T_mult = 2
-eta_min = 1e-5
+# [train_config.lr_scheduler_config]
+# name = 'CosineAnnealingWarmRestarts'
+# T_0 = 10
+# T_mult = 2
+# eta_min = 1e-5
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # [train_config.lr_scheduler_config]
 # name = ' CyclicLR'

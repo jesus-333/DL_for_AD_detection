@@ -8,12 +8,28 @@ For more information about the model see https://ieeexplore.ieee.org/abstract/do
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# (OPTIONAL) CLI argument
+import argparse
 
-# This specific import was added to allow the execution of the script with the python command from the root folder of the repository
-# If the code is execute from another folder you have to modifu the path appended to include the src folder
-# The path is meant from where you run the python command
+# Create parser
+parser = argparse.ArgumentParser()
+
+# Add arguments
+parser.add_argument('-p_src'    , '--path_src'              , type = str, default = None)
+parser.add_argument('-p_t_conf' , '--path_training_config'  , type = str, default = None)
+parser.add_argument('-p_d_conf' , '--path_dataset_config'   , type = str, default = None)
+parser.add_argument('-p_m_conf' , '--path_model_config'     , type = str, default = None)
+parser.add_argument('-p_data'   , '--path_data'             , type = str, default = None)
+parser.add_argument('-n'        , '--name_tensor_file'      , type = str, default = None)
+args = parser.parse_args()
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# This specific import was added to allow the execution of the script with the "python" command from any folder you like
+# If the argument path_src is not provided, the script assume you will run it from the root folder of the repository
 import sys
-sys.path.append('./')
+if args.path_src is not None : sys.path.append(args.path_src)
+else : sys.path.append('./')
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -29,48 +45,42 @@ from src.training import train_functions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Settings
-print("hello world")
 
-path_config_train_and_dataset = './scripts/training/config/demnet_training_and_dataset.toml'
-path_config_model             = './scripts/training/config/demnet_model.toml'
+path_config_training  = args.path_training_config if args.path_training_config is not None else './scripts/training/config/demnet_training.toml'
+path_config_dataset   = args.path_dataset_config if args.path_dataset_config is not None else './scripts/training/config/demnet_dataset.toml'
+path_config_model     = args.path_config_model if args.path_config_model is not None else './scripts/training/config/demnet_model.toml'
 
-dataset_name = 'ADNI_axial_PD_z_44_slice_4'
-path_to_data = f'./data/{dataset_name}_png_V4_3/'
-z_matrix = int(dataset_name.split('_')[4])
-# slice    = int(dataset_name.split('_')[-1])
+dataset_name = 'ADNI_axial_middle_slice'
+dataset_tensor_file_name = 'dataset_tensor___176_resize.pt' if args.name_tensor_file is None else args.name_tensor_file
+path_to_data = f'./data/{dataset_name}/' if args.path_data is None else args.path_data
 
 print_var = True
-move_dataset_to_device =  True
+move_dataset_to_device = True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Load train and dataset config
-train_and_dataset_config = toml.load(path_config_train_and_dataset)
-train_config = train_and_dataset_config['train_config']
-dataset_config = train_and_dataset_config['dataset_config']
-
-# Load model config
-model_config = toml.load(path_config_model)
-model_config['input_channels'] = z_matrix
+# Load configs
+training_config = toml.load(path_config_training)
+dataset_config  = toml.load(path_config_dataset)
+model_config    = toml.load(path_config_model)
 
 # Create single dictionary with all the config
 all_config = dict(
-    train_config = train_config,
+    training_config = training_config,
     dataset_config = dataset_config,
     model_config = model_config
 )
 
 if 'path_to_data' in dataset_config : path_to_data = dataset_config['path_to_data']
 
-# train_config['epoch_to_save_model'] = train_config['epochs'] + 2
+# training_config['epoch_to_save_model'] = training_config['epochs'] + 2
 
 # Note that toml file din't have (yet) the null type
-if train_config['seed'] == -1 : train_config['seed'] = np.random.randint(0, 1e9)
+if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 1e9)
 
 # Wand Setting
-train_config['wandb_training'] = True
-train_config['project_name'] = "demnet_training_ADNI"
-train_config['name_training_run'] = None
-train_config['model_artifact_name'] = f"demnet_ADNI_z_{z_matrix}"
+training_config['wandb_training'] = True
+training_config['project_name'] = "demnet_training_ADNI"
+training_config['name_training_run'] = None
 
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
@@ -84,11 +94,13 @@ std = torch.load(f'{path_to_data}dataset_std.pt')
 preprocess_functions  = torchvision.transforms.Compose([torchvision.transforms.Normalize(mean = mean, std = std)])
 
 # Get data
-data = torch.load(f'{path_to_data}dataset_tensor___176_resize___pixel_rescaling.pt')
-data = data.type(torch.float) / 4095
+data = torch.load(f'{path_to_data}{dataset_tensor_file_name}')
+
+# Get the number of channels
+model_config['input_channels'] = data.shape[1]
 
 # Get labels
-dataset_info = pd.read_csv(f'{path_to_data}info_dataframe.csv')
+dataset_info = pd.read_csv(f'{path_to_data}dataset_info.csv')
 labels = dataset_info['labels_int'].to_numpy()
 labels_str = dataset_info['labels_str'].to_numpy()
 
@@ -115,18 +127,18 @@ elif dataset_config['merge_AD_class'] == 2 :
 
 # Create random indices to train/validation/test split
 # P.s. this function has the side effect to sort the samples according to labels (so the first you will have all the samples with label 0, then all the samples with label 1 and so on)
-idx_list = support_dataset.get_idx_to_split_data_V3(labels, percentage_split_list, train_config['seed'])
+idx_list = support_dataset.get_idx_to_split_data_V3(labels, percentage_split_list, training_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
 # Create random indices to train/validation/test split
 # P.s. this function has the side effect to sort the samples according to labels (so the first you will have all the samples with label 0, then all the samples with label 1 and so on)
-idx_list = support_dataset.get_idx_to_split_data_V3(labels, percentage_split_list, train_config['seed'])
+idx_list = support_dataset.get_idx_to_split_data_V3(labels, percentage_split_list, training_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
 # Save indices in the config
-train_config['idx_train']      = idx_train
-train_config['idx_test']       = idx_test
-train_config['idx_validation'] = idx_validation
+training_config['idx_train']      = idx_train
+training_config['idx_test']       = idx_test
+training_config['idx_validation'] = idx_validation
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Select training device
@@ -140,7 +152,7 @@ elif torch.backends.mps.is_available():
 else:
     device = torch.device("cpu")
     print("\nNo backend in use. Device set to cpu")
-train_config['device'] = device
+training_config['device'] = device
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load model
@@ -167,4 +179,4 @@ if move_dataset_to_device :
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model
-model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)
+# model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)

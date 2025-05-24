@@ -17,7 +17,7 @@ import toml
 import torch
 import torchvision
 
-from src.dataset import dataset, support_dataset, support_dataset_ADNI
+from src.dataset import dataset, support_dataset
 from src.model import demnet
 from src.training import train_functions
 
@@ -83,8 +83,8 @@ percentage_split_list = [dataset_config['percentage_train'], dataset_config['per
 data = torch.load(path_to_data_tensor)
 dataset_info = pd.read_csv(f'{path_to_data_folder}data_info.csv')
 
-label_list_int = dataset_info['labels_int'].to_list()
-label_list_str = dataset_info['labels_str'].to_list()
+label_list_int = dataset_info['labels_int'].to_numpy()
+label_list_str = dataset_info['labels_str'].to_numpy()
 
 if dataset_config['merge_AD_class'] == 1 :
     label_to_int = dict(
@@ -95,7 +95,7 @@ if dataset_config['merge_AD_class'] == 1 :
         LMCI  = 1,
         SMC   = 1,
     )
-    for i in range(len(label_list_int)) : label_list_int[i] = label_list_int[label_list_str[i]]
+    for i in range(len(label_list_int)) : label_list_int[i] = label_to_int[label_list_str[i]]
 elif dataset_config['merge_AD_class'] == 2 :
     label_to_int = dict(
         CN    = 0,
@@ -105,7 +105,7 @@ elif dataset_config['merge_AD_class'] == 2 :
         LMCI  = 2,
         SMC   = 3,
     )
-    for i in range(len(label_list_int)) : label_list_int[i] = label_list_int[label_list_str[i]]
+    for i in range(len(label_list_int)) : label_list_int[i] = label_to_int[label_list_str[i]]
 else :
     label_to_int = dict(
         CN    = 0,
@@ -117,6 +117,8 @@ else :
     )
 
 
+# Create random indices to train/validation/test split
+# P.s. this function has the side effect to sort the samples according to labels (so the first you will have all the samples with label 0, then all the samples with label 1 and so on)
 idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, train_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
@@ -160,4 +162,4 @@ del data
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model
 
-# model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
+model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
