@@ -1,6 +1,7 @@
 """
 This script is not related with the analysis of AD data or the trained model.
 I simply use it to check how the learning rate (lr) change based on some schedulers
+This version create plot all the scheduler on the same plot
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -10,14 +11,14 @@ import matplotlib.pyplot as plt
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-epochs = 200
-starting_lr = 0.005
+epochs = 104
+starting_lr = 0.001
 
 # Parameter of ExponentialLR
-gamma = 0.95
+gamma = 0.97
 
 # Parameters of CosineAnnealingLR
-T_max = 10
+T_max = 7
 eta_min = 1e-5
 
 # Parameters of CosineAnnealingWarmRestarts
@@ -30,8 +31,11 @@ base_lr = 1e-5
 max_lr = starting_lr
 gamma = gamma
 mode = 'exp_range'
-step_size_up = 10
-step_size_down = 15
+step_size_up = 5
+step_size_down = 5
+
+figsize = (10, 6)
+use_log_scale = True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,26 +48,42 @@ def simulate_lr_scheduler(lr_scheduler, optimizer, epochs):
     return lrs
 
 model = torch.nn.Linear(10, 2)
+list_lrs_to_plot = []
+name_lrs_to_plot = []
 
 # Simulate ExponentialLR
 optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
 lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = gamma)
 lrs_exp = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
+# list_lrs_to_plot.append(lrs_exp)
+# name_lrs_to_plot.append('ExponentialLR')
 
 # Simulate CosineAnnealingLR
 optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
 lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = T_max, eta_min = 0)
 lrs_cos = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
+# list_lrs_to_plot.append(lrs_cos)
+# name_lrs_to_plot.append('CosineAnnealingLR')
 
 # Simulate CosineAnnealingWarmRestarts
 optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
 lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0 = T_0, T_mult = T_mult, eta_min = 0)
 lrs_cos_warm = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
+list_lrs_to_plot.append(lrs_cos_warm)
+name_lrs_to_plot.append('CosineAnnealingWarmRestarts')
 
 # Simulate CyclicLR
 optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
 lr_scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr = base_lr, max_lr = max_lr, gamma = gamma, step_size_up = step_size_up, step_size_down = step_size_down, mode = mode)
 lrs_cyc = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
+# list_lrs_to_plot.append(lrs_cyc)
+# name_lrs_to_plot.append('CyclicLR')
+
+optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
+lr_scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr = base_lr, max_lr = 0.003, gamma = gamma, step_size_up = step_size_up, step_size_down = step_size_down, mode = mode)
+lrs_cyc = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
+list_lrs_to_plot.append(lrs_cyc)
+name_lrs_to_plot.append('CyclicLR 2')
 
 # Simulate ChainedScheduler
 optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
@@ -73,43 +93,22 @@ schedulers_list = [
 ]
 lr_scheduler = torch.optim.lr_scheduler.ChainedScheduler(schedulers_list, optimizer)
 lrs_chained_1 = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
-
-optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
-schedulers_list = [
-    torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = gamma),
-    torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0 = T_0, T_mult = T_mult, eta_min = 0),
-]
-lr_scheduler = torch.optim.lr_scheduler.ChainedScheduler(schedulers_list, optimizer)
-lrs_chained_2 = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
+# list_lrs_to_plot.append(lrs_chained_1)
+# name_lrs_to_plot.append('ExponentialLR + CosineAnnealingLR')
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Plot the learning rates
 
-epochs = range(1, epochs + 1)
-fig, axs = plt.subplots(2, 3, figsize = (22, 8))
-axs[0, 0].plot(epochs, lrs_exp, label = 'ExponentialLR')
-axs[0, 0].set_title('ExponentialLR')
-axs[0, 0].set_yscale('log')
+fig, ax = plt.subplots(figsize = figsize)
 
-axs[0, 1].plot(epochs, lrs_cos, label = 'CosineAnnealingLR')
-axs[0, 1].set_title('CosineAnnealingLR')
+for i in range(len(list_lrs_to_plot)): ax.plot(list_lrs_to_plot[i], label = name_lrs_to_plot[i])
 
-axs[0, 2].plot(epochs, lrs_cos_warm, label = 'CosineAnnealingWarmRestarts')
-axs[0, 2].set_title('CosineAnnealingWarmRestarts')
-
-axs[1, 0].plot(epochs, lrs_cyc, label = 'CyclicLR')
-axs[1, 0].set_title('CyclicLR')
-axs[1, 0].set_yscale('log')
-
-axs[1, 1].plot(epochs, lrs_chained_1, label = 'ChainedScheduler 1')
-axs[1, 1].set_title('ChainedScheduler 1')
-axs[1, 2].plot(epochs, lrs_chained_2, label = 'ChainedScheduler 2')
-axs[1, 2].set_title('ChainedScheduler 2')
-
-for ax in axs.flatten():
-    ax.set(xlabel = 'Epochs', ylabel = 'Learning Rate')
-    ax.set_xlim(1, epochs[-1])
-    ax.grid()
+ax.set_xlabel('Epochs')
+ax.set_ylabel('Learning Rate')
+ax.set_title('Learning Rate Schedulers')
+if use_log_scale: ax.set_yscale('log')
+ax.legend()
+ax.grid()
 
 fig.tight_layout()
 plt.show()
