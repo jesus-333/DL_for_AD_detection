@@ -32,7 +32,7 @@ percentage_split_list = [percentage_train, percentage_validation, percentage_tes
 
 seed = None
 
-path_train_config = './scripts_training/config/vgg_finetuning.toml'
+path_training_config = './scripts_training/config/vgg_finetuning.toml'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Datasets creation
@@ -109,20 +109,20 @@ else:
 # Create model and dataset 
 
 # Get config
-config = toml.load(path_train_config)
+config = toml.load(path_training_config)
 
 # Setup training config to test the training function
-config['train_config']['batch_size'] = batch_size
-config['train_config']['epochs'] = epochs
-config['train_config']['epoch_to_save_model'] = config['train_config']['epochs'] + 2
-config['train_config']['measure_metrics_during_training'] = True
-config['train_config']['device'] = device
+config['training_config']['batch_size'] = batch_size
+config['training_config']['epochs'] = epochs
+config['training_config']['epoch_to_save_model'] = config['training_config']['epochs'] + 2
+config['training_config']['measure_metrics_during_training'] = True
+config['training_config']['device'] = device
 
 # Setup training config for wandb
-config['train_config']['wandb_training'] = True
-config['train_config']['project_name'] = "test_project_vgg_finetuning_AD"
-config['train_config']['model_artifact_name'] = "vgg_finetuning_AD"
-config['train_config']['debug'] = True
+config['training_config']['wandb_training'] = True
+config['training_config']['project_name'] = "test_project_vgg_finetuning_AD"
+config['training_config']['model_artifact_name'] = "vgg_finetuning_AD"
+config['training_config']['debug'] = True
 
 # Get model
 vgg_model, preprocess_functions = vgg_nets.get_vgg(config['model_config'])

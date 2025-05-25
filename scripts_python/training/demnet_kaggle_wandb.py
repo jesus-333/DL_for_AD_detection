@@ -34,7 +34,7 @@ print_var = True
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load train and dataset config
 train_and_dataset_config = toml.load(path_config_train_and_dataset)
-train_config = train_and_dataset_config['train_config']
+training_config = train_and_dataset_config['training_config']
 dataset_config = train_and_dataset_config['dataset_config']
 
 # Load model config
@@ -43,15 +43,15 @@ model_config['input_channels'] = 1 if dataset_config['grey_scale_image'] else 3
 
 # Create single dictionary with all the config
 all_config = dict(
-    train_config = train_config,
+    training_config = training_config,
     dataset_config = dataset_config,
     model_config = model_config
 )
 
-# train_config['epoch_to_save_model'] = train_config['epochs'] + 2
+# training_config['epoch_to_save_model'] = training_config['epochs'] + 2
 
 # Note that toml file din't have (yet) the null type
-if train_config['seed'] == -1 : train_config['seed'] = np.random.randint(0, 1e8)
+if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 1e8)
 
 # This values are precomputed with the script compute_avg_std_dataset.py (withoug using the CenterCrop and Resize)
 # dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816])
@@ -84,13 +84,13 @@ if dataset_config['use_normalization'] :
     dataset_config['dataset_std'] = dataset_std
 
 # Wand Setting
-train_config['wandb_training'] = True
-train_config['project_name'] = "demnet_training"
-train_config['model_artifact_name'] = "demnet_training_AD_kaggle"
-if 'name_training_run' in train_config :
-    if train_config['name_training_run'] == "" : train_config['name_training_run'] = None
+training_config['wandb_training'] = True
+training_config['project_name'] = "demnet_training"
+training_config['model_artifact_name'] = "demnet_training_AD_kaggle"
+if 'name_training_run' in training_config :
+    if training_config['name_training_run'] == "" : training_config['name_training_run'] = None
 else :
-    train_config['name_training_run'] = None
+    training_config['name_training_run'] = None
 
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
@@ -100,13 +100,13 @@ percentage_split_list = [dataset_config['percentage_train'], dataset_config['per
 file_path_list, label_list_int, label_list_str = support_dataset_kaggle.get_data(path_files_Moderate_Demented, path_files_Mild_Demented, path_files_Very_Mild_Demented, path_files_Non_Demented, 
                                                                                  dataset_config['merge_AD_class'], print_var)
 
-idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, train_config['seed'])
+idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, training_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
 # Save indices in the config
-train_config['idx_train']      = idx_train
-train_config['idx_test']       = idx_test
-train_config['idx_validation'] = idx_validation
+training_config['idx_train']      = idx_train
+training_config['idx_test']       = idx_test
+training_config['idx_validation'] = idx_validation
 
 # Split the data
 train_file_path_list,      label_train_list_int      = file_path_list[idx_train],      label_list_int[idx_train]

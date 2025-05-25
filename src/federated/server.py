@@ -64,7 +64,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             Dictionary with the dataset configuration. The possible keys are the input parameters of the class inside src/dataset/dataset.py
         - model_config : dict
             Dictionary with the model configuration. The possible keys depends on the model used. See the files inside src/model for more information.
-        - train_config : dict
+        - training_config : dict
             Dictionary with the training configuration. See the documentation of train() function inside src/train_functions.py for more information about possible keys.
     *args, **kwargs : other parameters inherited from FedAvg
 

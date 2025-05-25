@@ -1,6 +1,6 @@
 """
-Download a pretrained demnet model and test it. 
-The model was trained on the Kaggle dataset "Alzheimer MRI 4 classes dataset". 
+Download a pretrained demnet model and test it.
+The model was trained on the Kaggle dataset "Alzheimer MRI 4 classes dataset".
 More info about the dataset can be found here : https://www.kaggle.com/datasets/marcopinamonti/alzheimer-mri-4-classes-dataset
 
 The model will be tested on ADNI data (more info here https://adni.loni.usc.edu/data-samples/adni-data/).
@@ -9,17 +9,17 @@ The model will be tested on ADNI data (more info here https://adni.loni.usc.edu/
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
 import torch
 import numpy as np
 
 from src.dataset import support_dataset, dataset
-from src.model import demnet 
+from src.model import demnet
 from src.training import metrics
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 load_early_stop_weights = True
 epoch_to_load = -1
@@ -28,17 +28,17 @@ path_to_data = './data/ADNI_MRI_2D_Axial_png/'
 
 print_var = True
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get model and data
 
 # Download the trained model and get config used during model training.
-# Note that the config is a dictionary with the keys : train_config, dataset_config, model_config
+# Note that the config is a dictionary with the keys : training_config, dataset_config, model_config
 model, all_config = demnet.get_model_pretrained_with_kaggle_dataset(7, load_early_stop_weights, epoch_to_load)
 print("Model DOWNLOADED")
 
 # Get the config for model, training and dataset
 model_config   = all_config['model_config']
-train_config   = all_config['train_config']
+training_config   = all_config['training_config']
 dataset_config = all_config['dataset_config']
 
 # Get the preprocess function used for the data
@@ -51,8 +51,8 @@ list_of_path_to_data = [path_to_data + 'AD/', path_to_data + 'CN/', path_to_data
 file_path_list, label_list_int, label_list_str = support_dataset.get_ADNI_dataset(list_of_path_to_data, print_var = print_var)
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Select training device 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Select training device
 
 if torch.cuda.is_available() :
     device = torch.device("cuda")
@@ -64,7 +64,7 @@ else:
     device = torch.device("cpu")
     print("No backend in use. Device set to cpu")
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Compute the accuracy of the model on the train, validation and test set
 
 def compute_accuracy(n_samples, file_path_list, label_list_int, preprocess_functions, grey_scale_image, batch_size) :

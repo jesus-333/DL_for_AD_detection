@@ -37,7 +37,7 @@ path_files_Very_Mild_Demented   = './data/Kaggle_Alzheimer_MRI_4_classes_dataset
 path_files_Non_Demented         = './data/Kaggle_Alzheimer_MRI_4_classes_dataset/NonDemented'
 
 train_and_dataset_config = toml.load(path_config_train_and_dataset)
-train_config             = train_and_dataset_config['train_config']
+training_config          = train_and_dataset_config['training_config']
 dataset_config           = train_and_dataset_config['dataset_config']
 model_config             = toml.load(path_config_model)
 

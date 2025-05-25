@@ -15,12 +15,12 @@ import argparse
 parser = argparse.ArgumentParser()
 
 # Add arguments
-parser.add_argument('-p_src'    , '--path_src'              , type = str, default = None)
-parser.add_argument('-p_t_conf' , '--path_training_config'  , type = str, default = None)
-parser.add_argument('-p_d_conf' , '--path_dataset_config'   , type = str, default = None)
-parser.add_argument('-p_m_conf' , '--path_model_config'     , type = str, default = None)
-parser.add_argument('-p_data'   , '--path_data'             , type = str, default = None)
-parser.add_argument('-n'        , '--name_tensor_file'      , type = str, default = None)
+parser.add_argument('--path_src'              , type = str, default = None, help = 'Path of the src folder (i.e. all the code related to model, dataset and training.)')
+parser.add_argument('--path_training_config'  , type = str, default = None, help = 'Path to the toml file with the training config. If not provided, the script will use the default value of ./config/training.toml')
+parser.add_argument('--path_dataset_config'   , type = str, default = None, help = 'Path to the toml file with the dataset config. If not provided, the script will use the default value of ./config/dataset.toml')
+parser.add_argument('--path_model_config'     , type = str, default = None, help = 'Path to the toml file with the model config. If not provided, the script will use the default value of ./config/model.toml')
+parser.add_argument('--path_data'             , type = str, default = None, help = 'Path to the folder with the data. If not provided, it will use the value defined in this script.')
+parser.add_argument('--name_tensor_file'      , type = str, default = None, help = 'Name of the tensor file with the dataset. If not provided, it will use the default value defined in this script.')
 args = parser.parse_args()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -46,9 +46,9 @@ from src.training import train_functions
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Settings
 
-path_config_dataset  = args.path_dataset_config if args.path_dataset_config is not None else './scripts/training/config/demnet_dataset.toml'
-path_config_model    = args.path_model_config if args.path_model_config is not None else './scripts/training/config/demnet_model.toml'
-path_config_training = args.path_training_config if args.path_training_config is not None else './scripts/training/config/demnet_training.toml'
+path_config_dataset  = args.path_dataset_config if args.path_dataset_config is not None else './config/dataset.toml'
+path_config_model    = args.path_model_config if args.path_model_config is not None else './config/model.toml'
+path_config_training = args.path_training_config if args.path_training_config is not None else './config/training.toml'
 
 dataset_name = 'ADNI_axial_middle_slice'
 dataset_tensor_file_name = 'dataset_tensor___176_resize.pt' if args.name_tensor_file is None else args.name_tensor_file
@@ -69,6 +69,8 @@ all_config = dict(
     dataset_config = dataset_config,
     model_config = model_config
 )
+# import pprint
+# pprint.pprint(all_config)
 
 if 'path_to_data' in dataset_config : path_to_data = dataset_config['path_to_data']
 
@@ -179,4 +181,4 @@ if move_dataset_to_device :
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model
-model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)
+# model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)

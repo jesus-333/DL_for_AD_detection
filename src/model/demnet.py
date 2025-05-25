@@ -450,7 +450,7 @@ def get_model_pretrained_with_kaggle_dataset(version : int, load_early_stop_weig
     Parameters
     ----------
     version : int
-        Version of the artifact to download. 
+        Version of the artifact to download.
     load_early_stop_weights : bool
         If True, the weights of the model at the early stop epoch are loaded. Default is True. If False, you must specify the epoch to load with the epoch_to_load parameter.
     epoch_to_load : int
@@ -465,8 +465,8 @@ def get_model_pretrained_with_kaggle_dataset(version : int, load_early_stop_weig
             Configuration of the model. The information about the keys of the configuration can be found in the demnet init description and demnet_block init description.
         - dataset_config : dict
             Configuration of the dataset used to train the model.
-        - train_config : dict
-            Configuration of the training process. 
+        - training_config : dict
+            Configuration of the training process.
     """
 
     if load_early_stop_weights == False and epoch_to_load <= 0 :
@@ -478,7 +478,7 @@ def get_model_pretrained_with_kaggle_dataset(version : int, load_early_stop_weig
     artifact_dir = artifact.download()
 
     # Get the path to model weights
-    file_list = os.listdir(artifact_dir)
+    # file_list = os.listdir(artifact_dir)
 
     # Create demnet
     model = demnet(artifact.metadata['model_config'])

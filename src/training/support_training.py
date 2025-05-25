@@ -19,7 +19,7 @@ def update_log_dict_metrics(metrics_dict, log_dict, label = None):
         else :
             log_dict['{}'.format(key)] = value
 
-def check_train_config(config : dict) :
+def check_training_config(config : dict) :
 
     if 'batch_size' not in config :
         raise ValueError('The training configuration must contain the key "batch_size"')

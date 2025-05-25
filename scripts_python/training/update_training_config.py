@@ -1,0 +1,140 @@
+"""
+Update the training config toml file
+
+@author: Alberto Zancanaro (Jesus)
+@organization: Luxembourg Centre for Systems Biomedicine (LCSB)
+"""
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+import argparse
+import numpy as np
+import toml
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Create parser
+parser = argparse.ArgumentParser(description = 'Update the training configuration file with new parameters.')
+
+# Add arguments
+parser.add_argument('--path_training_config'            , type = str    , default = './config/training.toml', help = 'Path to the toml file with the training config. Default is ./config/training.toml')
+parser.add_argument('--batch_size'                      , type = int    , default = -1      , help = 'Batch size for training. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new batch size. Default is -1 (do not change).')
+parser.add_argument('--lr'                              , type = float  , default = -1      , help = 'Learning rate for the optimizer. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new learning rate. Default is -1 (do not change).')
+parser.add_argument('--epochs'                          , type = int    , default = -1      , help = 'Number of epochs for training. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new number of epochs. Default is -1 (do not change).')
+parser.add_argument('--use_scheduler'                   , type = bool   , default = True    , help = 'If True, use a learning rate scheduler. Default is True.')
+parser.add_argument('--device'                          , type = str    , default = 'cpu'   , help = 'Device to use for training. Default is "cpu".')
+parser.add_argument('--epoch_to_save_model'             , type = int    , default = -1      , help = 'Save model every n epochs. If a negative value (or no value) is provided, it will be set to epochs + 1, i.e. only the model at the end of training will be saved. If a positive value is provided, it will be used as the new value. Default is -1.')
+parser.add_argument('--path_to_save_model'              , type = str    , default = 'model_weights' , help = 'Path to save the model weights. If the folder does not exist, it will be created. Default is "model_weights".')
+parser.add_argument('--measure_metrics_during_training' , type = bool   , default = True    , help = 'Measure metrics during training. If True various secondary metrics (e.g. accuracy, f1 score, etc.) will be computed during training. Default is True.')
+parser.add_argument('--print_var'                       , type = bool   , default = True    , help = 'If True print information during training. Default is True.')
+parser.add_argument('--seed'                            , type = int    , default = -1      , help = 'Seed for reproducibility. It is used to split the dataset. If a negative value (or no value) is provided, the seed will be set to a random value. Default is -1.')
+parser.add_argument('--wandb_training'                  , type = bool   , default = False   , help = 'If True, use Weights & Biases (wandb) for tracking the training. Default is False.')
+parser.add_argument('--project_name'                    , type = str    , default = None    , help = 'Name of the wandb project. Default is None.')
+parser.add_argument('--model_artifact_name'             , type = str    , default = None    , help = 'Name of the wandb model artifact. Default is None.')
+parser.add_argument('--name_training_run'               , type = str    , default = None    , help = 'Name of the training run in wandb. Default is None.')
+parser.add_argument('--notes'                           , type = str    , default = None    , help = 'Notes for the training run in wandb. Default is None.')
+parser.add_argument('--log_freq'                        , type = int    , default = 1       , help = 'Frequency of wandb logging during training. Default is 1 (every epoch).')
+parser.add_argument('--debug'                           , type = bool   , default = False   , help = 'Used only as a flag to quickly find runs in wandb. Used to test the code. Default is False.')
+args = parser.parse_args()
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Load the training config from the provided path
+training_config = toml.load(args.path_training_config)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Update the training config
+
+# Batch size
+if args.batch_size is not None and args.batch_size > 0 :
+    training_config['batch_size'] = args.batch_size
+else :
+    print(f"Invalid batch size provided: {args.batch_size}. Using value from config: {training_config['batch_size']}.")
+
+# Learning rate
+if args.lr is not None and args.lr > 0 :
+    training_config['lr'] = args.lr
+else :
+    print(f"Invalid learning rate provided: {args.lr}. Using value from config: {training_config['lr']}.")
+
+# Number of epochs
+if args.epochs is not None and args.epochs > 0 :
+    training_config['epochs'] = args.epochs
+else :
+    print(f"Invalid number of epochs provided: {args.epochs}. Using value from config: {training_config['epochs']}.")
+
+# Use scheduler
+if args.use_scheduler is not None :
+    training_config['use_scheduler'] = args.use_scheduler
+else :
+    print(f"Invalid use_scheduler value provided: {args.use_scheduler}. Using value from config: {training_config['use_scheduler']}.")
+
+# Device
+if args.device is not None and args.device in ['cpu', 'cuda', 'mps'] :
+    training_config['device'] = args.device
+else :
+    print(f"Invalid device provided: {args.device}. Accepted values are 'cpu', 'cuda', or 'mps'. Using value from config: {training_config['device']}.")
+
+# Epoch to save model
+if args.epoch_to_save_model is not None and args.epoch_to_save_model > 0 :
+    training_config['epoch_to_save_model'] = args.epoch_to_save_model
+    print(f"Model will be saved every {training_config['epoch_to_save_model']} epochs.")
+else :
+    training_config['epoch_to_save_model'] = training_config['epochs'] + 1
+    print("Model will based on the end of training.")
+
+# Path to save model
+training_config['path_to_save_model'] = args.path_to_save_model
+if args.path_to_save_model is None : print("No path provided to save the model. Using default path: 'model_weights'.")
+
+# Measure metrics during training
+training_config['measure_metrics_during_training'] = args.measure_metrics_during_training
+if args.measure_metrics_during_training is None : print("No value provided for measure_metrics_during_training. Using default value: True.")
+
+# Print variable
+training_config['print_var'] = args.print_var
+if args.print_var is None : print("No value provided for print_var. Using default value: True.")
+
+# Seed
+if args.seed is not None and args.seed >= 0 :
+    training_config['seed'] = args.seed
+else :
+    training_config['seed'] = np.random.randint(0, 1e9)
+    print(f"Invalid seed provided: {args.seed}. Using a random seed: {training_config['seed']}.")
+
+# Wandb training
+# Check and update config only if wand is training is not False
+if args.wandb_training is not None and args.wandb_training is True :
+    training_config['wandb_training'] = True
+
+    # Project name
+    if args.project_name is None : print("No project name provided for wandb. Using default value: None.")
+    training_config['project_name'] = args.project_name
+
+    # Model artifact name
+    if args.model_artifact_name is None : print("No model artifact name provided for wandb. Using default value: None.")
+    training_config['model_artifact_name'] = args.model_artifact_name
+
+    # Name of the training run
+    if args.name_training_run is None : print("No name provided for the training run in wandb. Using default value: None.")
+    training_config['name_training_run'] = args.name_training_run
+
+    # Notes for the training run
+    if args.notes is None : print("No notes provided for the training run in wandb. Using default value: None.")
+    training_config['notes'] = args.notes
+
+    # Log frequency
+    if args.log_freq is not None and args.log_freq > 0 :
+        training_config['log_freq'] = args.log_freq
+    else :
+        training_config['log_freq'] = 1
+        print(f"Invalid log frequency provided: {args.log_freq}. Using default value: {training_config['log_freq']}.")
+
+    # Debug flag
+    training_config['debug'] = args.debug
+    
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Save the updated training config to the same file
+with open(args.path_training_config, 'w') as f:
+    toml.dump(training_config, f)

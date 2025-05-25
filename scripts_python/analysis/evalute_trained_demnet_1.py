@@ -32,13 +32,13 @@ print_var = True
 # Get model and data
 
 # Download the trained model and get config used during model training.
-# Note that the config is a dictionary with the keys : train_config, dataset_config, model_config
+# Note that the config is a dictionary with the keys : training_config, dataset_config, model_config
 model, all_config = demnet.get_model_pretrained_with_kaggle_dataset(version, load_early_stop_weights, epoch_to_load)
 print("Model DOWNLOADED")
 
 # Get the config for model, training and dataset
 model_config   = all_config['model_config']
-train_config   = all_config['train_config']
+training_config   = all_config['training_config']
 dataset_config = all_config['dataset_config']
 
 # Download the Kaggle dataset "Alzheimer MRI 4 classes dataset"
@@ -57,9 +57,9 @@ preprocess_functions, dataset_mean, dataset_std = support_dataset.get_preprocess
 # Get the indices used to split the data before training.
 # Note that you can do this only because I add the indices in the config file before training.
 # In this way the indices are uploaded with tht model in wandb.
-idx_train      = train_config['idx_train']
-idx_test       = train_config['idx_test']
-idx_validation = train_config['idx_validation']
+idx_train      = training_config['idx_train']
+idx_test       = training_config['idx_test']
+idx_validation = training_config['idx_validation']
 
 # Split the data
 train_file_path_list,      label_train_list_int      = file_path_list[idx_train],      label_list_int[idx_train]
@@ -88,9 +88,9 @@ else:
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Compute the accuracy of the model on the train, validation and test set
 
-MRI_train_dataloader = torch.utils.data.DataLoader(MRI_train_dataset, batch_size = train_config['batch_size'], shuffle = True)
-MRI_validation_dataloader = torch.utils.data.DataLoader(MRI_validation_dataset, batch_size = train_config['batch_size'], shuffle = False)
-MRI_test_dataloader = torch.utils.data.DataLoader(MRI_test_dataset, batch_size = train_config['batch_size'], shuffle = False)
+MRI_train_dataloader = torch.utils.data.DataLoader(MRI_train_dataset, batch_size = training_config['batch_size'], shuffle = True)
+MRI_validation_dataloader = torch.utils.data.DataLoader(MRI_validation_dataset, batch_size = training_config['batch_size'], shuffle = False)
+MRI_test_dataloader = torch.utils.data.DataLoader(MRI_test_dataset, batch_size = training_config['batch_size'], shuffle = False)
 
 # Evaluate the model on the train, validation and test set
 accuracy_train = metrics.compute_metrics(model, MRI_train_dataloader, device)['accuracy']

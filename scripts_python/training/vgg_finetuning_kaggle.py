@@ -38,15 +38,15 @@ dataset_std  = torch.tensor([0.3179, 0.3179, 0.3179])
 # Load config
 all_config = toml.load(path_config)
 
-train_config = all_config['train_config']
+training_config = all_config['training_config']
 model_config = all_config['model_config']
 dataset_config = all_config['dataset_config']
 
 # Since the pth of model has size of ~0.5GB I save the only the model at the end of the training and the one with the lowest validation loss
-train_config['epoch_to_save_model'] = train_config['epochs'] + 2
+training_config['epoch_to_save_model'] = training_config['epochs'] + 2
 
 # Note that toml file din't have (yet) the null type
-if train_config['seed'] == -1 : train_config['seed'] = None
+if training_config['seed'] == -1 : training_config['seed'] = None
 
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
@@ -93,13 +93,13 @@ else :
 print("Total number of samples : {}\n".format(len(label_list_int)))
 
 # Get idx to split data in train, validation and test set
-idx_list = support_dataset.get_idx_to_split_data_V2(len(file_path_list), percentage_split_list, train_config['seed'])
+idx_list = support_dataset.get_idx_to_split_data_V2(len(file_path_list), percentage_split_list, training_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
 # Save indices in the config
-train_config['idx_train']      = idx_train
-train_config['idx_test']       = idx_test
-train_config['idx_validation'] = idx_validation
+training_config['idx_train']      = idx_train
+training_config['idx_test']       = idx_test
+training_config['idx_validation'] = idx_validation
 
 # Split the data
 train_file_path_list,      label_train_list_int      = file_path_list[idx_train],      label_list_int[idx_train]
@@ -128,7 +128,7 @@ if dataset_mean is not None : preprocess_functions.transforms[2].mean = dataset_
 if dataset_std is not None : preprocess_functions.transforms[2].std = dataset_std
 
 # Set type of finetuning
-vgg_model.set_model_for_finetuning(train_config['finetuning_type'])
+vgg_model.set_model_for_finetuning(training_config['finetuning_type'])
 vgg_model.check_freeze_layer()
 
 # Create datasets
@@ -140,4 +140,4 @@ print("Datasets CREATED")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# model = train_functions.train(train_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 
+# model = train_functions.train(training_config, vgg_model, MRI_train_dataset, MRI_validation_dataset) 

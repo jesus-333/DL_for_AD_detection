@@ -35,7 +35,7 @@ print_var = True
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load train and dataset config
 train_and_dataset_config = toml.load(path_config_train_and_dataset)
-train_config = train_and_dataset_config['train_config']
+training_config = train_and_dataset_config['training_config']
 dataset_config = train_and_dataset_config['dataset_config']
 
 # Load model config
@@ -44,12 +44,12 @@ model_config['input_channels'] = 1 if dataset_config['grey_scale_image'] else 3
 
 # Create single dictionary with all the config
 all_config = dict(
-    train_config = train_config,
+    training_config = training_config,
     dataset_config = dataset_config,
     model_config = model_config
 )
 
-if train_config['seed'] == -1 : train_config['seed'] = np.random.randint(0, 1e9)
+if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 1e9)
 dataset_config['grey_scale_image'] = True
 
 if dataset_config['use_normalization'] :
@@ -70,10 +70,10 @@ if dataset_config['use_normalization'] :
     dataset_config['dataset_std'] = dataset_std
 
 # Wand Setting
-train_config['wandb_training'] = True
-train_config['project_name'] = "demnet_training_ADNI_2D"
-train_config['name_training_run'] = None
-train_config['model_artifact_name'] = "demnet_training_ADNI"
+training_config['wandb_training'] = True
+training_config['project_name'] = "demnet_training_ADNI_2D"
+training_config['name_training_run'] = None
+training_config['model_artifact_name'] = "demnet_training_ADNI"
 
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
@@ -119,13 +119,13 @@ else :
 
 # Create random indices to train/validation/test split
 # P.s. this function has the side effect to sort the samples according to labels (so the first you will have all the samples with label 0, then all the samples with label 1 and so on)
-idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, train_config['seed'])
+idx_list = support_dataset.get_idx_to_split_data_V3(label_list_int, percentage_split_list, training_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
 # Save indices in the config
-train_config['idx_train']      = idx_train
-train_config['idx_test']       = idx_test
-train_config['idx_validation'] = idx_validation
+training_config['idx_train']      = idx_train
+training_config['idx_test']       = idx_test
+training_config['idx_validation'] = idx_validation
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Select training device
@@ -139,7 +139,7 @@ elif torch.backends.mps.is_available():
 else:
     device = torch.device("cpu")
     print("\nNo backend in use. Device set to cpu")
-train_config['device'] = device
+training_config['device'] = device
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load model

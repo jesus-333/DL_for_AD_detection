@@ -33,7 +33,7 @@ print_var = True
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load train and dataset config
 train_and_dataset_config = toml.load(path_config_train_and_dataset)
-train_config = train_and_dataset_config['train_config']
+training_config = train_and_dataset_config['training_config']
 dataset_config = train_and_dataset_config['dataset_config']
 
 # Load model config
@@ -42,16 +42,16 @@ model_config['input_channels'] = z_matrix
 
 # Create single dictionary with all the config
 all_config = dict(
-    train_config = train_config,
+    training_config = training_config,
     dataset_config = dataset_config,
     model_config = model_config
 )
 
 if 'path_to_data' in dataset_config : path_to_data = dataset_config['path_to_data']
 
-# train_config['epoch_to_save_model'] = train_config['epochs'] + 2
+# training_config['epoch_to_save_model'] = training_config['epochs'] + 2
 # Note that toml file din't have (yet) the null type
-if train_config['seed'] == -1 : train_config['seed'] = np.random.randint(0, 1e9)
+if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 1e9)
 
 preprocess_functions = support_dataset_ADNI.get_preprocess_functions_ADNI_3D_png(model_config['input_size'], dataset_config['use_normalization'], z_matrix = z_matrix, slice = slice)
 
@@ -61,10 +61,10 @@ preprocess_functions = support_dataset_ADNI.get_preprocess_functions_ADNI_3D_png
 #     dataset_config['dataset_std'] = dataset_std
 
 # Wand Setting
-train_config['wandb_training'] = True
-train_config['project_name'] = "demnet_training_ADNI"
-train_config['name_training_run'] = None
-train_config['model_artifact_name'] = f"demnet_ADNI_z_{z_matrix}"
+training_config['wandb_training'] = True
+training_config['project_name'] = "demnet_training_ADNI"
+training_config['name_training_run'] = None
+training_config['model_artifact_name'] = f"demnet_ADNI_z_{z_matrix}"
 
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
@@ -89,13 +89,13 @@ MRI_all_dataset = dataset_png.MRI_3D_dataset(folders_paths_dict, depth_map_order
 
 # Create random indices to train/validation/test split
 # P.s. this function has the side effect to sort the samples according to labels (so the first you will have all the samples with label 0, then all the samples with label 1 and so on)
-idx_list = support_dataset.get_idx_to_split_data_V3(MRI_all_dataset.labels, percentage_split_list, train_config['seed'])
+idx_list = support_dataset.get_idx_to_split_data_V3(MRI_all_dataset.labels, percentage_split_list, training_config['seed'])
 idx_train, idx_validation, idx_test = idx_list
 
 # Save indices in the config
-train_config['idx_train']      = idx_train
-train_config['idx_test']       = idx_test
-train_config['idx_validation'] = idx_validation
+training_config['idx_train']      = idx_train
+training_config['idx_test']       = idx_test
+training_config['idx_validation'] = idx_validation
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Select training device
@@ -109,7 +109,7 @@ elif torch.backends.mps.is_available():
 else:
     device = torch.device("cpu")
     print("\nNo backend in use. Device set to cpu")
-train_config['device'] = device
+training_config['device'] = device
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load model
