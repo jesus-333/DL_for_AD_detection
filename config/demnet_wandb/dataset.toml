@@ -1,6 +1,5 @@
 use_normalization = true
 n_samples = 19200
-# n_samples = 6400
 merge_AD_class = 1
 load_data_in_memory = false
 load_data_type = 0
