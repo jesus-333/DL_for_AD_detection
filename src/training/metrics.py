@@ -5,7 +5,7 @@
 Contain the function to compute accuracy and other metrics
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
 import numpy as np
@@ -14,7 +14,7 @@ from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_
 import os
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#%% Function to compute the metrics 
+#%% Function to compute the metrics
 
 def compute_metrics(model, loader, device):
     # Compute the label for the data inside the dataloader
@@ -120,10 +120,9 @@ def compute_multiclass_confusion_matrix(true_label, predict_label):
     # Normalize between 0 and 1
     confusion_matrix /= len(true_label)
     
-    
     return confusion_matrix
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Function to compute the metrics given data/model
 
 def compute_metrics_given_path(model, loader_list, path, device = 'cpu'):
@@ -136,16 +135,16 @@ def compute_metrics_given_path(model, loader_list, path, device = 'cpu'):
     
     metrics_per_file = dict(
         accuracy = [],
-        cohen_kappa = [], 
+        cohen_kappa = [],
         sensitivity = [],
         specificity = [],
-        f1 = [], 
+        f1 = [],
         confusion_matrix = []
     )
     for file in file_list:
         print(file)
 
-        # Crete path to the file 
+        # Crete path to the file
         complete_path = path + '/' + file
         
         # Load weights
