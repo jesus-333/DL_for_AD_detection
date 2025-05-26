@@ -233,11 +233,18 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     # Save the model at the end of the training
     torch.save(model.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], "model_END.pth"))
     
-    # Save in wandb the model with the best loss on validation set
-    if training_config['wandb_training'] and validation_loader is not None:
-        model_file_path = '{}/{}'.format(training_config['path_to_save_model'], 'model_BEST.pth')
+    # Save in wandb the model at the end of the training (and the best model if validation is performed)
+    if training_config['wandb_training'] :
+        # Model at the end of the training
+        model_file_path = '{}/{}'.format(training_config['path_to_save_model'], 'model_END.pth')
         wandb_model_artifact.add_file(model_file_path)
         wandb.save(model_file_path)
+
+        # If validation is performed, save the model with the best validation loss
+        if validation_loader is not None:
+            model_file_path = '{}/{}'.format(training_config['path_to_save_model'], 'model_BEST.pth')
+            wandb_model_artifact.add_file(model_file_path)
+            wandb.save(model_file_path)
 
     # Return the trained model
     return model, computed_metrics_during_training

@@ -30,8 +30,8 @@ python ./scripts_python/training/update_lr_scheduler.py\
 python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--batch_size=64\
-	--lr=0.0001\
+	--batch_size=128\
+	--lr=4e-3\
 	--epochs=2\
 	--device="cuda"\
 	--epoch_to_save_model=10\

@@ -1,22 +1,25 @@
 #!/bin/bash -l
 
-#SBATCH --job-name="demenet_ADNI_wandb_1"
+#SBATCH --job-name="test_hpc_training_GPU"
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
+#SBATCH --partition=gpu
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=7
+#SBATCH --gpus-per-task=1
 #SBATCH --time=0-00:10:00
-#SBATCH --partition=batch
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
-#SBATCH -o "outFile".txt"
-#SBATCH -e "errFile".txt"
+#SBATCH --output=./scripts_hpc/output/std_output_%x_%j.txt
+#SBATCH --error=./scripts_hpc/output/other_output_%x_%j.txt
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
 
-module load ai/PyTorch
-source ~/venv/DL_AD/bin/activate
+conda activate jesus-hpc
+
+#conda list
+#pip list
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
