@@ -1,11 +1,12 @@
 #!/bin/bash -l
 
-#SBATCH --job-name="test_hpc_training_GPU"
+#SBATCH --job-name="train_demnet_ADNI_wandb_cosine_anealing_lr"
 #SBATCH --nodes=1
 #SBATCH --partition=gpu
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=7
+#SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
+#SBATCH --mem=4G
 #SBATCH --time=0-00:10:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu

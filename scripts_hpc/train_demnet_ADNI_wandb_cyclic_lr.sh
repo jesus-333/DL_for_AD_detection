@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-#SBATCH --job-name="train_demnet_ADNI_wandb_cosine_anealing_warm_lr"
+#SBATCH --job-name="train_demnet_ADNI_wandb_cyclic_lr"
 #SBATCH --nodes=1
 #SBATCH --partition=gpu
 #SBATCH --ntasks-per-node=1
@@ -46,10 +46,13 @@ srun python ./scripts_python/training/reset_config_files.py\
 
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="CosineAnnealingWarmRestarts"\
-	--T_0=7\
-	--T_mult=2\
-	--eta_min=1e-5\
+	--name="CyclicLR"\
+	--base_lr=0.0001\
+	--max_lr=0.001\
+	--step_size_up=5\
+	--step_size_down=5\
+	--mode="triangular2"\
+	--gamma=1.0\
 
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\

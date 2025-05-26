@@ -24,8 +24,10 @@ python ./scripts_python/training/reset_config_files.py\
 
 python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="ExponentialLR"\
-	--gamma=0.9\
+	--name="CosineAnnealingWarmRestarts"\
+	--T_0=7\
+	--T_mult=2\
+	--eta_min=1e-5\
 
 python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\

@@ -81,8 +81,8 @@ if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0
 
 # Wand Setting
 training_config['wandb_training'] = True
-training_config['project_name'] = "demnet_training_ADNI"
-training_config['name_training_run'] = None
+# training_config['project_name'] = "demnet_training_ADNI"
+# training_config['name_training_run'] = None
 
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
