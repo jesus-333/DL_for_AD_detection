@@ -1,12 +1,16 @@
 #!/bin/bash -l
 
-#SBATCH --job-name="CPU imdb"
+#SBATCH --job-name="test_hpc_training_GPU"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=0-00:10:00
 #SBATCH --partition=batch
 #SBATCH --qos=normal
+#SBATCH --mail-user=alberto.zancanaro@uni.lu
+#SBATCH --mail-type=end,fail 
+#SBATCH -o "outFile".txt"
+#SBATCH -e "errFile".txt"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
