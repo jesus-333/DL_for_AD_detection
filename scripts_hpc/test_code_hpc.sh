@@ -2,21 +2,24 @@
 
 #SBATCH --job-name="test_hpc_training_GPU"
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
+#SBATCH --partition=gpu
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=7
+#SBATCH --gpus-per-task=1
 #SBATCH --time=0-00:10:00
-#SBATCH --partition=batch
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
-#SBATCH -o "outFile".txt"
-#SBATCH -e "errFile".txt"
+#SBATCH --output=./scripts_hpc/output/OUTPUT_%j.txt
+#SBATCH --error=./scripts_hpc/output/ERROR_%j.txt
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
 
-module load ai/PyTorch
-source ~/venv/DL_AD/bin/activate
+conda activate jesus-hpc
+
+#conda list
+#pip list
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -24,7 +27,7 @@ source ~/venv/DL_AD/bin/activate
 PATH_SRC="./"
 
 # Paths to config files
-PATH_CONFIG_FOLDER="./config/demnet_wandb/"
+PATH_CONFIG_FOLDER="./config/test_code/"
 PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset.toml"
 PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model.toml"
 PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training.toml"
@@ -43,16 +46,16 @@ srun python ./scripts_python/training/reset_config_files.py\
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--name="ExponentialLR"\
-	--gamma=0.9\
+	--gamma=0.96\
 
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--batch_size=64\
 	--lr=0.0001\
-	--epochs=1\
+	--epochs=20\
 	--device="cuda"\
-	--epoch_to_save_mode=1\
+	--epoch_to_save_mode=-1\
 	--path_to_save_model="model_weights_ADNI"\
 	--seed=-1\
 	--use_scheduler\
