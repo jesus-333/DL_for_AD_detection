@@ -181,4 +181,4 @@ if move_dataset_to_device :
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model
-# model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)
+model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)

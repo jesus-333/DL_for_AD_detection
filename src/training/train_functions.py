@@ -84,7 +84,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Chek config and Dataloader creation
 
-    # Check if the training configuration 
+    # Check if the training configuration
     support_training.check_training_config(training_config)
     
     # Create DataLoaders
@@ -199,7 +199,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
             if training_config['measure_metrics_during_training']:
                 print("\t Accuracy (TRAIN)  = {}".format(train_metrics_dict['accuracy']))
                 print("\t Accuracy (VALID)  = {}".format(validation_metrics_dict['accuracy']))
-
+    
             if training_config['debug'] :
                 print_debug = getattr(model, "print_debug", None)
                 if callable(print_debug):
@@ -266,7 +266,7 @@ def wandb_train(config : dict, model, train_dataset, validation_dataset = None) 
     # Check config
     if 'training_config' not in config : raise ValueError('The configuration dictionary must contain the key "training_config"')
     if 'model_config'    not in config : raise ValueError('The configuration dictionary must contain the key "model_config"')
-    
+
     # Get train configuration
     training_config = config['training_config']
     notes = training_config['notes'] if 'notes' in training_config else 'No notes in training_config'

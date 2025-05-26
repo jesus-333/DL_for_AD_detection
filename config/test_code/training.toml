@@ -1,0 +1,19 @@
+batch_size = 64
+lr = 0.0001
+epochs = 2
+use_scheduler = true
+device = "cuda"
+epoch_to_save_model = 10
+path_to_save_model = "model_weights_ADNI"
+measure_metrics_during_training = true
+print_var = true
+seed = 481097864
+wandb_training = true
+log_freq = 1
+debug = false
+project_name = "demnet_ADNI"
+model_artifact_name = "demnet_ADNI_model"
+
+[lr_scheduler_config]
+name = "ExponentialLR"
+gamma = 0.9

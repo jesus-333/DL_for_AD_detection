@@ -1,19 +1,18 @@
 batch_size = 64
-lr = 0.0001
-epochs = 100
+lr = 0.001
+epochs = 40
 optimizer_weight_decay = 0.01
-device = "cuda"
-epoch_to_save_model = 10
-path_to_save_model = "model_weights_ADNI"
+device = "cpu"
+epoch_to_save_model = -1
+path_to_save_model = "model_weights"
 measure_metrics_during_training = true
 print_var = true
-seed = 938496167
-wandb_training = true
+seed = -1
+wandb_training = false
 log_freq = 1
-debug = true
-use_scheduler = true
-project_name = "demnet_ADNI"
-model_artifact_name = "demnet_ADNI_model"
+debug = false
+use_scheduler = false
+notes = ""
 
 [lr_scheduler_config]
 name = "ChainedScheduler"

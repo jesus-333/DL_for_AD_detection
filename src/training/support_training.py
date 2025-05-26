@@ -304,8 +304,8 @@ def check_lr_scheduler_config(lr_scheduler_config : dict) :
         if 'step_size_down' not in lr_scheduler_config :
             raise ValueError('The learning rate scheduler configuration must contain the key "step_size_down" if the name is CyclicLR')
         if 'mode' not in lr_scheduler_config :
-            print('Warning: the learning rate scheduler configuration does not contain the key "mode". "triangular2" will be used as default value')
-            lr_scheduler_config['mode'] = 'triangular2'
+            print('Warning: the learning rate scheduler configuration does not contain the key "mode". "triangular" will be used as default value')
+            lr_scheduler_config['mode'] = 'triangular'
         if 'gamma' not in lr_scheduler_config :
             print('Warning: the learning rate scheduler configuration does not contain the key "gamma". 1 will be used as default value')
             lr_scheduler_config['gamma'] = 1
