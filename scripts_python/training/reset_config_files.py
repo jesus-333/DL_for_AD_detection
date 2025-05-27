@@ -79,7 +79,7 @@ with open(path_training_config, 'w') as f: toml.dump(training_config, f)
 # Reset values
 dataset_config['use_normalization']     = True
 dataset_config['n_samples']             = 19200
-dataset_config['merge_AD_class']        = 1
+dataset_config['merge_AD_class']        = 0
 dataset_config['load_data_in_memory']   = False
 dataset_config['load_data_type']        = 0  # 0: load data from disk, 1: load data in memory
 dataset_config['percentage_train']      = 0.7

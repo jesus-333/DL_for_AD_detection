@@ -11,7 +11,6 @@ This script instead, always creates a new toml file with the new parameters. If 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import argparse
-import numpy as np
 import toml
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

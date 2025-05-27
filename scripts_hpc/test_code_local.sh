@@ -29,6 +29,15 @@ python ./scripts_python/training/update_lr_scheduler.py\
 	--T_mult=2\
 	--eta_min=1e-5\
 
+python ./scripts_python/training/update_dataset_config.py\
+	--path_dataset_config="${PATH_TRAINING_CONFIG}"\
+	--merge_AD_class=0\
+	--percentage_train=0.7\
+	--percentage_validation=0.15\
+	--percentage_test=0.15\
+	--use_normalization\
+	--load_data_in_memory\
+	
 python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\

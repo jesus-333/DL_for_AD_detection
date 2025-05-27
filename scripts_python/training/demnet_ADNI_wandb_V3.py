@@ -91,9 +91,17 @@ percentage_split_list = [dataset_config['percentage_train'], dataset_config['per
 # Get all the files divided per folder
 
 # Get mean and std for normalization
-mean = torch.load(f'{path_to_data}dataset_mean.pt')
-std = torch.load(f'{path_to_data}dataset_std.pt')
-preprocess_functions  = torchvision.transforms.Compose([torchvision.transforms.Normalize(mean = mean, std = std)])
+if dataset_config['use_normalization'] :
+    # Load procumputed dataset mean and std
+    mean_dataset = torch.load(f'{path_to_data}dataset_mean.pt')
+    std_dataset  = torch.load(f'{path_to_data}dataset_std.pt')
+    # Save them in the config (In this way I save them also on wandb)
+    dataset_config['mean_dataset'] = mean_dataset
+    dataset_config['std_dataset']  = std_dataset
+    # Create normalization function
+    preprocess_functions  = torchvision.transforms.Compose([torchvision.transforms.Normalize(mean = mean_dataset, std = std_dataset)])
+else :
+    preprocess_functions = None
 
 # Get data
 data = torch.load(f'{path_to_data}{dataset_tensor_file_name}')
@@ -162,9 +170,9 @@ model_config['num_classes'] = len(np.unique(labels))
 model = demnet.demnet(model_config)
 
 # Split data in train/validation/test
-MRI_train_dataset      = dataset.MRI_dataset(data[idx_train],      labels[idx_train],      preprocess_functions = preprocess_functions)
+MRI_train_dataset      = dataset.MRI_dataset(data[idx_train]     , labels[idx_train]     , preprocess_functions = preprocess_functions)
 MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation], labels[idx_validation], preprocess_functions = preprocess_functions)
-# MRI_test_dataset       = dataset.MRI_dataset(data[idx_test],       labels[idx_test],       preprocess_functions = preprocess_functions)
+# MRI_test_dataset       = dataset.MRI_dataset(data[idx_test]      , labels[idx_test]      , preprocess_functions = preprocess_functions)
 print("\nDataset split in train/validation/test")
 print(f"\tTrain samples      = {len(MRI_train_dataset)}")
 print(f"\tValidation samples = {len(MRI_validation_dataset)}")
