@@ -9,3 +9,4 @@ wandb/
 artifacts/
 TMP/
 venv/
+scripts_hpc/output/

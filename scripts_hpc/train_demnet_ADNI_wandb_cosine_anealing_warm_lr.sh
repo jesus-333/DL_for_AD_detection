@@ -6,8 +6,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=4G
-#SBATCH --time=0-00:10:00
+#SBATCH --mem=6G
+#SBATCH --time=0-01:00:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -47,16 +47,16 @@ srun python ./scripts_python/training/reset_config_files.py\
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--name="CosineAnnealingWarmRestarts"\
-	--T_0=7\
+	--T_0=10\
 	--T_mult=2\
 	--eta_min=1e-5\
 
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--batch_size=64\
-	--lr=0.0001\
-	--epochs=20\
+	--batch_size=96\
+	--lr=0.001\
+	--epochs=120\
 	--device="cuda"\
 	--epoch_to_save_mode=1\
 	--path_to_save_model="model_weights_ADNI"\
@@ -66,8 +66,8 @@ srun python ./scripts_python/training/update_training_config.py\
 	--print_var\
 	--wandb_training\
 	--no-debug\
-	--project_name="test_code"\
-	--model_artifact_name="test_artifact"\
+	--project_name="demnet_training_ADNI_2D"\
+	--model_artifact_name="demnet_axial_middle_slice"\
 	--log_freq=1\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
