@@ -4,10 +4,10 @@
 #SBATCH --nodes=1
 #SBATCH --partition=gpu
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=3
+#SBATCH --cpus-per-task=2
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=5G
-#SBATCH --time=0-00:40:00
+#SBATCH --time=0-00:37:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -50,9 +50,18 @@ srun python ./scripts_python/training/update_lr_scheduler.py\
 	--base_lr=1e-5\
 	--max_lr=0.001\
 	--step_size_up=1\
-	--step_size_down=15\
+	--step_size_down=10\
 	--mode="exp_range"\
 	--gamma=0.96\
+
+srun python ./scripts_python/training/update_dataset_config.py\
+	--path_training_config="${PATH_TRAINING_CONFIG}"\
+	--merge_AD_class=2\
+	--percentage_train=0.7\
+	--percentage_validation=0.15\
+	--percentage_test=0.15\
+	--use_normalization\
+	--load_data_in_memory\
 
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\

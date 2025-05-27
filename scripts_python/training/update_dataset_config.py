@@ -33,7 +33,7 @@ args = parser.parse_args()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Load the dataset config
-dataset_config = toml.load(args.path_dataset_config)
+dataset_config = {}
 
 # merge_AD_class 
 if args.merge_AD_class not in [0, 1, 2] :
