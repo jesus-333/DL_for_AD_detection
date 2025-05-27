@@ -49,14 +49,23 @@ srun python ./scripts_python/training/update_lr_scheduler.py\
 	--name="ExponentialLR"\
 	--gamma=0.9\
 
+srun python ./scripts_python/training/update_dataset_config.py\
+	--path_training_config="${PATH_TRAINING_CONFIG}"\
+	--merge_AD_class=2\
+	--percentage_train=0.7\
+	--percentage_validation=0.15\
+	--percentage_test=0.15\
+	--use_normalization\
+	--load_data_in_memory\
+
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--batch_size=64\
-	--lr=0.0001\
-	--epochs=20\
+	--batch_size=96\
+	--lr=0.002\
+	--epochs=69\
 	--device="cuda"\
-	--epoch_to_save_mode=1\
+	--epoch_to_save_model=-1\
 	--path_to_save_model="model_weights_ADNI"\
 	--seed=-1\
 	--use_scheduler\
@@ -64,8 +73,8 @@ srun python ./scripts_python/training/update_training_config.py\
 	--print_var\
 	--wandb_training\
 	--no-debug\
-	--project_name="test_code"\
-	--model_artifact_name="test_artifact"\
+	--project_name="demnet_training_ADNI_2D"\
+	--model_artifact_name="demnet_axial_middle_slice"\
 	--log_freq=1\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

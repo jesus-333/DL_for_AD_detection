@@ -69,8 +69,8 @@ srun python ./scripts_python/training/update_training_config.py\
 	--print_var\
 	--wandb_training\
 	--no-debug\
-	--project_name="test_code"\
-	--model_artifact_name="test_artifact"\
+	--project_name="demnet_training_ADNI_2D"\
+	--model_artifact_name="demnet_axial_middle_slice"\
 	--log_freq=1\
 
 # P.S. CHECK ALWAYS LR, EPOCH, EPOCH_TO_SAVE_MODEL
