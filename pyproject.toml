@@ -24,6 +24,7 @@ dependencies = [
 	"matplotlib",
 	"nibabel",
 	"opencv-python",
+	"pandas",
 	"plotly",
 	"pydicom",
 	"toml",
@@ -32,7 +33,7 @@ dependencies = [
 ]
 [project.optional-dependencies]
 extra = [
-  "pytorch_grad_cam",
+  "pytorch-gradcam",
   "wandb",
 ]
 
@@ -60,4 +61,4 @@ path_training_config = './scripts/training_FL/fedavg_with_wandb/config/training_
 default = "local-simulation"
 
 [tool.flwr.federations.local-simulation]
-options.num-supernodes = 3
+options.num-supernodes = 4
