@@ -6,8 +6,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=6G
-#SBATCH --time=0-01:00:00
+#SBATCH --mem=5G
+#SBATCH --time=0-00:40:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -53,7 +53,7 @@ srun python ./scripts_python/training/update_lr_scheduler.py\
 
 srun python ./scripts_python/training/update_dataset_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
-	--merge_AD_class=0\
+	--merge_AD_class=2\
 	--percentage_train=0.7\
 	--percentage_validation=0.15\
 	--percentage_test=0.15\
@@ -64,10 +64,10 @@ srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--batch_size=96\
-	--lr=0.001\
-	--epochs=120\
+	--lr=0.002\
+	--epochs=69\
 	--device="cuda"\
-	--epoch_to_save_mode=1\
+	--epoch_to_save_model=-1\
 	--path_to_save_model="model_weights_ADNI"\
 	--seed=-1\
 	--use_scheduler\

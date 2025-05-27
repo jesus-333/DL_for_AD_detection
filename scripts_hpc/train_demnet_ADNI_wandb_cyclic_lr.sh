@@ -6,8 +6,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=4G
-#SBATCH --time=0-00:10:00
+#SBATCH --mem=5G
+#SBATCH --time=0-00:40:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -47,21 +47,21 @@ srun python ./scripts_python/training/reset_config_files.py\
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--name="CyclicLR"\
-	--base_lr=0.0001\
+	--base_lr=1e-5\
 	--max_lr=0.001\
-	--step_size_up=5\
-	--step_size_down=5\
-	--mode="triangular2"\
-	--gamma=1.0\
+	--step_size_up=1\
+	--step_size_down=15\
+	--mode="exp_range"\
+	--gamma=0.96\
 
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--batch_size=64\
+	--batch_size=96\
 	--lr=0.0001\
-	--epochs=20\
+	--epochs=69\
 	--device="cuda"\
-	--epoch_to_save_mode=1\
+	--epoch_to_save_model=-1\
 	--path_to_save_model="model_weights_ADNI"\
 	--seed=-1\
 	--use_scheduler\
@@ -73,6 +73,7 @@ srun python ./scripts_python/training/update_training_config.py\
 	--model_artifact_name="test_artifact"\
 	--log_freq=1\
 
+# P.S. CHECK ALWAYS LR, EPOCH, EPOCH_TO_SAVE_MODEL
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Launch training script
 
