@@ -148,9 +148,9 @@ model = demnet.demnet(model_config)
 
 # Create datasets
 load_data_in_memory = dataset_config['load_data_in_memory']
-MRI_train_dataset      = dataset.MRI_dataset(data[idx_train],      label_list_int[idx_train],      preprocess_functions = preprocess_functions)
+MRI_train_dataset      = dataset.MRI_dataset(data[idx_train]     , label_list_int[idx_train]     , preprocess_functions = preprocess_functions)
 MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation], label_list_int[idx_validation], preprocess_functions = preprocess_functions)
-MRI_test_dataset       = dataset.MRI_dataset(data[idx_test],       label_list_int[idx_test],       preprocess_functions = preprocess_functions)
+MRI_test_dataset       = dataset.MRI_dataset(data[idx_test]      , label_list_int[idx_test]      , preprocess_functions = preprocess_functions)
 print("\nDatasets CREATED")
 print(f"\tTrain samples      = {len(MRI_train_dataset)}")
 print(f"\tValidation samples = {len(MRI_validation_dataset)}")

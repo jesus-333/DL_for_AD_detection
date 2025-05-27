@@ -105,12 +105,12 @@ training_config['idx_test']       = idx_test
 training_config['idx_validation'] = idx_validation
 
 # Split the data
-train_file_path_list,      label_train_list_int      = file_path_list[idx_train],      label_list_int[idx_train]
+train_file_path_list     , label_train_list_int      = file_path_list[idx_train]     , label_list_int[idx_train]
 validation_file_path_list, label_validation_list_int = file_path_list[idx_validation], label_list_int[idx_validation]
-test_file_path_list,       label_test_list_int       = file_path_list[idx_test],       label_list_int[idx_test]
+test_file_path_list      , label_test_list_int       = file_path_list[idx_test]      , label_list_int[idx_test]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Select training device 
+# Select training device
 
 if torch.cuda.is_available() :
     device = torch.device("cuda")
@@ -123,7 +123,7 @@ else:
     print("\nNo backend in use. Device set to cpu")
 training_config['device'] = device
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load model
 model_config['num_classes'] = len(set(label_list_int))
 model = demnet.demnet(model_config)
@@ -139,7 +139,7 @@ print(f"\tTrain samples      = {len(MRI_train_dataset)}")
 print(f"\tValidation samples = {len(MRI_validation_dataset)}")
 print(f"\tTest samples       = {len(MRI_test_dataset)}")
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model
 
-model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset) 
+model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)

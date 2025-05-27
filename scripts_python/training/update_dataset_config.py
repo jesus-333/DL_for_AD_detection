@@ -35,7 +35,7 @@ args = parser.parse_args()
 # Load the dataset config
 dataset_config = {}
 
-# merge_AD_class 
+# merge_AD_class
 if args.merge_AD_class not in [0, 1, 2] :
     raise ValueError(f"merge_AD_class must be 0, 1, or 2. Provided value: {args.merge_AD_class}")
 else :
@@ -53,9 +53,9 @@ if sum_percentages == 1.0 or sum_percentages == 0.9999999999999999 :
     # The check with 0.9999999999999999 is to avoid floating point precision issues
 
     # Save the percentages in the dataset config
+    dataset_config['percentage_train']      = args.percentage_train
     dataset_config['percentage_test']       = args.percentage_test
     dataset_config['percentage_validation'] = args.percentage_validation
-    dataset_config['use_normalization']     = args.use_normalization
 else :
     raise ValueError(f"The sum of the split percentages must be 1.0. Provided values: train={args.percentage_train}, validation={args.percentage_validation}, test={args.percentage_test}, with sum={sum_percentages}")
 
@@ -67,4 +67,3 @@ dataset_config['use_normalization']   = args.use_normalization
 # Save the updated dataset config
 with open(args.path_dataset_config, 'w') as f:
     toml.dump(dataset_config, f)
-

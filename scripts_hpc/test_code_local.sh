@@ -30,7 +30,7 @@ python ./scripts_python/training/update_lr_scheduler.py\
 	--eta_min=1e-5\
 
 python ./scripts_python/training/update_dataset_config.py\
-	--path_training_config="${PATH_TRAINING_CONFIG}"\
+	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--merge_AD_class=2\
 	--percentage_train=0.7\
 	--percentage_validation=0.15\
