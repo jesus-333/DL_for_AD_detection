@@ -1,0 +1,19 @@
+num_rounds = 35
+n_client = 4
+fraction_fit = 1
+fraction_evaluate = 1
+keep_labels_proportion = true
+centralized_evaluation = true
+metrics_to_log_from_clients = ['accuracy_train', 'accuracy_validation']
+# metrics_to_log_from_clients = []
+metrics_plot_backend = 'matplotlib'
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+[wandb_config]
+wandb_training = false
+project_name = "demnet_training_FL_kaggle"
+model_artifact_name = "demnet_training_FL_kaggle"
+log_freq = 1
+name_training_run = "run_"
+notes = ""
+debug = true
