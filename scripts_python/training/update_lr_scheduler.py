@@ -32,7 +32,7 @@ parser.add_argument('--max_lr'                  , type = float, default = None, 
 parser.add_argument('--step_size_up'            , type = int  , default = None, help = 'Step size up for CyclicLR. If None is provided, an error is raised. Default is None.')
 parser.add_argument('--step_size_down'          , type = int  , default = None, help = 'Step size down for CyclicLR. If None is provided, an error is raised. Default is None.')
 parser.add_argument('--mode'                    , type = str  , default = 'triangular', help = 'Mode for CyclicLR. Default is "triangular". Other options are "triangular2" and "exp_range".')
-
+parser.add_argument('--lr_scheduler_configs_path_list', nargs='+', default = [], help = 'This argument is used if name is "ChainedScheduler". It is a list of paths to the toml files with the learning rate scheduler configs. If an empty list is provided, an error is raised. Default is an empty list.')
 args = parser.parse_args()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -45,7 +45,8 @@ valid_name = [
     'StepLR',
     'CyclicLR',
     'CosineAnnealingLR',
-    'CosineAnnealingWarmRestarts'
+    'CosineAnnealingWarmRestarts',
+    'ChainedScheduler'
 ]
 
 # Check if the name is provided
@@ -98,6 +99,27 @@ elif args.name == 'CyclicLR':
         lr_scheduler_config['gamma'] = args.gamma
     else :
         lr_scheduler_config['gamma'] = 1.0
+elif args.name == 'ChainedScheduler' :
+    if len(args.lr_scheduler_configs_path_list) == 0:
+        raise ValueError('The lr_scheduler_configs_path_list parameter must be provided for ChainedScheduler.')
+
+    list_config_schedulers = dict()
+    for i in range(len(args.lr_scheduler_configs_path_list)):
+        # Load the toml file
+        try:
+            lr_scheduler_config_i = toml.load(args.lr_scheduler_configs_path_list[i])
+        except FileNotFoundError:
+            raise FileNotFoundError(f'The file {args.lr_scheduler_configs_path_list[i]} does not exist.')
+        
+        # Check if the name is valid
+        if lr_scheduler_config_i['name'] not in valid_name:
+            raise ValueError(f'The name of the learning rate scheduler must be one of {valid_name}. Provided: {lr_scheduler_config_i["name"]}')
+
+        # Add the config to the list
+        list_config_schedulers[f"config_{i}"] = lr_scheduler_config_i
+
+    # Add the list of configs to the main config
+    lr_scheduler_config['list_config_schedulers'] = list_config_schedulers
 
 # Save the config to a toml file
 with open(args.path_lr_scheduler_config, 'w') as f:
