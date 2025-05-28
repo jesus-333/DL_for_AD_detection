@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=5G
-#SBATCH --time=0-00:37:00
+#SBATCH --time=0-00:38:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -47,26 +47,26 @@ srun python ./scripts_python/training/reset_config_files.py\
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--name="CyclicLR"\
-	--base_lr=1e-5\
+	--base_lr=1e-4\
 	--max_lr=0.001\
-	--step_size_up=1\
-	--step_size_down=10\
+	--step_size_up=3\
+	--step_size_down=15\
 	--mode="exp_range"\
 	--gamma=0.96\
 
 srun python ./scripts_python/training/update_dataset_config.py\
-	--path_training_config="${PATH_TRAINING_CONFIG}"\
+	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--merge_AD_class=2\
-	--percentage_train=0.7\
-	--percentage_validation=0.15\
-	--percentage_test=0.15\
+	--percentage_train=0.8\
+	--percentage_validation=0.1\
+	--percentage_test=0.1\
 	--use_normalization\
 	--load_data_in_memory\
 
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--batch_size=96\
+	--batch_size=64\
 	--lr=0.0001\
 	--epochs=69\
 	--device="cuda"\
