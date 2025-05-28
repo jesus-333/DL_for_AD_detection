@@ -35,7 +35,7 @@ parser.add_argument('--print_var'                      , default = True  , actio
 parser.add_argument('--wandb_training'                 , default = False , action = "store_true", help = 'If True, use Weights & Biases (wandb) for tracking the training. Default is False.')
 parser.add_argument('--debug'                          , default = False , action = "store_true", help = 'Used only as a flag to quickly find runs in wandb. Used to test the code. Default is False.')
 # Boolen negate
-parser.add_argument('--no_use_scheduler'                  , dest ='use_scheduler'                  , action = 'store_false')
+parser.add_argument('--no-use_scheduler'                  , dest ='use_scheduler'                  , action = 'store_false')
 parser.add_argument('--no-debug'                          , dest ='feature'                        , action = 'store_false')
 parser.add_argument('--no-measure_metrics_during_training', dest ='measure_metrics_during_training', action = 'store_false')
 parser.add_argument('--no-print_var'                      , dest ='print_var'                      , action = 'store_false')
@@ -120,6 +120,8 @@ if training_config['use_scheduler'] :
     # To update the learning rate scheduler config you could use the script `update_lr_scheduler_config.py`.
     # I keep the scripts separated to avoid a cumbersome script that does everything.
     training_config['lr_scheduler_config'] = lr_scheduler_config
+else :
+    training_config['lr_scheduler_config'] = None
 
 # Wandb training
 # Check and update config only if wand is training is not False

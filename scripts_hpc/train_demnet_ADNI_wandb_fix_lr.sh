@@ -1,13 +1,13 @@
 #!/bin/bash -l
 
-#SBATCH --job-name="train_demnet_ADNI_wandb_chained_lr"
+#SBATCH --job-name="train_demnet_ADNI_wandb_fix_lr"
 #SBATCH --nodes=1
 #SBATCH --partition=gpu
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=2
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=5G
-#SBATCH --time=0-00:30:00
+#SBATCH --time=0-00:35:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -40,53 +40,30 @@ NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-# (OPTIONAL) Reset config
 srun python ./scripts_python/training/reset_config_files.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 
-# Lr scheduler config
-# Note that in the case of the ChainedScheduler I create a separata config file for each scheduler I want to chain.
-# After that the real scheduler will receive in input the list with the path to the various scheduler config files
-
-srun python ./scripts_python/training/update_lr_scheduler.py\
-	--path_lr_scheduler_config="${PATH_CONFIG_FOLDER}lr_scheduler_cosine_anealing.toml"\
-	--name="CosineAnnealingLR"\
-	--T_max=10\
-	--eta_min=1e-5\
-
-srun python ./scripts_python/training/update_lr_scheduler.py\
-	--path_lr_scheduler_config="${PATH_CONFIG_FOLDER}lr_scheduler_exp.toml"\
-	--name="ExponentialLR"\
-	--gamma=0.97\
-
-srun python ./scripts_python/training/update_lr_scheduler.py\
-	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="ChainedScheduler"\
-	--lr_scheduler_configs_path_list "${PATH_CONFIG_FOLDER}lr_scheduler_cosine_anealing.toml" "${PATH_CONFIG_FOLDER}lr_scheduler_exp.toml"\
-
-# Dataset config
 srun python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--merge_AD_class=2\
-	--percentage_train=0.8\
-	--percentage_validation=0.1\
-	--percentage_test=0.1\
+	--percentage_train=0.7\
+	--percentage_validation=0.15\
+	--percentage_test=0.15\
 	--use_normalization\
 	--load_data_in_memory\
 
-# Training config
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--batch_size=96\
-	--lr=0.001\
+	--lr=5e-5\
 	--epochs=60\
 	--device="cuda"\
 	--epoch_to_save_model=-1\
 	--path_to_save_model="model_weights_ADNI"\
 	--seed=-1\
-	--use_scheduler\
+	--no-use_scheduler\
 	--measure_metrics_during_training\
 	--print_var\
 	--wandb_training\

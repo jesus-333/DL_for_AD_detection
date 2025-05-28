@@ -69,8 +69,8 @@ all_config = dict(
     dataset_config = dataset_config,
     model_config = model_config
 )
-# import pprint
-# pprint.pprint(all_config)
+import pprint
+pprint.pprint(all_config)
 
 if 'path_to_data' in dataset_config : path_to_data = dataset_config['path_to_data']
 

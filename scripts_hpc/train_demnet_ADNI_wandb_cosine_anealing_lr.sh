@@ -62,7 +62,7 @@ srun python ./scripts_python/training/update_dataset_config.py\
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--batch_size=128\
+	--batch_size=96\
 	--lr=0.001\
 	--epochs=60\
 	--device="cuda"\
