@@ -67,9 +67,9 @@ elif n_elements_to_use > len(folders_paths_dict) :
 else :
     idx_to_use = np.random.choice(len(folders_paths_dict), n_elements_to_use, replace = False)
 
-# Random permutation of the index
-# Note that is useful only if you print the average mean and std every n elements to check how fast (or if) they are converging
-# In this way you are sure that each time you repeat the script the order of sample is different and you could rule out that the convergence is due to the order of the samples
+# Random permutation of the index.
+# Note that is useful only if you print the average mean and std every n elements to check how fast (or if) they are converging.
+# In this way you are sure that each time you repeat the script the order of sample is different and you could rule out that the convergence is due to the order of the samples.
 np.random.shuffle(idx_to_use)
 
 mean_list = []
@@ -96,7 +96,7 @@ for i in range(len(idx_to_use)) :
         print("Std  : ", round(float(std[0]), 6), "\n")
 
     # Load image
-    # Remember that the single images are loaded with torch.io.read_image. The function load the image as tensor in uint8, i.e. with range  between 0 and 255.
+    # Remember that the single images are loaded with torch.io.read_image. The function load the image as tensor in uint8, i.e. with range between 0 and 255.
     # After that, inside the method in the class that read the single images, there's a division by 255 to normalize everything between 0 and 1.
     sample, _ = MRI_all_dataset[idx_to_use[i]]
 
