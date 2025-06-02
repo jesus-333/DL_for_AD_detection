@@ -1,6 +1,6 @@
 """
-It is similar to V4_3, i.e. conversion of dcm in file tensor, but instead of numpy it will use torch.
-I keep it separate from v4_3 to avoid having scripts that are too long/complicated/with too many variable.
+It is similar to V4_3_npy, i.e. conversion of dcm in file tensor, but instead of numpy it will use torch.
+I keep it separate from v4_3_npy to avoid having scripts that are too long/complicated/with too many variable.
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

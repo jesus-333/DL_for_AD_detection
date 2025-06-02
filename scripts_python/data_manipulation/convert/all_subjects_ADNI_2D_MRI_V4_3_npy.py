@@ -1,5 +1,6 @@
 """
-It is similar to V4_2 but instead of saving a sample as separate images save them as a singular 3D tensor.
+It is similar to V4_2, but instead of saving each sample as separate list of images, it save them as a singular 3D tensor/array.
+The 3D tensor array are created with the numpy library. A similar script, but with torch instead of numpy is the V4_3_torch.
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
