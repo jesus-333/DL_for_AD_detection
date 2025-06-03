@@ -13,8 +13,8 @@ PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training.toml"
 PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config.toml"
 
 # Path to data
-PATH_DATA="data/ADNI_axial_middle_slice/" 
-NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
+PATH_DATA="data/ADNI_axial_3D_z_48_size_176_int/" 
+NAME_TENSOR_FILE="dataset_tensor___176_resize___int.pt"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -44,15 +44,16 @@ python ./scripts_python/training/update_dataset_config.py\
 	--percentage_train=0.7\
 	--percentage_validation=0.15\
 	--percentage_test=0.15\
+	--apply_rescale\
 	--use_normalization\
-	--load_data_in_memory\
+	--no-load_data_in_memory\
 	
 python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--batch_size=128\
 	--lr=1e-3\
-	--epochs=5\
+	--epochs=3\
 	--device="cuda"\
 	--epoch_to_save_model=10\
 	--path_to_save_model="model_weights_ADNI"\

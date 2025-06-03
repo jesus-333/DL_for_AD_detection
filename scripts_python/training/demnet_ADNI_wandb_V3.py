@@ -25,8 +25,8 @@ args = parser.parse_args()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# This specific import was added to allow the execution of the script with the "python" command from any folder you like
-# If the argument path_src is not provided, the script assume you will run it from the root folder of the repository
+# This specific import was added to allow the execution of the script with the "python" command from any folder you like.
+# If the argument path_src is not provided, the script assume you will run it from the root folder of the repository.
 import sys
 if args.path_src is not None : sys.path.append(args.path_src)
 else : sys.path.append('./')
@@ -55,7 +55,6 @@ dataset_tensor_file_name = 'dataset_tensor___176_resize.pt' if args.name_tensor_
 path_to_data = f'./data/{dataset_name}/' if args.path_data is None else args.path_data
 
 print_var = True
-move_dataset_to_device = True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load configs
@@ -105,6 +104,7 @@ else :
 
 # Get data
 data = torch.load(f'{path_to_data}{dataset_tensor_file_name}')
+if dataset_config['apply_rescale'] : data = data / dataset_config['rescale_factor']
 
 # Get the number of channels
 model_config['input_channels'] = data.shape[1]
@@ -182,7 +182,7 @@ print(f"\tValidation samples = {len(MRI_validation_dataset)}")
 del data
 
 # (OPTIONAL) Move dataset to device
-if move_dataset_to_device :
+if dataset_config['load_data_in_memory'] :
     MRI_train_dataset.move_data_and_labels_to_device(device)
     MRI_validation_dataset.move_data_and_labels_to_device(device)
     # MRI_test_dataset.move_data_and_labels_to_device(device)

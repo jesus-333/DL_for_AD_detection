@@ -37,9 +37,6 @@ parser.add_argument('--apply_resize'                , default = None, action = '
 parser.add_argument('--apply_z_matrix_interpolation', default = None, action = 'store_true', help = 'If passed it applies a z-axis interpolation to the data. Default is False.')
 parser.add_argument('--save_as_integer'             , default = None, action = 'store_true', help = 'If passed it saves the data as integer (uint16) in the [0, 4095] range. Otherwise the data will be save as float32 in the range [0, 1]. Note that 4095 (or 1 if you convert to float) is the maximum value of the pixel, but not necessarly all images reach this value.')
 
-# Boolen negate
-# parser.add_argument('--no-apply_resize', dest = 'apply_resize', action = 'store_false', help = 'If True it does not apply a resize to the data. Default is False.')
-
 args = parser.parse_args()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
@@ -135,8 +132,8 @@ if not apply_resize: data_info = data_info[(data_info['H'] == input_size) | (dat
 # Filter by z_matrix if apply_z_matrix_interpolation is False
 if not apply_z_matrix_interpolation: data_info = data_info[data_info['z_matrix'] == z_matrix]
 
-# Radomly sample n_samples if n_samples > 0:
-if n_samples > 0: data_info = data_info.sample(n=n_samples, random_state = seed, replace = False)
+# Randomly sample n_samples if n_samples > 0:
+if n_samples > 0: data_info = data_info.sample(n = n_samples, random_state = seed, replace = False)
 
 # Resize the images to the input size
 preprocess_function = torchvision.transforms.Compose([
@@ -217,7 +214,10 @@ if conversion_type == 1 or conversion_type == 2:
 
     # Save the dataset tensor
     if n_split <= 0:
-        dataset_tensor_path = os.path.join(path_to_save, 'dataset_tensor.pt')
+        dataset_tensor_path = os.path.join(path_to_save, 'dataset_tensor')
+        if apply_resize : dataset_tensor_path += '___176_resize'
+        if save_as_integer : dataset_tensor_path += '___int'
+        dataset_tensor_path += '.pt'
         torch.save(dataset_tensor, dataset_tensor_path)
     else :
         # Split the dataset tensor into n_split parts and save them
@@ -229,7 +229,10 @@ if conversion_type == 1 or conversion_type == 2:
 
             # Extract the part of the tensor and save it
             part_tensor = dataset_tensor[start_idx:end_idx].clone()
-            part_tensor_path = os.path.join(path_to_save, f'dataset_tensor_part_{j}.pt')
+            part_tensor_path = os.path.join(path_to_save, f'dataset_tensor_part_{j}')
+            if apply_resize : part_tensor_path += '___176_resize'
+            if save_as_integer : part_tensor_path += '___int'
+            part_tensor_path += '.pt'
             torch.save(part_tensor, part_tensor_path)
 
 # Save the info dataframe
