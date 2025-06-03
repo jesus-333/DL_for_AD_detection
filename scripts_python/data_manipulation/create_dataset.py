@@ -50,19 +50,19 @@ import torchvision
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Arguments (inside the scripts)
 
-path_data    = './data/ADNI_dicom_converted_axial/'
+path_data = './data/ADNI_dicom_converted_axial/'
 
 conversion_type = 1
 
 input_size = 176
 apply_resize = True
 
-z_matrix = 48
-apply_z_matrix_interpolation = False
+z_matrix = 16
+apply_z_matrix_interpolation = True
 interpolation_mode = 'bilinear'  # 'nearest', 'linear', 'area', 'nearest-exact'
 
-n_samples = -1
-n_split = 4
+n_samples = 6000
+n_split = 0
 seed = 42
 
 path_to_save = f'./data/ADNI_axial_3D_z_{z_matrix}_size_{input_size}/'
@@ -153,15 +153,20 @@ total_pixels = 0
 n_element_to_print = int(len(data_info) / 252)
 if n_element_to_print == 0 : n_element_to_print = 1  # Ensure at least one print
 
+idx_patient_to_remove = []
+
 for i in range(len(data_info)):
     if i % n_element_to_print == 0 : print(f"Processing file {i}/{len(data_info)}\t({round(i / len(data_info) * 100, 2)}%)")
 
     # Get the sample info
     sample_info = data_info.iloc[i]
 
+    if sample_info['labels_str'] == 'Patient' :
+        idx_patient_to_remove.append(i)
+        continue
+
     # Get the path
     npy_file_path = os.path.join(path_data, sample_info['file_name'])
-
     # Load the npy file
     sample_3D_tensor = torch.from_numpy(np.load(npy_file_path))
 
@@ -182,7 +187,7 @@ for i in range(len(data_info)):
         # More info here https://pytorch.org/docs/stable/generated/torch.nn.functional.interpolate.html
         sample_3D_tensor = torch.nn.functional.interpolate(sample_3D_tensor.permute(1, 0, 2).unsqueeze(0), size = new_shape, mode = interpolation_mode).squeeze(0).permute(1, 0, 2)
 
-    # Compute the mean and std 
+    # Compute the mean and std
     channel_sum += torch.sum(sample_3D_tensor.type(torch.float) / 4095, dim = (1, 2))
     channel_squared_sum += torch.sum((sample_3D_tensor.type(torch.float) / 4095) ** 2, dim = (1, 2))
     shape_sample = sample_3D_tensor.shape
@@ -236,6 +241,7 @@ if conversion_type == 1 or conversion_type == 2:
             torch.save(part_tensor, part_tensor_path)
 
 # Save the info dataframe
+data_info.drop(index = data_info.index[idx_patient_to_remove], axis = 1, inplace = True)
 info_dataframe_path = os.path.join(path_to_save, 'dataset_info.csv')
 data_info.to_csv(info_dataframe_path, index = False)
 
