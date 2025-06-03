@@ -4,10 +4,10 @@
 #SBATCH --nodes=1
 #SBATCH --partition=gpu
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=2
+#SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=5G
-#SBATCH --time=0-00:30:00
+#SBATCH --mem=58G
+#SBATCH --time=0-00:50:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -35,8 +35,8 @@ PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training.toml"
 PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config.toml"
 
 # Path to data
-PATH_DATA="data/ADNI_axial_middle_slice/" 
-NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
+PATH_DATA="data/ADNI_axial_3D_z_48_size_176_int/" 
+NAME_TENSOR_FILE="dataset_tensor___176_resize___int.pt"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -52,13 +52,13 @@ srun python ./scripts_python/training/reset_config_files.py\
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_CONFIG_FOLDER}lr_scheduler_cosine_anealing.toml"\
 	--name="CosineAnnealingLR"\
-	--T_max=10\
+	--T_max=20\
 	--eta_min=1e-5\
 
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_CONFIG_FOLDER}lr_scheduler_exp.toml"\
 	--name="ExponentialLR"\
-	--gamma=0.97\
+	--gamma=0.92\
 
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
@@ -68,20 +68,22 @@ srun python ./scripts_python/training/update_lr_scheduler.py\
 # Dataset config
 srun python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
-	--merge_AD_class=2\
+	--merge_AD_class=1\
 	--percentage_train=0.8\
 	--percentage_validation=0.1\
 	--percentage_test=0.1\
+	--apply_rescale\
+	--rescale_factor=4095\
 	--use_normalization\
-	--load_data_in_memory\
+	--no-load_data_in_memory\
 
 # Training config
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--batch_size=96\
+	--batch_size=128\
 	--lr=0.001\
-	--epochs=60\
+	--epochs=100\
 	--device="cuda"\
 	--epoch_to_save_model=-1\
 	--path_to_save_model="model_weights_ADNI"\
@@ -91,8 +93,8 @@ srun python ./scripts_python/training/update_training_config.py\
 	--print_var\
 	--wandb_training\
 	--no-debug\
-	--project_name="demnet_training_ADNI_2D"\
-	--model_artifact_name="demnet_axial_middle_slice"\
+	--project_name="demnet_training_ADNI_2.5D"\
+	--model_artifact_name="demnet_z_48"\
 	--log_freq=1\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
