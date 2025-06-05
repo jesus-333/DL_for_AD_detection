@@ -23,7 +23,7 @@ parser.add_argument('--path_src'              , type = str , default = None, hel
 parser.add_argument('--path_data'             , type = str , default = None, help = 'Path to the folder with the data. If not provided, it will use the value defined in this script.')
 parser.add_argument('--name_tensor_file'      , type = str , default = None, help = 'Name of the tensor file with the dataset. If not provided, it will use the default value defined in this script.')
 parser.add_argument('--n_repetitions'         , type = int , default = None, help = 'Number of repetitions to measure the memory usage. Default is 5.')
-parser.add_argument('--device_list'           , nargs = '+', default = []  , help = 'List of devices to use for the memory usage check. If empty, it will use all available devices (cpu, cuda, mps).')
+parser.add_argument('--device_list'           , nargs = '+', default = []  , help = 'List of devices to use for the memory usage check. If empty, only cpu will be used.')
 
 args = parser.parse_args()
 
@@ -46,8 +46,6 @@ path_to_data = f'./data/{dataset_name}/' if args.path_data is None else args.pat
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 device_list_script = ['cpu']
-if torch.cuda.is_available() : device_list_script.append('cuda')
-if torch.backends.mps.is_available() : device_list_script.append('mps')
 
 device_list = device_list_script if len(args.device_list) == 0 else args.device_list
 
