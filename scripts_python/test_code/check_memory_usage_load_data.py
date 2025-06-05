@@ -8,14 +8,6 @@ Track the memory usage when data are loaded.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import argparse
-import numpy as np
-import pandas as pd
-import torch
-
-from src.dataset import dataset, support_dataset
-from src.training import support_training
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Create parser
 parser = argparse.ArgumentParser(description = 'Update the demnet model configuration file with new parameters.')
@@ -26,6 +18,21 @@ parser.add_argument('--n_repetitions'         , type = int , default = None, hel
 parser.add_argument('--device_list'           , nargs = '+', default = []  , help = 'List of devices to use for the memory usage check. If empty, only cpu will be used.')
 
 args = parser.parse_args()
+
+# This specific import was added to allow the execution of the script with the "python" command from any folder you like.
+# If the argument path_src is not provided, the script assume you will run it from the root folder of the repository.
+import sys
+if args.path_src is not None : sys.path.append(args.path_src)
+else : sys.path.append('./')
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+import numpy as np
+import pandas as pd
+import torch
+
+from src.dataset import dataset, support_dataset
+from src.training import support_training
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Settings
@@ -39,8 +46,8 @@ percentage_split_list = [percentage_train, percentage_validation, percentage_tes
 n_repetitions_script = 5
 n_repetitions = n_repetitions_script if args.n_repetitions is None else args.n_repetitions
 
-dataset_name = 'ADNI_axial_middle_slice'
-dataset_tensor_file_name = 'dataset_tensor___176_resize.pt' if args.name_tensor_file is None else args.name_tensor_file
+dataset_name = 'ADNI_axial_3D_z_48_size_176_int'
+dataset_tensor_file_name = 'dataset_tensor___176_resize___int.pt' if args.name_tensor_file is None else args.name_tensor_file
 path_to_data = f'./data/{dataset_name}/' if args.path_data is None else args.path_data
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -101,7 +108,7 @@ idx_train, idx_validation, idx_test = idx_list
 #     data = load_data(use_mmap, device)
 #
 #     # Normalize data
-#     data = data / 4095
+#     data = data
 #
 #     return None
 #
@@ -124,16 +131,37 @@ idx_train, idx_validation, idx_test = idx_list
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def load_data_and_create_dataset(use_mmap : bool, device : str, use_clone : bool) :
+def load_data_and_create_dataset_V1(use_mmap : bool, device : str, use_clone : bool) :
     data = load_data(use_mmap, device)
 
     # Split data in train/validation/test
     if use_clone :
-        MRI_train_dataset      = dataset.MRI_dataset(data[idx_train].clone()      , labels[idx_train]     , preprocess_functions = None, print_var = False)
-        MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation].clone() , labels[idx_validation], preprocess_functions = None, print_var = False)
+        MRI_train_dataset      = dataset.MRI_dataset(data[idx_train].clone()     , labels[idx_train]     , preprocess_functions = None, print_var = False)
+        MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation].clone(), labels[idx_validation], preprocess_functions = None, print_var = False)
     else :
-        MRI_train_dataset      = dataset.MRI_dataset(data[idx_train]      , labels[idx_train]     , preprocess_functions = None, print_var = False)
-        MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation] , labels[idx_validation], preprocess_functions = None, print_var = False)
+        MRI_train_dataset      = dataset.MRI_dataset(data[idx_train]     , labels[idx_train]     , preprocess_functions = None, print_var = False)
+        MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation], labels[idx_validation], preprocess_functions = None, print_var = False)
+
+    # Delete original data tensor to free memory
+    del data
+
+    return MRI_train_dataset, MRI_validation_dataset
+
+def load_data_and_create_dataset_V2(use_mmap : bool, device : str, use_clone : bool) :
+    data = load_data(use_mmap, device)
+
+    data_train = data[idx_train]
+    data_validation = data[idx_validation]
+
+    del data
+
+    # Split data in train/validation/test
+    if use_clone :
+        MRI_train_dataset      = dataset.MRI_dataset(data_train.clone()     , labels[idx_train]     , preprocess_functions = None, print_var = False)
+        MRI_validation_dataset = dataset.MRI_dataset(data_validation.clone(), labels[idx_validation], preprocess_functions = None, print_var = False)
+    else :
+        MRI_train_dataset      = dataset.MRI_dataset(data_train     , labels[idx_train]     , preprocess_functions = None, print_var = False)
+        MRI_validation_dataset = dataset.MRI_dataset(data_validation, labels[idx_validation], preprocess_functions = None, print_var = False)
 
     # Delete original data tensor to free memory
     # del data
@@ -152,7 +180,7 @@ for device in device_list :
             # Measure memory usage
             tmp_list = []
             for _ in range(n_repetitions):
-                peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_and_create_dataset, use_mmap = use_mmap, device = device, use_clone = use_clone)
+                peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_and_create_dataset_V1, use_mmap = use_mmap, device = device, use_clone = use_clone)
                 tmp_list.append(peak_memory_used)
 
             mean_memory_used = np.mean(tmp_list)
