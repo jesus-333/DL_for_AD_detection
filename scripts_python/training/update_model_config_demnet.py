@@ -28,7 +28,7 @@ parser.add_argument('--kernel_size_conv_2', type = int  , default = 5           
 parser.add_argument('--dropout_rate_1'    , type = float, default = 0.4                           , help = 'Dropout rate for the first dropout layer. Default is 0.4.')
 parser.add_argument('--dropout_rate_2'    , type = float, default = 0.4                           , help = 'Dropout rate for the second dropout layer. Default is 0.4.')
 # List to dement block config files
-parser.add_argument('--demnet_blocks_path_list'     , nargs = '+', default = [], help = 'List of paths to the toml files with the dement block model config. If not provided, an error will be raised. Default is an empty list. Example: --demnet_blocks ./config/demnet_block_1.toml ./config/demnet_block_2.toml')# Boolean arguments
+parser.add_argument('--demnet_blocks_path_list'     , nargs = '+', default = [], help = 'List of paths to the toml files with the dement block model config. If not provided, an error will be raised. Default is an empty list. Example: --demnet_blocks ./config/demnet_block_1.toml ./config/demnet_block_2.toml')
 # Boolean arguments
 parser.add_argument('--batch_norm'                  , default = True , action = 'store_true', help = 'If set, batch normalization will be used. Default is True.')
 parser.add_argument('--use_activation_in_classifier', default = True , action = 'store_true', help = 'If set, the classifier will use an activation function. Default is True.')
