@@ -1,13 +1,13 @@
 #!/bin/bash -l
 
-#SBATCH --job-name="train_demnet_ADNI_wandb_cosine_anealing_warm_lr"
+#SBATCH --job-name="train_demnet_ADNI_wandb_chained_lr"
 #SBATCH --nodes=1
 #SBATCH --partition=gpu
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=58G
-#SBATCH --time=0-00:50:00
+#SBATCH --mem=57G
+#SBATCH --time=0-01:30:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -40,20 +40,15 @@ NAME_TENSOR_FILE="dataset_tensor___176_resize___int.pt"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+# (OPTIONAL) Reset config
 srun python ./scripts_python/training/reset_config_files.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 
-srun python ./scripts_python/training/update_lr_scheduler.py\
-	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="CosineAnnealingWarmRestarts"\
-	--T_0=10\
-	--T_mult=2\
-	--eta_min=1e-6\
-
+# Dataset config
 srun python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
-	--merge_AD_class=1\
+	--merge_AD_class=2\
 	--percentage_train=0.8\
 	--percentage_validation=0.1\
 	--percentage_test=0.1\
@@ -62,17 +57,18 @@ srun python ./scripts_python/training/update_dataset_config.py\
 	--use_normalization\
 	--no-load_data_in_memory\
 
+# Training config
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--batch_size=256\
-	--lr=1e-4\
-	--epochs=100\
+	--batch_size=512\
+	--lr=1e-6\
+	--epochs=200\
 	--device="cuda"\
 	--epoch_to_save_model=-1\
 	--path_to_save_model="model_weights_ADNI"\
 	--seed=-1\
-	--use_scheduler\
+	--no-use_scheduler\
 	--measure_metrics_during_training\
 	--print_var\
 	--wandb_training\
