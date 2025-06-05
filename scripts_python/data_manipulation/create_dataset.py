@@ -57,11 +57,11 @@ conversion_type = 1
 input_size = 176
 apply_resize = True
 
-z_matrix = 16
-apply_z_matrix_interpolation = True
+z_matrix = 48
+apply_z_matrix_interpolation = False
 interpolation_mode = 'bilinear'  # 'nearest', 'linear', 'area', 'nearest-exact'
 
-n_samples = 6000
+n_samples = -1
 n_split = 0
 seed = 42
 
@@ -196,7 +196,7 @@ for i in range(len(data_info)):
     # Type conversion
     if save_as_integer:
         # Convert to uint16 in the range [0, 4095]
-        sample_3D_tensor = sample_3D_tensor.to(torch.uint16)
+        sample_3D_tensor = sample_3D_tensor.to(torch.int16)
     else:
         # Convert to float32 in the range [0, 1]
         sample_3D_tensor = sample_3D_tensor.float() / 4095.0

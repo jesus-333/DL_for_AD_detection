@@ -8,6 +8,11 @@ Support functions used for the training
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+import gc
+import os
+import psutil
+from threading import Thread
+import time
 import torch
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -317,3 +322,60 @@ def check_lr_scheduler_config(lr_scheduler_config : dict) :
     else :
         raise ValueError(f'The name of the lr scheduler is not valid. Possible values: ExponentialLR, CosineAnnealingLR, StepLR, ChainedScheduler. Current value: {lr_scheduler_config["name"]}')
 
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Memory stats
+
+def cpu_memory_usage_in_gb(func, *args, **kwargs) :
+    """
+    Function used to track the cpu memory usage.
+    Copied from https://www.analyticsvidhya.com/blog/2024/10/memory-efficient-model-weight-loading-in-pytorch/
+    """
+
+    process = psutil.Process(os.getpid())
+    baseline_mem = process.memory_info().rss / 1024 ** 3  # in GB
+    mem_usage = []
+    done = False
+
+    def monitor_memory():
+        while not done:
+            mem_usage.append(process.memory_info().rss / 1024 ** 3)  # Convert to GB
+            time.sleep(0.1)
+
+    t = Thread(target=monitor_memory)
+    t.start()
+
+    func(*args, **kwargs)
+    done = True
+    t.join()
+
+    peak_mem_usage_gb = max(mem_usage) - baseline_mem
+    return peak_mem_usage_gb
+
+def gpu_start_memory_tracking():
+    """
+    Initialize GPU memory tracking.
+    Copied from https://www.analyticsvidhya.com/blog/2024/10/memory-efficient-model-weight-loading-in-pytorch/
+    """
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+    else:
+        print("This notebook is intended for CUDA GPUs but CUDA is not available.")
+
+def gpu_print_memory_usage():
+    """
+    Copied from https://www.analyticsvidhya.com/blog/2024/10/memory-efficient-model-weight-loading-in-pytorch/
+    """
+    max_gpu_memory = torch.cuda.max_memory_allocated() / (1024 ** 3)  # Convert bytes to GB
+    print(f"Maximum GPU memory allocated: {max_gpu_memory:.1f} GB")
+
+def gpu_cleanup():
+    """
+    Copied from https://www.analyticsvidhya.com/blog/2024/10/memory-efficient-model-weight-loading-in-pytorch/
+    """
+    gc.collect()
+    torch.cuda.empty_cache()
+    time.sleep(3)  # Allow time for memory to clear
+    torch.cuda.reset_peak_memory_stats()
+    max_memory_allocated = torch.cuda.max_memory_allocated() / (1024 ** 3)
+    print(f"Maximum GPU memory allocated: {max_memory_allocated:.1f} GB")
