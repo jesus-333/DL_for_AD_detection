@@ -26,16 +26,16 @@ class MRI_dataset(torch.utils.data.Dataset):
     TODO
     """
 
-    def __init__(self, data, labels, preprocess_functions = None) :
+    def __init__(self, data, labels, preprocess_functions = None, print_var = True) :
         # Check input
         if data.shape[0] != len(labels) :
             raise ValueError(f"N. of sampels and n. of labels must be the same. Current n. of samples : {data.shape[0]}, current n. of labels : {len(labels)}")
         
         self.data = preprocess_functions(torch.asarray(data)) if preprocess_functions is not None else torch.asarray(data)
-        print("DATA LOADED")
+        if print_var : print("DATA LOADED")
 
         self.labels = torch.asarray(labels)
-        print("LABELS LOADED")
+        if print_var : print("LABELS LOADED")
             
     def __getitem__(self, idx) :
         return self.data[idx], self.labels[idx]
