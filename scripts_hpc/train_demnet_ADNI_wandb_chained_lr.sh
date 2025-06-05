@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=58G
-#SBATCH --time=0-00:50:00
+#SBATCH --time=0-01:40:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -81,9 +81,9 @@ srun python ./scripts_python/training/update_dataset_config.py\
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--batch_size=128\
-	--lr=0.001\
-	--epochs=100\
+	--batch_size=512\
+	--lr=1e-3\
+	--epochs=200\
 	--device="cuda"\
 	--epoch_to_save_model=-1\
 	--path_to_save_model="model_weights_ADNI"\

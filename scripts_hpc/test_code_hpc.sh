@@ -4,9 +4,9 @@
 #SBATCH --nodes=1
 #SBATCH --partition=gpu
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=55G
+#SBATCH --mem=50G
 #SBATCH --time=0-00:10:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
@@ -35,7 +35,7 @@ PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training.toml"
 PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config.toml"
 
 # Path to data
-PATH_DATA="data/ADNI_axial_3D_z_48_size_176_int/" 
+PATH_DATA="data/ADNI_axial_3D_z_16_size_176_int/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize___int.pt"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -63,7 +63,7 @@ srun python ./scripts_python/training/update_dataset_config.py\
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--batch_size=64\
+	--batch_size=128\
 	--lr=1e-3\
 	--epochs=10\
 	--device="cuda"\
