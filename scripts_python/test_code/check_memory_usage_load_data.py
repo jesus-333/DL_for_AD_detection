@@ -52,7 +52,7 @@ path_to_data = f'./data/{dataset_name}/' if args.path_data is None else args.pat
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-device_list_script = ['cpu']
+device_list_script = ['cpu', 'mps']
 
 device_list = device_list_script if len(args.device_list) == 0 else args.device_list
 

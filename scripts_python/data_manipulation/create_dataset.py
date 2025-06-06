@@ -65,9 +65,12 @@ n_samples = -1
 n_split = 0
 seed = 42
 
-path_to_save = f'./data/ADNI_axial_3D_z_{z_matrix}_size_{input_size}/'
+save_as_integer = False
 
-save_as_integer = True
+path_to_save = f'./data/ADNI_axial_3D_z_{z_matrix}_size_{input_size}'
+if save_as_integer : path_to_save += '_int/'
+else : path_to_save += '/'
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check arguments
