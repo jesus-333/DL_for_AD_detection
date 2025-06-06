@@ -6,8 +6,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=50G
-#SBATCH --time=0-00:10:00
+#SBATCH --mem=20G
+#SBATCH --time=0-00:05:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -31,7 +31,7 @@ NAME_TENSOR_FILE="dataset_tensor___176_resize___int.pt"
 n_repetitions=5
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-srun python ./scripts_python/test_code/training/ \
+srun python ./scripts_python/test_code/check_memory_usage_load_data.py \
 	--path_src="${PATH_SRC}"\
 	--path_data="${PATH_DATA}"\
 	--name_tensor_file="${NAME_TENSOR_FILE}"\
