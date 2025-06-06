@@ -46,6 +46,8 @@ percentage_split_list = [percentage_train, percentage_validation, percentage_tes
 n_repetitions_script = 5
 n_repetitions = n_repetitions_script if args.n_repetitions is None else args.n_repetitions
 
+skip_clone_experiment = True
+
 dataset_name = 'ADNI_axial_3D_z_48_size_176_int'
 dataset_tensor_file_name = 'dataset_tensor___176_resize___int.pt' if args.name_tensor_file is None else args.name_tensor_file
 path_to_data = f'./data/{dataset_name}/' if args.path_data is None else args.path_data
@@ -116,6 +118,14 @@ def load_data_validation(use_mmap : bool, device : str) :
 
     return data_validation
 
+def load_data_train_and_validation(use_mmap : bool, device : str) :
+    data = load_data(use_mmap, device)
+    data_train  = data[idx_train]
+    data_validation  = data[idx_validation]
+    del data
+
+    return data_train, data_validation
+
 print("MEMORY USAGE WHEN DATA ARE LOADED. TRAIN VS VALIDATION")
 for device in device_list :
     print(f"\nDevice: {device}")
@@ -127,6 +137,7 @@ for device in device_list :
         tmp_list_train_V1 = []
         tmp_list_train_V2 = []
         tmp_list_validation = []
+        tmp_list_train_and_validation = []
         for _ in range(n_repetitions):
             peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_train_V1, use_mmap = use_mmap, device = device)
             tmp_list_train_V1.append(peak_memory_used)
@@ -136,6 +147,9 @@ for device in device_list :
 
             peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_validation, use_mmap = use_mmap, device = device)
             tmp_list_validation.append(peak_memory_used)
+
+            peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_train_and_validation, use_mmap = use_mmap, device = device)
+            tmp_list_train_and_validation.append(peak_memory_used)
 
         mean_memory_used = np.mean(tmp_list_train_V1)
         std_memory_used = np.std(tmp_list_train_V1)
@@ -147,7 +161,11 @@ for device in device_list :
 
         mean_memory_used = np.mean(tmp_list_validation)
         std_memory_used = np.std(tmp_list_validation)
-        print(f"\tPeak memory used (VALIDATION): {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
+        print(f"\tPeak memory used (VALIDATION): {mean_memory_used:.2f}±{std_memory_used:.2f} GB")
+
+        mean_memory_used = np.mean(tmp_list_train_and_validation)
+        std_memory_used = np.std(tmp_list_train_and_validation)
+        print(f"\tPeak memory used (TRAIN + VALIDATION): {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
     print(" - - - - - - - - -")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -185,22 +203,19 @@ def load_data_and_create_dataset_V2(use_mmap : bool, device : str, use_clone : b
 
     return MRI_train_dataset, MRI_validation_dataset
 
-def load_data_and_create_dataset_V3(use_mmap : bool, device : str, use_clone : bool) :
+
+def load_data_and_create_dataset_with_normalization(use_mmap : bool, device : str) :
     data = load_data(use_mmap, device)
 
     data_train = data[idx_train]
     data_validation = data[idx_validation]
-    if use_clone :
-        data_train = data_train.clone()
-        data_validation = data_validation.clone()
 
     del data
-
-    # Split data in train/validation/test
-    MRI_train_dataset      = dataset.MRI_dataset(data_train     , labels[idx_train]     , preprocess_functions = None, print_var = False)
-    MRI_validation_dataset = dataset.MRI_dataset(data_validation, labels[idx_validation], preprocess_functions = None, print_var = False)
+    MRI_train_dataset      = dataset.MRI_dataset(data_train / 4095     , labels[idx_train]     , preprocess_functions = None, print_var = False)
+    MRI_validation_dataset = dataset.MRI_dataset(data_validation / 4095, labels[idx_validation], preprocess_functions = None, print_var = False)
 
     return MRI_train_dataset, MRI_validation_dataset
+
 
 print("MEMORY USAGE WHEN DATA ARE LOADED AND DATASET IS CREATED")
 for device in device_list :
@@ -209,11 +224,13 @@ for device in device_list :
         print(f"\tUsing mmap: {use_mmap}")
         
         for use_clone in [True, False]:
+            if use_clone and skip_clone_experiment : continue
             print(f"\t\tUsing clone: {use_clone}")
             
             # Measure memory usage
             tmp_list_V1 = []
             tmp_list_V2 = []
+            tmp_list_norm = []
             for _ in range(n_repetitions):
                 peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_and_create_dataset_V1, use_mmap = use_mmap, device = device, use_clone = use_clone)
                 tmp_list_V1.append(peak_memory_used)
@@ -221,15 +238,22 @@ for device in device_list :
                 peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_and_create_dataset_V2, use_mmap = use_mmap, device = device, use_clone = use_clone)
                 tmp_list_V2.append(peak_memory_used)
 
+                if not use_clone :
+                    peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_and_create_dataset_with_normalization, use_mmap = use_mmap, device = device)
+                    tmp_list_norm.append(peak_memory_used)
+
+
             mean_memory_used = np.mean(tmp_list_V1)
             std_memory_used = np.std(tmp_list_V1)
-            print(f"\t\tPeak memory used (V1): {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
+            print(f"\t\tPeak memory used (V1)  : {mean_memory_used:.2f}±{std_memory_used:.2f} GB")
 
             mean_memory_used = np.mean(tmp_list_V2)
             std_memory_used = np.std(tmp_list_V2)
-            print(f"\t\tPeak memory used (V2): {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
+            print(f"\t\tPeak memory used (V2)  : {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
+
+            if not use_clone :
+                mean_memory_used = np.mean(tmp_list_norm)
+                std_memory_used = np.std(tmp_list_norm)
+                print(f"\t\tPeak memory used (norm) : {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
 
     print(" - - - - - - - - -")
-
-
-

@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-epochs = 60
-starting_lr = 0.001
+epochs = 100
+starting_lr = 1e-4
 
 # Parameter of ExponentialLR
 gamma_exp = 0.97
@@ -27,16 +27,16 @@ T_mult = 1
 eta_min = 1e-4
 
 # Parameters of CyclicLR
-base_lr = 1e-5
-max_lr = 1e-3
-gamma = 0.96
+base_lr = 1e-6
+max_lr = 1e-4
+gamma = 0.99
 mode = 'exp_range'
 # mode = 'triangular2'
-step_size_up = 3
-step_size_down = 10
+step_size_up = 2
+step_size_down = 8
 
 figsize = (10, 6)
-use_log_scale = False
+use_log_scale = True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -77,8 +77,8 @@ lrs_cos_warm = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
 optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
 lr_scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr = base_lr, max_lr = max_lr, gamma = gamma, step_size_up = step_size_up, step_size_down = step_size_down, mode = mode)
 lrs_cyc = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
-# list_lrs_to_plot.append(lrs_cyc)
-# name_lrs_to_plot.append('CyclicLR')
+list_lrs_to_plot.append(lrs_cyc)
+name_lrs_to_plot.append('CyclicLR')
 
 # optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
 # lr_scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr = base_lr, max_lr = 0.003, gamma = gamma, step_size_up = step_size_up, step_size_down = step_size_down, mode = mode)

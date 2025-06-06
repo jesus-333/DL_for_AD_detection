@@ -1,9 +1,9 @@
-use_normalization = true
-n_samples = 19200
-merge_AD_class = 1
-load_data_in_memory = false
-load_data_type = 0
+merge_AD_class = 2
 percentage_train = 0.7
-percentage_validation = 0.15
 percentage_test = 0.15
-grey_scale_image = true
+percentage_validation = 0.15
+rescale_factor = 4095
+apply_rescale = true
+load_data_in_memory = false
+use_normalization = true
+

@@ -2,12 +2,10 @@
 
 #SBATCH --job-name="check_memory_usage_hpc"
 #SBATCH --nodes=1
-#SBATCH --partition=gpu
+#SBATCH --mem=50G
+#SBATCH --partition=batch
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=3
-#SBATCH --gpus-per-task=1
-#SBATCH --mem=20G
-#SBATCH --time=0-00:05:00
+#SBATCH --time=0-00:16:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -25,7 +23,7 @@ conda activate jesus-hpc
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 # Path to data
-PATH_DATA="data/ADNI_axial_3D_z_16_size_176_int/" 
+PATH_DATA="data/ADNI_axial_3D_z_48_size_176_int/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize___int.pt"
 
 n_repetitions=5

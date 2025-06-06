@@ -46,9 +46,9 @@ from src.training import train_functions
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Settings
 
-path_config_dataset  = args.path_dataset_config if args.path_dataset_config is not None else './config/dataset.toml'
-path_config_model    = args.path_model_config if args.path_model_config is not None else './config/model.toml'
-path_config_training = args.path_training_config if args.path_training_config is not None else './config/training.toml'
+path_config_dataset  = args.path_dataset_config if args.path_dataset_config is not None else './config/demnet_wandb/dataset.toml'
+path_config_model    = args.path_model_config if args.path_model_config is not None else './config/demnet_wandb/model.toml'
+path_config_training = args.path_training_config if args.path_training_config is not None else './config/demnet_wandb/training.toml'
 
 dataset_name = 'ADNI_axial_middle_slice'
 dataset_tensor_file_name = 'dataset_tensor___176_resize.pt' if args.name_tensor_file is None else args.name_tensor_file
@@ -103,7 +103,7 @@ else :
     preprocess_functions = None
 
 # Get data
-data = torch.load(f'{path_to_data}{dataset_tensor_file_name}')
+data = torch.load(f'{path_to_data}{dataset_tensor_file_name}', mmap = True)
 if dataset_config['apply_rescale'] : data = data / dataset_config['rescale_factor']
 
 # Get the number of channels
@@ -189,4 +189,4 @@ if dataset_config['load_data_in_memory'] :
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model
-model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)
+# model, training_metrics = train_functions.wandb_train(all_config, model, MRI_train_dataset, MRI_validation_dataset)

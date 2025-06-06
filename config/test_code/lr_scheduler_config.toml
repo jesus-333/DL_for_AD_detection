@@ -1,2 +1,10 @@
+name = "ChainedScheduler"
+
+[list_config_schedulers.config_0]
+name = "CosineAnnealingLR"
+T_max = 10
+eta_min = 1e-5
+
+[list_config_schedulers.config_1]
 name = "ExponentialLR"
-gamma = 0.9
+gamma = 0.94
