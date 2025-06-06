@@ -106,15 +106,23 @@ idx_train, idx_validation, idx_test = idx_list
 
 def load_data_train(use_mmap : bool, device : str) :
     data = load_data(use_mmap, device)
-    data_validation  = data[idx_test]
+    data_train  = data[idx_train]
 
     return data_train
 
 def load_data_validation(use_mmap : bool, device : str) :
     data = load_data(use_mmap, device)
-    data_validation  = data[idx_test]
+    data_validation  = data[idx_validation]
 
     return data_validation
+
+def load_data_train_and_validation(use_mmap : bool, device : str) :
+    data = load_data(use_mmap, device)
+    data_train  = data[idx_train]
+    data_validation  = data[idx_validation]
+    del data
+
+    return data_train, data_validation
 
 print("MEMORY USAGE WHEN DATA ARE LOADED. TRAIN VS VALIDATION")
 for device in device_list :
@@ -125,6 +133,7 @@ for device in device_list :
         # Measure memory usage
         tmp_list_train = []
         tmp_list_validation = []
+        tmp_list_train_and_validation = []
         for _ in range(n_repetitions):
             peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_train, use_mmap = use_mmap, device = device)
             tmp_list_train.append(peak_memory_used)
@@ -132,92 +141,106 @@ for device in device_list :
             peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_validation, use_mmap = use_mmap, device = device)
             tmp_list_validation.append(peak_memory_used)
 
+            peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_train_and_validation, use_mmap = use_mmap, device = device)
+            tmp_list_train_and_validation.append(peak_memory_used)
+
         mean_memory_used = np.mean(tmp_list_train)
         std_memory_used = np.std(tmp_list_train)
-        print(f"\tPeak memory used (TRAIN): {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
+        print(f"\tPeak memory used (TRAIN): {mean_memory_used:.2f}±{std_memory_used:.2f} GB")
 
         mean_memory_used = np.mean(tmp_list_validation)
         std_memory_used = np.std(tmp_list_validation)
-        print(f"\tPeak memory used (VALIDATION): {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
+        print(f"\tPeak memory used (VALIDATION): {mean_memory_used:.2f}±{std_memory_used:.2f} GB")
+
+        mean_memory_used = np.mean(tmp_list_train_and_validation)
+        std_memory_used = np.std(tmp_list_train_and_validation)
+        print(f"\tPeak memory used (TRAIN + VALIDATION): {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
     print(" - - - - - - - - -")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# def load_data_and_create_dataset_V1(use_mmap : bool, device : str, use_clone : bool) :
-#     data = load_data(use_mmap, device)
-#
-#     # Split data in train/validation/test
-#     if use_clone :
-#         MRI_train_dataset      = dataset.MRI_dataset(data[idx_train].clone()     , labels[idx_train]     , preprocess_functions = None, print_var = False)
-#         MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation].clone(), labels[idx_validation], preprocess_functions = None, print_var = False)
-#     else :
-#         MRI_train_dataset      = dataset.MRI_dataset(data[idx_train]     , labels[idx_train]     , preprocess_functions = None, print_var = False)
-#         MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation], labels[idx_validation], preprocess_functions = None, print_var = False)
-#
-#     # Delete original data tensor to free memory
-#     del data
-#
-#     return MRI_train_dataset, MRI_validation_dataset
-#
-# def load_data_and_create_dataset_V2(use_mmap : bool, device : str, use_clone : bool) :
-#     data = load_data(use_mmap, device)
-#
-#     data_train = data[idx_train]
-#     data_validation = data[idx_validation]
-#     if use_clone :
-#         data_train = data_train.clone()
-#         data_validation = data_validation.clone()
-#
-#     del data
-#
-#     # Split data in train/validation/test
-#     MRI_train_dataset      = dataset.MRI_dataset(data_train     , labels[idx_train]     , preprocess_functions = None, print_var = False)
-#     MRI_validation_dataset = dataset.MRI_dataset(data_validation, labels[idx_validation], preprocess_functions = None, print_var = False)
-#
-#     # Delete original data tensor to free memory
-#     # del data
-#
-#     return MRI_train_dataset, MRI_validation_dataset
-#
-# print("MEMORY USAGE WHEN DATA ARE LOADED AND DATASET IS CREATED (V1)")
-# for device in device_list :
-#     print(f"\nDevice: {device}")
-#     for use_mmap in [True, False]:
-#         print(f"\tUsing mmap: {use_mmap}")
-#         
-#         for use_clone in [True, False]:
-#             print(f"\t\tUsing clone: {use_clone}")
-#             
-#             # Measure memory usage
-#             tmp_list = []
-#             for _ in range(n_repetitions):
-#                 peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_and_create_dataset_V1, use_mmap = use_mmap, device = device, use_clone = use_clone)
-#                 tmp_list.append(peak_memory_used)
-#
-#             mean_memory_used = np.mean(tmp_list)
-#             std_memory_used = np.std(tmp_list)
-#             print(f"\t\tPeak memory used: {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
-#
-#     print(" - - - - - - - - -")
-#
-#
-# print("MEMORY USAGE WHEN DATA ARE LOADED AND DATASET IS CREATED (V2)")
-# for device in device_list :
-#     print(f"\nDevice: {device}")
-#     for use_mmap in [True, False]:
-#         print(f"\tUsing mmap: {use_mmap}")
-#         
-#         for use_clone in [True, False]:
-#             print(f"\t\tUsing clone: {use_clone}")
-#             
-#             # Measure memory usage
-#             tmp_list = []
-#             for _ in range(n_repetitions):
-#                 peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_and_create_dataset_V2, use_mmap = use_mmap, device = device, use_clone = use_clone)
-#                 tmp_list.append(peak_memory_used)
-#
-#             mean_memory_used = np.mean(tmp_list)
-#             std_memory_used = np.std(tmp_list)
-#             print(f"\t\tPeak memory used: {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
-#
-#     print(" - - - - - - - - -")
+def load_data_and_create_dataset_V1(use_mmap : bool, device : str, use_clone : bool) :
+    data = load_data(use_mmap, device)
+
+    # Split data in train/validation/test
+    if use_clone :
+        MRI_train_dataset      = dataset.MRI_dataset(data[idx_train].clone()     , labels[idx_train]     , preprocess_functions = None, print_var = False)
+        MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation].clone(), labels[idx_validation], preprocess_functions = None, print_var = False)
+    else :
+        MRI_train_dataset      = dataset.MRI_dataset(data[idx_train]     , labels[idx_train]     , preprocess_functions = None, print_var = False)
+        MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation], labels[idx_validation], preprocess_functions = None, print_var = False)
+
+    # Delete original data tensor to free memory
+    del data
+
+    return MRI_train_dataset, MRI_validation_dataset
+
+def load_data_and_create_dataset_V2(use_mmap : bool, device : str, use_clone : bool) :
+    data = load_data(use_mmap, device)
+
+    data_train = data[idx_train]
+    data_validation = data[idx_validation]
+    if use_clone :
+        data_train = data_train.clone()
+        data_validation = data_validation.clone()
+
+    del data
+
+    # Split data in train/validation/test
+    MRI_train_dataset      = dataset.MRI_dataset(data_train     , labels[idx_train]     , preprocess_functions = None, print_var = False)
+    MRI_validation_dataset = dataset.MRI_dataset(data_validation, labels[idx_validation], preprocess_functions = None, print_var = False)
+
+    return MRI_train_dataset, MRI_validation_dataset
+
+def load_data_and_create_dataset_with_normalization(use_mmap : bool, device : str, use_clone : bool) :
+    data = load_data(use_mmap, device)
+
+    data_train = data[idx_train]
+    data_validation = data[idx_validation]
+
+    del data
+
+    # Split data in train/validation/test
+    MRI_train_dataset      = dataset.MRI_dataset(data_train / 4095     , labels[idx_train]     , preprocess_functions = None, print_var = False)
+    MRI_validation_dataset = dataset.MRI_dataset(data_validation / 4095, labels[idx_validation], preprocess_functions = None, print_var = False)
+
+    return MRI_train_dataset, MRI_validation_dataset
+
+
+print("MEMORY USAGE WHEN DATA ARE LOADED AND DATASET IS CREATED (V2)")
+for device in device_list :
+    print(f"\nDevice: {device}")
+    for use_mmap in [True, False]:
+        print(f"\tUsing mmap: {use_mmap}")
+        
+        for use_clone in [True, False]:
+            print(f"\t\tUsing clone: {use_clone}")
+            if use_clone : continue
+            
+            # Measure memory usage
+            tmp_list_V1 = []
+            tmp_list_V2 = []
+            tmp_list_norm = []
+            for _ in range(n_repetitions):
+                peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_and_create_dataset_V1, use_mmap = use_mmap, device = device, use_clone = use_clone)
+                tmp_list_V1.append(peak_memory_used)
+
+                peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_and_create_dataset_V2, use_mmap = use_mmap, device = device, use_clone = use_clone)
+                tmp_list_V2.append(peak_memory_used)
+
+                peak_memory_used = support_training.cpu_memory_usage_in_gb(load_data_and_create_dataset_with_normalization, use_mmap = use_mmap, device = device, use_clone = use_clone)
+                tmp_list_norm.append(peak_memory_used)
+
+            mean_memory_used = np.mean(tmp_list_V1)
+            std_memory_used = np.std(tmp_list_V1)
+            print(f"\t\tPeak memory used (V1)  : {mean_memory_used:.2f}±{std_memory_used:.2f} GB")
+
+            mean_memory_used = np.mean(tmp_list_V2)
+            std_memory_used = np.std(tmp_list_V2)
+            print(f"\t\tPeak memory used (V2)  : {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
+
+            mean_memory_used = np.mean(tmp_list_norm)
+            std_memory_used = np.std(tmp_list_norm)
+            print(f"\t\tPeak memory used (norm) : {mean_memory_used:.2f}±{std_memory_used:.2f} GB\n")
+
+    print(" - - - - - - - - -")
