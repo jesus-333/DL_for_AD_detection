@@ -104,7 +104,6 @@ else :
 
 # Get data
 data = torch.load(f'{path_to_data}{dataset_tensor_file_name}', mmap = True)
-if dataset_config['apply_rescale'] : data = data / dataset_config['rescale_factor']
 
 # Get the number of channels
 model_config['input_channels'] = data.shape[1]
@@ -170,9 +169,19 @@ model_config['num_classes'] = len(np.unique(labels))
 model = demnet.demnet(model_config)
 
 # Split data in train/validation/test
-MRI_train_dataset      = dataset.MRI_dataset(data[idx_train]     , labels[idx_train]     , preprocess_functions = preprocess_functions)
-MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation], labels[idx_validation], preprocess_functions = preprocess_functions)
-# MRI_test_dataset       = dataset.MRI_dataset(data[idx_test]      , labels[idx_test]      , preprocess_functions = preprocess_functions)
+if dataset_config['apply_rescale'] :
+    # Not that I apply the rescale here to avoid the increase in memory before.
+    # This is valid only if the test set is not created.
+    # If the data are saved in int16 to save memory, the rescale in the 0-1 range by deafult cast them to float32 and therefore double the memory usage.
+    # If you don't need the test set, as in this case, you can cast to float32 only the train and validation set, reducing the memory consumption.
+
+    MRI_train_dataset      = dataset.MRI_dataset(data[idx_train] / dataset_config['rescale_factor']     , labels[idx_train]     , preprocess_functions = preprocess_functions)
+    MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation] / dataset_config['rescale_factor'], labels[idx_validation], preprocess_functions = preprocess_functions)
+    # MRI_test_dataset       = dataset.MRI_dataset(data[idx_test] / dataset_config['rescale_factor']      , labels[idx_test]      , preprocess_functions = preprocess_functions)
+else :
+    MRI_train_dataset      = dataset.MRI_dataset(data[idx_train]     , labels[idx_train]     , preprocess_functions = preprocess_functions)
+    MRI_validation_dataset = dataset.MRI_dataset(data[idx_validation], labels[idx_validation], preprocess_functions = preprocess_functions)
+    # MRI_test_dataset       = dataset.MRI_dataset(data[idx_test]      , labels[idx_test]      , preprocess_functions = preprocess_functions)
 print("\nDataset split in train/validation/test")
 print(f"\tTrain samples      = {len(MRI_train_dataset)}")
 print(f"\tValidation samples = {len(MRI_validation_dataset)}")
