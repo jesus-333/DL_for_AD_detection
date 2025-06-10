@@ -75,7 +75,7 @@ class flower_client_v1(NumPyClient):
 
     # def evaluate(self, parameters, config) :
     #     """
-    #     NOT USED FOR NOW
+    #     NOT USED FOR NOW. The train function implemented inside train_functions.train() already has an evaluation phase
     #     """
     #
     #     print("Evaluate function not implemented for the client. Returning dummy values.")

@@ -59,7 +59,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
                 List of metrics to log from the clients. If None, no metrics will be logged. If 'all', all the metrics will be logged.
                 If a list is provided the possible metrics are accuracy, choen_kappa, sensitivity, specificity, f1.
             - metrics_plot_backend : str
-                The backend to use to create the clients metrics plot. This parameter is used only if the parameter metrics_to_log_from_clients is not None. It can be 'matplotlib' or 'wandb'. 
+                The backend to use to create the clients metrics plot. This parameter is used only if the parameter metrics_to_log_from_clients is not None. It can be 'matplotlib' or 'wandb'.
         - dataset_config : dict
             Dictionary with the dataset configuration. The possible keys are the input parameters of the class inside src/dataset/dataset.py
         - model_config : dict
@@ -102,13 +102,22 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Wandb attributes
         
+        # Check if wandb is intalled
         if not wandb_installed : raise ImportError('wandb is not installed. Please it using "pip install wandb"')
+        
+        # Get wandb info configuration
+        # The extra check here is to avoid KeyError if the wandb_config is not present in the server_config
+        # The toml format file does not allow a key with None value. Some of the scripts used to update the config files could set the value in the dictionary to None if the corresponding argument is not provided to the script.
+        # In that case the key is not saved in the toml file.
+        # To avoid error for this two specific keys, I check if they're present in the wandb_config dictionary.
+        # If not I set them to None, since wandb allow None as value for the name and notes of the run.
+        notes = wandb_config['notes'] if 'notes' in wandb_config else 'No notes in training_config'
+        name_training_run = wandb_config['name_training_run'] if 'name_training_run' in wandb_config else None
 
         # Initialise wandb
         self.wandb_run = wandb.init(project = wandb_config['project_name'],
                                     job_type = "train", config = all_config,
-                                    notes = wandb_config['notes'],
-                                    name = wandb_config['name_training_run']
+                                    name = name_training_run, notes = notes,
                                     )
 
         # Wandb artifact to save model weights
