@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+include = ["/src"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = "addl"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+[project]
+name = "Alzheimer_Deep_Learning_Detection"
+version = "0.0.1"
+license = "Apache-2.0"
+authors = [
+  { name = "Alberto (Jesus) Zancanaro", email = "alberto.zancanaro.1@gmail.com" },
+]
+description = "A project focused on the analysis of Alzheimer's disease (AD) detection through Deep Learning"
+dependencies = [
+    "flwr[simulation]",
+	"numpy",
+	"matplotlib",
+	"nibabel",
+	"opencv-python",
+	"pandas",
+	"plotly",
+	"pydicom",
+	"toml",
+    "torch",
+    "torchvision",
+]
+[project.optional-dependencies]
+extra = [
+  "pytorch-gradcam",
+  "wandb",
+]
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Flower settings
+
+[tool.flwr.app]
+publisher = "Alberto (Jesus) Zancanaro"
+
+# [tool.flwr.app.components]
+# serverapp = "scripts_python.training_FL.ADNI_fedavg_with_wandb.server_app:app"
+# clientapp = "scripts_python.training_FL.ADNI_fedavg_with_wandb.client_app:app"
+
+[tool.flwr.app.config]
+path_dataset_config  = './scripts/training_FL/fedavg_with_wandb/config/dataset.toml'
+path_model_config    = './scripts/training_FL/fedavg_with_wandb/config/model.toml'
+path_server_config   = './scripts/training_FL/fedavg_with_wandb/config/server.toml'
+path_training_config = './scripts/training_FL/fedavg_with_wandb/config/training_client.toml'
+
+[tool.flwr.federations]
+default = "local-simulation"
+
+[tool.flwr.federations.local-simulation]
+options.num-supernodes = 4

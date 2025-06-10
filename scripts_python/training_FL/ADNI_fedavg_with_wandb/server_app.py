@@ -15,10 +15,10 @@ import torch
 from flwr.server import ServerConfig, ServerAppComponents, ServerApp
 from flwr.common import Context, ndarrays_to_parameters
 
-from src.dataset import support_dataset_kaggle
-from src.federated import server, support_federated_generic
-from src.model import demnet
-from src.training import test_functions
+from addl.dataset import support_dataset_kaggle
+from addl.federated import server, support_federated_generic
+from addl.model import demnet
+from addl.training import test_functions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -58,8 +58,8 @@ def prepare_data_for_FL_training(all_config : dict) :
 
     dataset_config = all_config['dataset_config']
     # dataset_name = dataset_config['dataset_name']
-    dataset_tensor_file_name = dataset_config['dataset_tensor_file_name']
-    path_to_data = dataset_config['path_to_data']
+    dataset_tensor_file_name = dataset_config['name_tensor_file']
+    path_to_data = dataset_config['path_data']
 
     dataset_info = pd.read_csv(f'{path_to_data}dataset_info.csv')
     labels_int = dataset_info['labels_int'].to_numpy()
@@ -99,12 +99,21 @@ def prepare_data_for_FL_training(all_config : dict) :
 
     return idx_per_client
 
-def server_fn(context : Context):
+def server_fn(context : Context) :
+    # In this you want to check the working directory
+    # cwd = os.getcwd()
+    # print(cwd)
+    # print(context)
+    # Apparently, even if it prin as working directory the one where you launch the flwr run command, it search for other files to the folder where pyproject.toml is located
+
     # Get all the config dictionaries
     dataset_config  = toml.load(context.run_config["path_dataset_config"])
     model_config    = toml.load(context.run_config["path_model_config"])
     server_config   = toml.load(context.run_config["path_server_config"])
     training_config = toml.load(context.run_config["path_training_config"])
+
+    import pprint
+    pprint.pprint(server_config)
 
     # Get seed
     if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 1e9)
@@ -121,10 +130,10 @@ def server_fn(context : Context):
     num_rounds    = server_config["num_rounds"]
     fraction_fit  = server_config["fraction_fit"]
     fraction_eval = server_config["fraction_evaluate"]
-    if len(server_config['metrics_to_log_from_clients']) == 0 : server_config['metrics_to_log_from_clients'] = None
+    if len(server_config['wandb_config']['metrics_to_log_from_clients']) == 0 : server_config['wandb_config']['metrics_to_log_from_clients'] = None
 
     # Prepare dataset for FL training and central evaluation
-    data_per_client  = prepare_data_for_FL_training(all_config)
+    data_per_client = prepare_data_for_FL_training(all_config)
     
     # Save (separately) data for central evaluation
     if all_config['server_config']['centralized_evaluation'] :

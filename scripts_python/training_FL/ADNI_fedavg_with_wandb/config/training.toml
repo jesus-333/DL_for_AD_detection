@@ -1,0 +1,18 @@
+batch_size = 128
+lr = 0.001
+epochs = 3
+use_scheduler = true
+device = "mps"
+epoch_to_save_model = 4
+path_to_save_model = "model_weights_ADNI"
+measure_metrics_during_training = true
+print_var = true
+seed = 497699868
+wandb_training = false
+notes = ""
+log_freq = 1
+debug = false
+
+[lr_scheduler_config]
+name = "ExponentialLR"
+gamma = 0.9

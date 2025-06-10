@@ -1,19 +1,15 @@
-num_rounds = 35
-n_client = 4
-fraction_fit = 1
-fraction_evaluate = 1
+path_server_config = "scripts_python/training_FL/ADNI_fedavg_with_wandb/config/server.toml"
+num_rounds = 10
+n_client = 5
+fraction_fit = 1.0
+fraction_evaluate = 1.0
 keep_labels_proportion = true
-centralized_evaluation = true
-metrics_to_log_from_clients = ['accuracy_train', 'accuracy_validation']
-# metrics_to_log_from_clients = []
-metrics_plot_backend = 'matplotlib'
+centralized_evaluation = false
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 [wandb_config]
-wandb_training = false
-project_name = "demnet_training_FL_kaggle"
-model_artifact_name = "demnet_training_FL_kaggle"
+wandb_training = true
+project_name = "test_code"
+model_artifact_name = "test_artifact"
 log_freq = 1
-name_training_run = "run_"
-notes = ""
+metrics_to_log_from_clients = [ "accuracy_train accuracy_validation",]
 debug = true

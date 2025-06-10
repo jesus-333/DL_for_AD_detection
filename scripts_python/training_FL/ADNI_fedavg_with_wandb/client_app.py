@@ -15,9 +15,9 @@ import torchvision
 from flwr.client import ClientApp, Client
 from flwr.common import Context
 
-from src.dataset import dataset, support_dataset, support_dataset_ADNI
-from src.federated import client
-from src.model import demnet
+from addl.dataset import dataset, support_dataset, support_dataset_ADNI
+from addl.federated import client
+from addl.model import demnet
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -41,8 +41,8 @@ def client_fn_demnet(context : Context) -> Client :
     model = demnet.demnet(model_config)
 
     # Get dataset info
-    dataset_tensor_file_name = dataset_config['dataset_tensor_file_name']
-    path_to_data = dataset_config['path_to_data']
+    dataset_tensor_file_name = dataset_config['name_tensor_file']
+    path_to_data = dataset_config['path_data']
     dataset_info = pd.read_csv(f'{path_to_data}dataset_info.csv')
     labels_int = dataset_info['labels_int'].to_numpy()
     labels_str = dataset_info['labels_str'].to_numpy()
@@ -86,6 +86,24 @@ def client_fn_demnet(context : Context) -> Client :
     else :
         MRI_train_dataset      = dataset.MRI_dataset(data_client[idx_train]     , labels_int_client[idx_train]     , preprocess_functions = preprocess_functions)
         MRI_validation_dataset = dataset.MRI_dataset(data_client[idx_validation], labels_int_client[idx_validation], preprocess_functions = preprocess_functions)
+    
+    # Select training device
+    if torch.cuda.is_available() :
+        device = torch.device("cuda")
+        print("\nCUDA backend in use")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+        print("\nmps backend (apple metal) in use")
+    else:
+        device = torch.device("cpu")
+        print("\nNo backend in use. Device set to cpu")
+    training_config['device'] = device
+
+    # (OPTIONAL) Move dataset to device
+    if dataset_config['load_data_in_memory'] :
+        MRI_train_dataset.move_data_and_labels_to_device(device)
+        MRI_validation_dataset.move_data_and_labels_to_device(device)
+        # MRI_test_dataset.move_data_and_labels_to_device(device)
     
     # Add client id to dictionary (so ti can be saved inside the class)
     training_config['client_id'] = client_id
