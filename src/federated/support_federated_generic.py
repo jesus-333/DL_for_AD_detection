@@ -31,8 +31,9 @@ def split_data_for_clients(data, percentage_split_per_client : list, seed : int 
     """
     
     # Check input parameters
-    # Note that check for 0.9999999999999999 is due to the float precision
-    if np.sum(percentage_split_per_client) != 1 and np.sum(percentage_split_per_client != 0.9999999999999999) : raise ValueError(f"The sum of the elements in percentage_split_list must be equal to 1. Current sum is {np.sum(percentage_split_per_client)}")
+    # Note that check for 0.9999999999999999 and 0.9999999999999998 is due to the float precision
+    possible_sum = [1, 0.9999999999999999, 0.9999999999999998]
+    if np.sum(percentage_split_per_client) not in possible_sum : raise ValueError(f"The sum of the elements in percentage_split_list must be equal to 1. Current sum is {np.sum(percentage_split_per_client)}")
     if keep_labels_proportion and labels is None : raise ValueError("keep_labels_proportion is True but labels is None")
     
     # Get indices for each client

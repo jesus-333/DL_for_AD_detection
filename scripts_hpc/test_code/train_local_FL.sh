@@ -14,29 +14,37 @@ PATH_SERVER_CONFIG="${PATH_CONFIG_FOLDER}server.toml"
 PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training.toml"
 PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config.toml"
 
+# Information about data
+input_channels=48
+input_size=176
+
 # Path to data
-PATH_DATA="data/ADNI_axial_3D_z_48_size_176_int/" 
+PATH_DATA="data/ADNI_axial_3D_z_${input_channels}_size_${input_size}_int/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize___int.pt"
 
-# Dataset settings
+# Dataset settings for each client
 merge_AD_class=2
-percentage_train=0.7
-percentage_validation=0.15
-percentage_test=0.15
+percentage_train=0.9
+percentage_validation=0.1
+percentage_test=0
 rescale_factor=4095
 
 # Training settings
 batch_size=128
 lr=1e-3
-epochs=3
+epochs=2
 device="mps"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
 seed=-1
 
 # FL settings
-num_rounds=10
-num_clients=5
+num_cpus=1 # Default is 2
+max_cpu_allowed=1
+num_gpus=0
+max_gpu_allowed=0
+num_clients=8
+num_rounds=3
 fraction_fit=1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -52,7 +60,15 @@ python ./scripts_python/training/reset_config_files.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Update dataset config
+# Update model config
+
+python ./scripts_python/training/update_model_config_demnet.py\
+	--path_model_config=${PATH_MODEL_CONFIG}\
+	--input_channels=${input_channels}\
+	--input_size=${input_size}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Update dataset config. Note that this settings will be applied to each client
 
 python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
@@ -107,6 +123,7 @@ python ./scripts_python/training/update_training_config.py\
 	--seed=-1\
 	--use_scheduler\
 	--measure_metrics_during_training\
+	--use_weights_with_lower_validation_error\
 	--print_var\
 	--no-wandb_training\
 
@@ -114,9 +131,6 @@ python ./scripts_python/training/update_training_config.py\
 # Launch FL Training
 
 flwr run ./scripts_python/training_FL/ADNI_fedavg_with_wandb/\
-	--federation-config "options.num-supernodes=${num_clients}"\
+	--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
 	--run-config "num-server-rounds=5 local-epochs=2 path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
-	# --run-config "num-server-rounds=5 local-epochs=2 path_dataset_config=${PATH_DATASET_CONFIG} path_model_config=${PATH_MODEL_CONFIG} path_server_config=${PATH_SERVER_CONFIG} path_training_config=${PATH_TRAINING_CONFIG}"\
-	
-# [tool.flwr.federations]
-# # default = "local-simulation"
+

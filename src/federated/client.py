@@ -42,6 +42,24 @@ class flower_client_v1(NumPyClient):
             print(f"N. training samples = {len(self.train_dataset)}")
             print(f"N. validation_dataset samples = {len(self.validation_dataset)}")
 
+    def __dir__(self) :
+        # If data are not on the CPU move them to the CPU
+        # More info on the get_device_method : https://docs.pytorch.org/docs/stable/generated/torch.Tensor.get_device.html
+
+        if self.train_dataset.data.get_device() > 0 :
+            self.train_dataset.move_data_and_labels_to_device('cpu')
+
+        if self.validation_dataset.data.get_device() > 0 :
+            self.validation_dataset.move_data_and_labels_to_device('cpu')
+
+        # Delete data
+        del self.train_dataset.data
+        del self.validation_dataset.data
+
+        # Delete dataset
+        del self.train_dataset
+        del self.validation_dataset
+
     def get_weights(self, config):
         return support_federated_generic.get_weights(self.model)
 
@@ -68,7 +86,7 @@ class flower_client_v1(NumPyClient):
 
         # (OPTIONAL) Load the weights that obtain the lower validation error (I.e. early stop)
         if self.training_config['use_weights_with_lower_validation_error'] :
-            path_weights_early_stop = os.path.join(self.training_config['path_to_save_model'], 'model_BEST.pth') 
+            path_weights_early_stop = os.path.join(self.training_config['path_to_save_model'], 'model_BEST.pth')
             self.model.load_state_dict(torch.load(path_weights_early_stop, map_location = self.training_config['device']))
 
         return support_federated_generic.get_weights(self.model), len(self.train_dataset), converted_training_metrics
