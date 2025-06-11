@@ -46,6 +46,11 @@ parser.add_argument('--model_artifact_name'            , type = str  , default =
 parser.add_argument('--name_training_run'              , type = str  , default = None    , help = 'Name of the training run in wandb. Default is None.')
 parser.add_argument('--notes'                          , type = str  , default = None    , help = 'Notes for the training run in wandb. Default is None.')
 parser.add_argument('--log_freq'                       , type = int  , default = 1       , help = 'Frequency of wandb logging during training. Default is 1 (every epoch).')
+
+# Arguments for Federated Learning only
+parser.add_argument('--use_weights_with_lower_validation_error', default = None, action = "store_true", help="This value is used only during FL training. If True, each client will send to the central server the weights that achieve the lowest validation error, if False the weights at the end of training will be sent. If None, the value from the training config will be used. Default is None.")
+parser.add_argument('--no-use_weights_with_lower_validation_error', dest ='use_weights_with_lower_validation_error', action = 'store_false')
+
 args = parser.parse_args()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -123,6 +128,8 @@ if training_config['use_scheduler'] :
 else :
     training_config['lr_scheduler_config'] = None
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 # Wandb training
 # Check and update config only if wand is training is not False
 if args.wandb_training is True :
@@ -153,6 +160,11 @@ if args.wandb_training is True :
 
 # Debug flag
 training_config['debug'] = args.debug
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Update the training config for Federated Learning
+if args.use_weights_with_lower_validation_error is not None :
+    training_config['use_weights_with_lower_validation_error'] = args.use_weights_with_lower_validation_error
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
