@@ -112,9 +112,6 @@ def server_fn(context : Context) :
     server_config   = toml.load(context.run_config["path_server_config"])
     training_config = toml.load(context.run_config["path_training_config"])
 
-    import pprint
-    pprint.pprint(server_config)
-
     # Get seed
     if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 1e9)
     
@@ -147,6 +144,13 @@ def server_fn(context : Context) :
         data_server       = data_server,
         labels_server     = labels_server
     )
+
+    # Get the number of labels
+    dataset_info = pd.read_csv(f'{dataset_config['path_data']}dataset_info.csv')
+    num_classes  = len(np.unique(dataset_info['labels_int'].to_numpy()))
+
+    # Update model config with the number of classes
+    model_config['num_classes'] = num_classes
 
     # Create model
     model = demnet.demnet(model_config)

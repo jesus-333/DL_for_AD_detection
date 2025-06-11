@@ -37,9 +37,6 @@ def client_fn_demnet(context : Context) -> Client :
     # Set the seed
     training_config['seed'] = context.run_config["seed"] if 'seed' in context.run_config else np.random.randint(0, 1e9)
 
-    # Load model
-    model = demnet.demnet(model_config)
-
     # Get dataset info
     dataset_tensor_file_name = dataset_config['name_tensor_file']
     path_to_data = dataset_config['path_data']
@@ -60,7 +57,8 @@ def client_fn_demnet(context : Context) -> Client :
     del data
     
     # Get idx to split the  data in train/validation/test
-    idx_list = support_dataset.get_idx_to_split_data_V3(labels_int_client, [dataset_config['percentage_split_train_val'], 1 - dataset_config['percentage_split_train_val']], training_config['seed'])
+    percentage_split_train_val = dataset_config['percentage_train']
+    idx_list = support_dataset.get_idx_to_split_data_V3(labels_int_client, [percentage_split_train_val, 1 - percentage_split_train_val], training_config['seed'])
     idx_train, idx_validation = idx_list
     
     # (OPTIONAL) Create function to normalize the data
@@ -86,6 +84,7 @@ def client_fn_demnet(context : Context) -> Client :
     else :
         MRI_train_dataset      = dataset.MRI_dataset(data_client[idx_train]     , labels_int_client[idx_train]     , preprocess_functions = preprocess_functions)
         MRI_validation_dataset = dataset.MRI_dataset(data_client[idx_validation], labels_int_client[idx_validation], preprocess_functions = preprocess_functions)
+
     
     # Select training device
     if torch.cuda.is_available() :
@@ -107,6 +106,14 @@ def client_fn_demnet(context : Context) -> Client :
     
     # Add client id to dictionary (so ti can be saved inside the class)
     training_config['client_id'] = client_id
+
+    # Load model
+    model_config['input_channels'] = data_client.shape[1]
+    model_config['num_classes'] = len(np.unique(labels_int))
+    model = demnet.demnet(model_config)
+    
+    # Free memory
+    del data_client
 
     return client.flower_client_v1(model, MRI_train_dataset, MRI_validation_dataset, training_config).to_client()
 

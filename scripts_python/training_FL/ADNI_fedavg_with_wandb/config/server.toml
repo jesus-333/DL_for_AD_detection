@@ -1,6 +1,6 @@
 path_server_config = "scripts_python/training_FL/ADNI_fedavg_with_wandb/config/server.toml"
-num_rounds = 10
-n_client = 5
+num_rounds = 3
+n_client = 8
 fraction_fit = 1.0
 fraction_evaluate = 1.0
 keep_labels_proportion = true
