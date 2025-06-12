@@ -17,6 +17,8 @@ parser = argparse.ArgumentParser(description = 'Update the training configuratio
 
 # Non-boolean arguments
 parser.add_argument('--path_dataset_config'  , type = str  , default = './config/dataset.toml', help = 'Path to the toml file with the learning rate scheduler config. Default is ./config/dataset.toml')
+parser.add_argument('--path_data'            , type = str  , default = './data/'              , help = 'Path to the folder with the data. Note that this is not the path to a file (as in the case of the training config), but the path to the folder where the data is stored. Default is ./data/.')
+parser.add_argument('--name_tensor_file'     , type = str  , default = 'dataset_tensor.pt'    , help = 'Name of the tensor file with the dataset. This is usefull only if the data are stored in a single tensor file. Default is dataset_tensor.pt.')
 parser.add_argument('--merge_AD_class'       , type = int  , default = 0                      , help = 'Merge the AD class with the CN class. Default is 0 (do not merge). For the other options see the training script.')
 parser.add_argument('--percentage_train'     , type = float, default = 0.7                    , help = 'Percentage of the dataset to use for training. Default is 0.7.')
 parser.add_argument('--percentage_validation', type = float, default = 0.15                   , help = 'Percentage of the dataset to use for validation. Default is 0.15.')
@@ -38,6 +40,12 @@ args = parser.parse_args()
 # Load the dataset config
 dataset_config = {}
 
+dataset_config['path_dataset_config'] = args.path_dataset_config
+
+# Save path to data folder and name of the tensor file
+dataset_config['path_data'] = args.path_data
+dataset_config['name_tensor_file'] = args.name_tensor_file
+
 # merge_AD_class
 if args.merge_AD_class not in [0, 1, 2] :
     raise ValueError(f"merge_AD_class must be 0, 1, or 2. Provided value: {args.merge_AD_class}")
@@ -52,7 +60,7 @@ if args.percentage_train > 1.0 or args.percentage_validation > 1.0 or args.perce
 
 # Check if the sum of the percentages is 1.0
 sum_percentages = args.percentage_train + args.percentage_validation + args.percentage_test
-if sum_percentages == 1.0 or sum_percentages == 0.9999999999999999 :
+if sum_percentages == 1.0 or sum_percentages == 0.9999999999999999 or sum_percentages == 0.9999999999999998 :
     # The check with 0.9999999999999999 is to avoid floating point precision issues
 
     # Save the percentages in the dataset config

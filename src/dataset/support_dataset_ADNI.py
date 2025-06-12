@@ -256,3 +256,40 @@ def get_preprocess_functions_ADNI_3D_png(input_size : int, use_normalization : b
     preprocess_functions  = torchvision.transforms.Compose(tmp_list)
 
     return preprocess_functions
+
+def merge_AD_class_function(labels_int, labels_str, merge_AD_class : int) :
+    """
+    Merge the classes of the ADNI dataset according to the merge_AD_class parameter.
+    If merge_AD_class == 0, no merge is applied.
+    If merge_AD_class == 1, the AD class is merged with the MCI class. You obtain a binary classification problem with CN vs all the other classes (AD, MCI, EMCI, LMCI, SMC).
+    if merge_AD_class == 2, all the different MCI classes are merged in a single class. You obtain a 4-class classification problem with CN vs AD vs MCI vs SMC.
+
+    The function takes as input the labels_int and labels_str, which are the integer and string representation of the labels.
+    Both of them are lists (or arrays) of the same length, where each element corresponds to a sample in the dataset.
+    The class only returns the labels_int, which are the integer representation of the labels after the merge.
+    """
+
+    if merge_AD_class == 0 :
+        pass
+    if merge_AD_class == 1 :
+        label_to_int = dict(
+            CN    = 0,
+            AD    = 1,
+            MCI   = 1,
+            EMCI  = 1,
+            LMCI  = 1,
+            SMC   = 1,
+        )
+        for i in range(len(labels_int)) : labels_int[i] = label_to_int[labels_str[i]]
+    elif merge_AD_class == 2 :
+        label_to_int = dict(
+            CN    = 0,
+            AD    = 1,
+            MCI   = 2,
+            EMCI  = 2,
+            LMCI  = 2,
+            SMC   = 3,
+        )
+        for i in range(len(labels_int)) : labels_int[i] = label_to_int[labels_str[i]]
+
+    return labels_int

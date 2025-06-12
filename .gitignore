@@ -10,3 +10,6 @@ artifacts/
 TMP/
 venv/
 scripts_hpc/output/
+dist/
+config/test_code/
+config/test_code_FL/

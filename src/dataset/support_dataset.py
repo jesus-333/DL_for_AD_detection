@@ -75,9 +75,10 @@ def get_idx_to_split_data_V2(n_elements : int, percentage_split_list : list, see
     """
     
     # Check input parameter
-    # Note that check for 0.9999999999999999 is due to the float precision
+    # Note that check for 0.9999999999999999 and 0.9999999999999998 is due to the float precision
+    possible_sum = [1, 0.9999999999999999, 0.9999999999999998]
     if n_elements <= 1 : raise ValueError("n_elements must be greater than 1. Current value is {}".format(n_elements))
-    if np.sum(percentage_split_list) != 1 and np.sum(percentage_split_list) != 0.9999999999999999 : raise ValueError("The sum of the elements in percentage_split_list must be equal to 1. Current sum is {}".format(np.sum(percentage_split_list)))
+    if np.sum(percentage_split_list) not in possible_sum : raise ValueError("The sum of the elements in percentage_split_list must be equal to 1. Current sum is {}".format(np.sum(percentage_split_list)))
 
     # Use of the seed for reproducibility
     if seed is not None : np.random.seed(seed)
@@ -123,7 +124,9 @@ def get_idx_to_split_data_V3(labels_list : list, percentage_split_list : list, s
 
     # Check input parameter
     # Note that check for 0.9999999999999999 is due to the float precision
-    if np.sum(percentage_split_list) != 1 and np.sum(percentage_split_list) != 0.9999999999999999 : raise ValueError("The sum of the elements in percentage_split_list must be equal to 1. Current sum is {}".format(np.sum(percentage_split_list)))
+    possible_sum = [1, 0.9999999999999999, 0.9999999999999998]
+    if np.sum(percentage_split_list) not in possible_sum : raise ValueError("The sum of the elements in percentage_split_list must be equal to 1. Current sum is {}".format(np.sum(percentage_split_list)))
+
 
     # Use of the seed for reproducibility
     if seed is not None : np.random.seed(seed)

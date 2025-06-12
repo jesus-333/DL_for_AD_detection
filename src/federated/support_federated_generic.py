@@ -31,8 +31,9 @@ def split_data_for_clients(data, percentage_split_per_client : list, seed : int 
     """
     
     # Check input parameters
-    # Note that check for 0.9999999999999999 is due to the float precision
-    if np.sum(percentage_split_per_client) != 1 and np.sum(percentage_split_per_client != 0.9999999999999999) : raise ValueError(f"The sum of the elements in percentage_split_list must be equal to 1. Current sum is {np.sum(percentage_split_per_client)}")
+    # Note that check for 0.9999999999999999 and 0.9999999999999998 is due to the float precision
+    possible_sum = [1, 0.9999999999999999, 0.9999999999999998]
+    if np.sum(percentage_split_per_client) not in possible_sum : raise ValueError(f"The sum of the elements in percentage_split_list must be equal to 1. Current sum is {np.sum(percentage_split_per_client)}")
     if keep_labels_proportion and labels is None : raise ValueError("keep_labels_proportion is True but labels is None")
     
     # Get indices for each client
@@ -57,7 +58,7 @@ def split_data_for_clients(data, percentage_split_per_client : list, seed : int 
     else :
         return data_per_client
 
-def split_data_for_clients_uniformly(data, n_client : int, seed : int = None, labels = None, keep_labels_proportion : int = False): 
+def split_data_for_clients_uniformly(data, n_client : int, seed : int = None, labels = None, keep_labels_proportion : int = False) :
     """
     Split the data (and labels if provided) uniformly among the clients.
     If keep_labels_proportion is True, the original proportion of labels is kept for each client. E.g. if the original data has 10% of label 1 and 90% of label 0, each client will have 10% of label 1 and 90% of label 0.
@@ -124,9 +125,9 @@ def load_data_and_labels(file_path_list_client : str, label_list_int_client : st
         # if not isinstance(label_list_int_client[i], int) : raise ValueError(f"Element {i} of labels_client is not an integer. Actual value is {label_list_int_client[i]} and type is {type(label_list_int_client[i])}")
         if label_list_int_client[i] < 0 : raise ValueError(f"Element {i} of labels_client is negative. Actual value is {label_list_int_client[i]}. Note that labels must be integers in the range [0, n_classes - 1], where n_classes is the number of classes in the dataset.")
     
-    return file_path_list_client, label_list_int_client  
+    return file_path_list_client, label_list_int_client
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Model related function
 
 def set_weights(model, weights: List[np.ndarray]):
@@ -147,7 +148,7 @@ def set_weights(model, weights: List[np.ndarray]):
         if 'num_batches' in k :
             state_dict[k] = model.state_dict()[k]
         else :
-            state_dict[k] = torch.Tensor(v) 
+            state_dict[k] = torch.Tensor(v)
     state_dict = OrderedDict(state_dict)
 
     try :
@@ -200,7 +201,7 @@ def weighted_average(metrics_per_client):
     """
     This function is loosely inspired by the function with the same name in https://github.com/adap/flower/blob/main/examples/advanced-pytorch/pytorch_example/server_app.py
     Note that this function is written to be used as argument during the creation of the server (i.e.e the strategy). More specifically it should be used as value for the argoments fit_metrics_aggregation_fn and evaluate_metrics_aggregation_fn of the strategy constructor.
-    After that when this function is called it expects to receive as input a list in the following form :
+    After that, when this function is called, it expects to receive as input a list in the following form :
         metrics_per_client = [..., (n_i, metrics_dict_i), ...]
     The length of the list is the number of clients, n_i is the number of training samples for that specific client and metrics_dict_i is contains the metric computed for that specific client.
     """

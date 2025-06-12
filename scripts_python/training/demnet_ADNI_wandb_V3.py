@@ -50,7 +50,7 @@ path_config_dataset  = args.path_dataset_config if args.path_dataset_config is n
 path_config_model    = args.path_model_config if args.path_model_config is not None else './config/demnet_wandb/model.toml'
 path_config_training = args.path_training_config if args.path_training_config is not None else './config/demnet_wandb/training.toml'
 
-dataset_name = 'ADNI_axial_middle_slice'
+dataset_name = 'ADNI_axial_3D_z_48_size_176_int'
 dataset_tensor_file_name = 'dataset_tensor___176_resize.pt' if args.name_tensor_file is None else args.name_tensor_file
 path_to_data = f'./data/{dataset_name}/' if args.path_data is None else args.path_data
 
