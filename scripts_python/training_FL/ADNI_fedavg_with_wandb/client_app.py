@@ -85,7 +85,6 @@ def client_fn_demnet(context : Context) -> Client :
         MRI_train_dataset      = dataset.MRI_dataset(data_client[idx_train]     , labels_int_client[idx_train]     , preprocess_functions = preprocess_functions)
         MRI_validation_dataset = dataset.MRI_dataset(data_client[idx_validation], labels_int_client[idx_validation], preprocess_functions = preprocess_functions)
 
-    
     # Select training device
     if torch.cuda.is_available() :
         device = torch.device("cuda")

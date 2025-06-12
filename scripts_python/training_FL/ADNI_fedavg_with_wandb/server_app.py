@@ -15,7 +15,7 @@ import torch
 from flwr.server import ServerConfig, ServerAppComponents, ServerApp
 from flwr.common import Context, ndarrays_to_parameters
 
-from addl.dataset import support_dataset_kaggle
+from addl.dataset import support_dataset_ADNI
 from addl.federated import server, support_federated_generic
 from addl.model import demnet
 from addl.training import test_functions
@@ -40,7 +40,7 @@ def gen_evaluate_fn(model, data, labels, all_config : dict) :
         support_federated_generic.set_weights(model, parameters_ndarrays)
         
         # Trasform data and label in the dataset
-        test_dataset = support_dataset_kaggle.get_dataset_with_preprocess_function_from_data(data, labels, model_config, dataset_config)
+        test_dataset = None
 
         # Evaluate the model on test data
         test_loss, test_metrics_dict = test_functions.test(training_config, model, test_dataset)
@@ -134,7 +134,7 @@ def server_fn(context : Context) :
     
     # Save (separately) data for central evaluation
     if all_config['server_config']['centralized_evaluation'] :
-        data_server   = data_per_client[-1]
+        data_server = data_per_client[-1]
     else :
         data_server = labels_server = None
 
@@ -147,7 +147,9 @@ def server_fn(context : Context) :
 
     # Get the number of labels
     dataset_info = pd.read_csv(f'{dataset_config['path_data']}dataset_info.csv')
-    num_classes  = len(np.unique(dataset_info['labels_int'].to_numpy()))
+    labels_int, labels_str = dataset_info['labels_int'].to_numpy(), dataset_info['labels_str'].to_numpy()
+    labels_int = support_dataset_ADNI.merge_AD_class_function(labels_int, labels_str, dataset_config['merge_AD_class'])
+    num_classes  = len(np.unique(labels_int))
 
     # Update model config with the number of classes
     model_config['num_classes'] = num_classes
