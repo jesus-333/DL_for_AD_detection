@@ -6,7 +6,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=58G
+#SBATCH --mem=46G
 #SBATCH --time=0-01:40:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
@@ -52,7 +52,7 @@ srun python ./scripts_python/training/reset_config_files.py\
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_CONFIG_FOLDER}lr_scheduler_cosine_anealing.toml"\
 	--name="CosineAnnealingLR"\
-	--T_max=20\
+	--T_max=5\
 	--eta_min=1e-5\
 
 srun python ./scripts_python/training/update_lr_scheduler.py\

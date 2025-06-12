@@ -35,7 +35,7 @@ PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training.toml"
 PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config.toml"
 
 # Path to data
-PATH_DATA="data/ADNI_axial_3D_z_16_size_176_int/" 
+PATH_DATA="data/ADNI_axial_3D_z_48_size_176_int/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize___int.pt"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -47,14 +47,14 @@ srun python ./scripts_python/training/reset_config_files.py\
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--name="ExponentialLR"\
-	--gamma=0.96\
+	--gamma=0.93\
 
 srun python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--merge_AD_class=2\
 	--percentage_train=0.7\
-	--percentage_validation=0.15\
-	--percentage_test=0.15\
+	--percentage_validation=0.1\
+	--percentage_test=0.2\
 	--apply_rescale\
 	--rescale_factor=4095\
 	--use_normalization\
