@@ -1,5 +1,27 @@
 #!/bin/sh
 
+#SBATCH --job-name="train_demnet_ADNI_wandb_exp_lr"
+#SBATCH --nodes=1
+#SBATCH --partition=gpu
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=4
+#SBATCH --gpus-per-task=1
+#SBATCH --mem=25G
+#SBATCH --time=0-00:10:00
+#SBATCH --qos=normal
+#SBATCH --mail-user=alberto.zancanaro@uni.lu
+#SBATCH --mail-type=end,fail 
+#SBATCH --output=./scripts_hpc/output/std_output_%x_%j.txt
+#SBATCH --error=./scripts_hpc/output/other_output_%x_%j.txt
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Load python environment
+
+conda activate jesus-hpc
+
+#conda list
+#pip list
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
@@ -39,10 +61,10 @@ path_to_save_model="model_weights_ADNI"
 seed=-1
 
 # FL settings
-num_cpus=1 # Default is 2
-max_cpu_allowed=2
-num_gpus=0
-max_gpu_allowed=0
+num_cpus=2 # Default is 2
+max_cpu_allowed=4
+num_gpus=1
+max_gpu_allowed=1
 num_clients=8
 num_rounds=10
 fraction_fit=1
@@ -55,14 +77,14 @@ pip install .
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Reset config files (Note that this reset only the config for the client side)
 
-python ./scripts_python/training/reset_config_files.py\
+srun python ./scripts_python/training/reset_config_files.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Update model config
 
-python ./scripts_python/training/update_model_config_demnet.py\
+srun python ./scripts_python/training/update_model_config_demnet.py\
 	--path_model_config=${PATH_MODEL_CONFIG}\
 	--input_channels=${input_channels}\
 	--input_size=${input_size}
@@ -70,7 +92,7 @@ python ./scripts_python/training/update_model_config_demnet.py\
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Update dataset config. Note that this settings will be applied to each client
 
-python ./scripts_python/training/update_dataset_config.py\
+srun python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--path_data=${PATH_DATA}\
 	--name_tensor_file=${NAME_TENSOR_FILE}\
@@ -86,7 +108,7 @@ python ./scripts_python/training/update_dataset_config.py\
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Update server config
 
-python ./scripts_python/training_FL/update_server_config.py\
+srun python ./scripts_python/training_FL/update_server_config.py\
 	--path_server_config="${PATH_SERVER_CONFIG}"\
 	--num_rounds=${num_rounds}\
 	--n_client=${num_clients}\
@@ -102,16 +124,16 @@ python ./scripts_python/training_FL/update_server_config.py\
 	--debug\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Training config
+# Training config. Note that this are the config for the local training runs
 
 # Update learning rate scheduler config
-python ./scripts_python/training/update_lr_scheduler.py\
+srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--name="ExponentialLR"\
 	--gamma=0.9\
 	
-# Update training config. Note that this are the config for the local training runs
-python ./scripts_python/training/update_training_config.py\
+# Update training config. 
+srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--batch_size=${batch_size}\
@@ -130,7 +152,7 @@ python ./scripts_python/training/update_training_config.py\
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Launch FL Training
 
-flwr run ./scripts_python/training_FL/ADNI_fedavg_with_wandb/\
+srun flwr run ./scripts_python/training_FL/ADNI_fedavg_with_wandb/\
 	--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
 	--run-config "num-server-rounds=5 local-epochs=2 path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
 
