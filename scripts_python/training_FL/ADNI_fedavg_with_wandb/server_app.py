@@ -20,6 +20,9 @@ from addl.federated import server, support_federated_generic
 from addl.model import demnet
 from addl.training import test_functions
 
+# (TMP) Added for debugging
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def gen_evaluate_fn(model, data, labels, all_config : dict) :
