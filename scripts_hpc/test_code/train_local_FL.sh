@@ -29,7 +29,7 @@ percentage_validation=0.1
 percentage_test=0
 rescale_factor=4095
 
-# Training settings
+# Training settings (single client)
 batch_size=128
 lr=1e-3
 epochs=5
@@ -39,13 +39,13 @@ path_to_save_model="model_weights_ADNI"
 seed=-1
 
 # FL settings
+num_rounds=10
+num_clients=8
+fraction_fit=1
 num_cpus=1 # Default is 2
 max_cpu_allowed=2
 num_gpus=0
 max_gpu_allowed=0
-num_clients=8
-num_rounds=10
-fraction_fit=1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
