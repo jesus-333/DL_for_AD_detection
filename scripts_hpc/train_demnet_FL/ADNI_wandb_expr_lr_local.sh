@@ -39,13 +39,19 @@ path_to_save_model="model_weights_ADNI"
 seed=-1
 
 # FL settings
-num_rounds=10
+num_rounds=3
 num_clients=8
 fraction_fit=1
-num_cpus=1 # Default is 2
-max_cpu_allowed=2
+num_cpus=3 # Default is 2
+max_cpu_allowed=3
 num_gpus=0
 max_gpu_allowed=0
+
+# wandb settings
+project_name="demnet_training_ADNI_FL"
+model_artifact_name="demnet_z_${input_channels}"
+name_training_run="test_cpus_${num_cpus}_max_cpu_${max_cpu_allowed}"
+log_freq=1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -94,12 +100,17 @@ python ./scripts_python/training_FL/update_server_config.py\
 	--fraction_evaluate=1.0\
 	--keep_labels_proportion\
 	--no-centralized_evaluation\
-	--project_name="test_code"\
-	--model_artifact_name="test_artifact"\
+	--project_name="demnet_training_ADNI_FL"\
+	--name_training_run="${name_training_run}"\
+	--model_artifact_name="demnet_z_${input_channels}"\
 	--log_freq=1\
 	--metrics_to_log_from_clients="accuracy_train accuracy_validation"\
 	--metrics_plot_backend="wandb"\
-	--debug\
+	--no-debug\
+	--num_cpus=${num_cpus}\
+	--max_cpu_allowed=${max_cpu_allowed}\
+	--num_gpus=${num_gpus}\
+	--max_gpu_allowed=${max_gpu_allowed}\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Training config

@@ -38,7 +38,15 @@ parser.add_argument('--notes'                      , type = str  , default = Non
 parser.add_argument('--log_freq'                   , type = int  , default = 1       , help = 'Frequency of wandb logging during training. Default is 1 (every epoch).')
 parser.add_argument('--metrics_to_log_from_clients', nargs = '+' , default = ['accuracy_train', 'accuracy_validation'], help = 'List of metrics to log from clients. Default is ["accuracy_train", "accuracy_validation"]. The possible metrics to loads are the one computed from the function in src/training/metrics.py with added the suffix _train or _validation.')
 parser.add_argument('--metrics_plot_backend'       , type = str  , default = 'wandb', help = 'Backend to use for plotting the metrics. Default is "wandb". The other option is "matplotlib". For now the code is implemented but not used for matplotlib. The wandb plot (for now) create better plots to upload in the wandb dashboard. So for now this parameter is useless and you can ignore it.')
-parser.add_argument('--debug'                      , default = False , action = "store_true", help = 'Used only as a flag to quickly find runs in wandb. Used to test the code. Default is False.')
+parser.add_argument('--debug'                      , default = False , action = "store_true" , help = 'Used only as a flag to quickly find runs in wandb. Used to test the code. Default is False.')
+parser.add_argument('--no-debug'                   , dest = 'debug'  , action = "store_false")
+# Flower CPU/GPU settings. Note that saving these parameters in the server config does not affect the training in any way. The only purpose is to have a record of the settings and upload them to wandb.
+# These parameters are set when the flwr run command is executed. See for example the script train_local_FL.sh inside scripts_hpc/test_code/
+parser.add_argument('--num_cpus'                   , type = int  , default = None, help = 'Number of CPUs for each client (i.e. the options.backend.client-resources.num-cpus argument flwr run command). Note that saving these parameters in the server config does not affect the training in any way. The only purpose is to have a record of the settings and upload them to wandb.')
+parser.add_argument('--num_gpus'                   , type = int  , default = None, help = 'Number of GPUs for each client (i.e. the options.backend.client-resources.num-gpus argument flwr run command). Note that saving these parameters in the server config does not affect the training in any way. The only purpose is to have a record of the settings and upload them to wandb.')
+parser.add_argument('--max_cpu_allowed'            , type = int  , default = None, help = 'Maximum number of CPUs visible to the client simulation (i.e. the options.backend.init_args.num_cpus argument in the flwr run command). Note that saving these parameters in the server config does not affect the training in any way. The only purpose is to have a record of the settings and upload them to wandb.')
+parser.add_argument('--max_gpu_allowed'            , type = int  , default = None, help = 'Maximum number of GPUs visible to the client simulation (i.e. the options.backend.init_args.num_gpus argument in the flwr run command). Note that saving these parameters in the server config does not affect the training in any way. The only purpose is to have a record of the settings and upload them to wandb.')
+
 args = parser.parse_args()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -105,7 +113,7 @@ if args.model_artifact_name is None : print("No model artifact name provided for
 wandb_config['model_artifact_name'] = "model" if args.model_artifact_name is None else args.model_artifact_name
 
 # Name of the training run
-if args.name_training_run is None : print("No name provided for the training run in wandb. Using default value: None.")
+if args.name_training_run is None or args.name_training_run == "" : print("No name provided for the training run in wandb. Using default value: None.")
 wandb_config['name_training_run'] = args.name_training_run
 
 # Notes for the training run
@@ -133,7 +141,15 @@ wandb_config['debug'] = args.debug
 # Update server config with wandb settings
 server_config['wandb_config'] = wandb_config
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Flower CPU/GPU settings
+wandb_config['num_cpus'] = args.num_cpus
+wandb_config['num_gpus'] = args.num_gpus
+wandb_config['max_cpu_allowed'] = args.max_cpu_allowed
+wandb_config['max_gpu_allowed'] = args.max_gpu_allowed
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save the config
 
 with open(server_config['path_server_config'], 'w') as f:

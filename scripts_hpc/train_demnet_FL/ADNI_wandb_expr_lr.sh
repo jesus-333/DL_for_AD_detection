@@ -130,6 +130,10 @@ srun python ./scripts_python/training_FL/update_server_config.py\
 	--metrics_to_log_from_clients="accuracy_train accuracy_validation"\
 	--metrics_plot_backend="wandb"\
 	--no-debug\
+	--num_cpus=${num_cpus}\
+	--max_cpu_allowed=${max_cpu_allowed}\
+	--num_gpus=${num_gpus}\
+	--max_gpu_allowed=${max_gpu_allowed}\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Training config. Note that this are the config for the local training runs
