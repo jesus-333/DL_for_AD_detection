@@ -2,13 +2,13 @@
 
 #SBATCH --job-name="train_demnet_ADNI_wandb_exp_lr"
 #SBATCH --nodes=1
-#SBATCH --partition=gpu
+#SBATCH --partition=hopper
+#SBATCH --qos=besteffort
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=25G
-#SBATCH --time=0-00:10:00
-#SBATCH --qos=normal
+#SBATCH --mem=12G
+#SBATCH --time=0-00:05:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_hpc/output/std_output_%x_%j.txt
@@ -17,10 +17,22 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
 
+echo "---------------------------------------------------"
+echo $CONDA_DEFAULT_ENV
+echo "---------------------------------------------------"
+conda init
 conda activate jesus-hpc
+conda init
+echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo $CONDA_DEFAULT_ENV
+echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
+
+hatchling build
+pip install .
 
 #conda list
-#pip list
+pip list
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
@@ -69,10 +81,6 @@ num_clients=8
 num_rounds=10
 fraction_fit=1
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-hatchling build
-pip install .
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Reset config files (Note that this reset only the config for the client side)
@@ -116,12 +124,12 @@ srun python ./scripts_python/training_FL/update_server_config.py\
 	--fraction_evaluate=1.0\
 	--keep_labels_proportion\
 	--no-centralized_evaluation\
-	--project_name="test_code"\
-	--model_artifact_name="test_artifact"\
+	--project_name="demnet_training_ADNI_FL"\
+	--model_artifact_name="demnet_z_${input_channels}"\
 	--log_freq=1\
 	--metrics_to_log_from_clients="accuracy_train accuracy_validation"\
 	--metrics_plot_backend="wandb"\
-	--debug\
+	--no-debug\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Training config. Note that this are the config for the local training runs
