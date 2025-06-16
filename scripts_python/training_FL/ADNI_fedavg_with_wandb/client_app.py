@@ -27,15 +27,17 @@ def client_fn_demnet(context : Context) -> Client :
     """
 
     # Get train and dataset config for the client.
+    # On flower slack I found a reply that say that the node_config should be used for the deployment while the run_config for the simulation
     dataset_config  = toml.load(context.run_config["path_dataset_config"])
     model_config    = toml.load(context.run_config["path_model_config"])
     training_config = toml.load(context.run_config["path_training_config"])
-    # training_config   = toml.load(context.node_config['training_config_path'])
-    # dataset_config = toml.load(context.node_config['dataset_config_path'])
-    # On flower slack I found a reply that say that the node_config should be used for the deployment while the run_config for the simulation
+    # dataset_config  = toml.load(context.node_config['dataset_config_path'])
+    # model_config    = toml.load(context.node_config["path_model_config"])
+    # training_config = toml.load(context.node_config['training_config_path'])
     
     # Set the seed
-    training_config['seed'] = context.run_config["seed"] if 'seed' in context.run_config else np.random.randint(0, 1e9)
+    # NOT USED NOW. Since I launch all the training from the sh script, before the flwr command I called the update_trainig.py script that already set the seed in the toml file
+    # training_config['seed'] = context.run_config["seed"] if 'seed' in context.run_config else np.random.randint(0, 1e9)
 
     # Get dataset info
     dataset_tensor_file_name = dataset_config['name_tensor_file']
