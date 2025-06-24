@@ -1,20 +1,26 @@
 finetuning_type = 1
-batch_size = 64
-lr = 0.01
+batch_size = 128
+lr = 0.001
 epochs = 15
 use_scheduler = true
 lr_decay_rate = 0.99
 optimizer_weight_decay = 0.01
-device = "cpu"
-epoch_to_save_model = 1
-path_to_save_model = "model_weights"
+device = "cuda"
+epoch_to_save_model = 16
+path_to_save_model = "model_weights_ADNI"
 measure_metrics_during_training = true
 print_var = true
-seed = -1
-wandb_training = false
-project_name = ""
-model_artifact_name = ""
+seed = 168362829
+wandb_training = true
 log_freq = 1
+debug = false
+vgg_training = true
+use_vgg_normalization_values = true
+vgg_training_mode = 1
+project_name = "test_code"
+model_artifact_name = "test_artifact"
 name_training_run = ""
-notes = ""
-debug = true
+
+[lr_scheduler_config]
+name = "ExponentialLR"
+gamma = 0.95

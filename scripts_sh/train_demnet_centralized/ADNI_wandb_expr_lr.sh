@@ -6,13 +6,13 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=1.5G
+#SBATCH --mem=2G
 #SBATCH --time=0-00:10:00
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
-#SBATCH --output=./scripts_hpc/output/std_output_%x_%j.txt
-#SBATCH --error=./scripts_hpc/output/other_output_%x_%j.txt
+#SBATCH --output=./scripts_sh/output/std_output_%x_%j.txt
+#SBATCH --error=./scripts_sh/output/other_output_%x_%j.txt
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
