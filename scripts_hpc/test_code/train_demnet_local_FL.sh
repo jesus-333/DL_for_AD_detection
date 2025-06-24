@@ -123,6 +123,7 @@ python ./scripts_python/training/update_training_config.py\
 	--seed=-1\
 	--use_scheduler\
 	--measure_metrics_during_training\
+	--fl_training\
 	--use_weights_with_lower_validation_error\
 	--print_var\
 	--no-wandb_training\

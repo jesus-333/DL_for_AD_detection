@@ -134,7 +134,7 @@ python ./scripts_python/training/update_training_config.py\
 	--device="${device}"\
 	--epoch_to_save_model=${epoch_to_save_model}\
 	--path_to_save_model="${path_to_save_model}"\
-	--seed=-1\
+	--seed=${seed}\
 	--use_scheduler\
 	--measure_metrics_during_training\
 	--fl_training\
