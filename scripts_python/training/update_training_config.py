@@ -44,13 +44,15 @@ parser.add_argument('--no-measure_metrics_during_training', dest ='measure_metri
 parser.add_argument('--no-print_var'                      , dest ='print_var'                      , action = 'store_false')
 # *******************************
 # Wandb settings
-parser.add_argument('--project_name'       , type = str, default = None, help = 'Name of the wandb project. Default is None.')
-parser.add_argument('--model_artifact_name', type = str, default = None, help = 'Name of the wandb model artifact. Default is None.')
-parser.add_argument('--name_training_run'  , type = str, default = None, help = 'Name of the training run in wandb. Default is None.')
-parser.add_argument('--notes'              , type = str, default = None, help = 'Notes for the training run in wandb. Default is None.')
-parser.add_argument('--log_freq'           , type = int, default = 1   , help = 'Frequency of wandb logging during training. Default is 1 (every epoch).')
-parser.add_argument('--debug'              , default = False, action = "store_true", help = 'Used only as a flag to quickly find runs in wandb. Used to test the code. Default is False.')
-parser.add_argument('--no-debug'           , dest ='feature', action = 'store_false')
+parser.add_argument('--project_name'         , type = str, default = None, help = 'Name of the wandb project. Default is None.')
+parser.add_argument('--name_training_run'    , type = str, default = None, help = 'Name of the training run in wandb. Default is None.')
+parser.add_argument('--notes'                , type = str, default = None, help = 'Notes for the training run in wandb. Default is None.')
+parser.add_argument('--log_freq'             , type = int, default = 1   , help = 'Frequency of wandb logging during training. Default is 1 (every epoch).')
+parser.add_argument('--model_artifact_name'  , type = str, default = None, help = 'Name of the wandb model artifact. Default is None. Used only if log_model_artifact is passed.')
+parser.add_argument('--log_model-artifact'   , default = True , action = "store_true", help = 'If True, the model will be logged as a wandb artifact. If you do not want to log the model, use --no-log_model_artifact.')
+parser.add_argument('--debug'                , default = False, action = "store_true", help = 'Used only as a flag to quickly find runs in wandb. Used to test the code. Default is False.')
+parser.add_argument('--no-log_model_artifact', dest ='log_model_artifact', action = 'store_false', help = 'If passed, no model will be logged as a wandb artifact. Only metrics will be uploaded.')
+parser.add_argument('--no-debug'             , dest ='feature'           , action = 'store_false')
 # *******************************
 # Arguments for Federated Learning only
 parser.add_argument('--use_weights_with_lower_validation_error'   , default = False, action = "store_true" , help = "This value is used only during FL training. If True, each client will send to the central server the weights that achieve the lowest validation error, if False the weights at the end of training will be sent. Default is False.")
@@ -150,10 +152,6 @@ if args.wandb_training is True :
     if args.project_name is None : print("No project name provided for wandb. Using default value: None.")
     training_config['project_name'] = args.project_name
 
-    # Model artifact name
-    if args.model_artifact_name is None : print("No model artifact name provided for wandb. Using default value: None.")
-    training_config['model_artifact_name'] = args.model_artifact_name
-
     # Name of the training run
     if args.name_training_run is None : print("No name provided for the training run in wandb. Using default value: None.")
     training_config['name_training_run'] = args.name_training_run
@@ -168,9 +166,16 @@ if args.wandb_training is True :
     else :
         training_config['log_freq'] = 1
         print(f"Invalid log frequency provided: {args.log_freq}. Using default value: {training_config['log_freq']}.")
+    
+    # Log model artifact
+    training_config['log_model_artifact'] = args.log_model_artifact
 
-# Debug flag
-training_config['debug'] = args.debug
+    # Model artifact name
+    if args.model_artifact_name is None : print("No model artifact name provided for wandb. Using default value: None.")
+    training_config['model_artifact_name'] = args.model_artifact_name
+
+    # Debug flag
+    training_config['debug'] = args.debug
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Update the training config for Federated Learning
