@@ -147,8 +147,8 @@ def get_vgg(config : dict, return_preprocess_functions : bool = True) :
             If True, the model will have batch normalization
         - pretrained : bool
             If True, the model will be pretrained
-        - use_singla_channel_input
-            If True, the firts layer of the model will be modified to accept single channel input
+        - input_channels : int
+            Number of input channels of the model. Input channels are the number of channels of the input images, e.g. 3 for RGB images, 1 for grayscale images, or higher than 3 for other types of input (e.g. MRI scans where each channel is a different slice of the scan).
         - num_classes : int
             Number of classes of the dataset
     return_preprocess_functions : bool
@@ -171,7 +171,7 @@ def get_vgg(config : dict, return_preprocess_functions : bool = True) :
     model, preprocess_functions = download_published_model.download_vgg_nets(config['version'], config['batch_normalization'], config['pretrained'])
 
     # Create the model
-    model = VGG(model, config['num_classes'], config['use_single_channel_input'])
+    model = VGG(model, config['num_classes'], config['input_channels'])
     
     if return_preprocess_functions :
         return model, preprocess_functions

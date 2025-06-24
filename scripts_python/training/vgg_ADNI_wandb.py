@@ -88,7 +88,7 @@ percentage_split_list = [dataset_config['percentage_train'], dataset_config['per
 
 # Get mean and std for normalization
 if dataset_config['use_normalization'] :
-    if dataset_config['use_vgg_normalization_values'] :
+    if training_config['use_vgg_normalization_values'] :
         preprocess_functions = download_published_model.get_preprocess_functions('vgg')
 
         # Save them in the config (In this way I save them also on wandb)
@@ -180,6 +180,7 @@ training_config['device'] = device
 # Load model
 model_config['num_classes'] = len(np.unique(labels_int))
 model = vgg_nets.get_vgg(model_config, return_preprocess_functions = False)
+model.set_training_model(training_config['vgg_training_mode'])
 
 # Split data in train/validation/test
 if dataset_config['apply_rescale'] :

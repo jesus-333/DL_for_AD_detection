@@ -32,37 +32,34 @@ parser.add_argument('--epoch_to_save_model'            , type = int  , default =
 parser.add_argument('--path_to_save_model'             , type = str  , default = 'model_weights', help = 'Path to save the model weights. If the folder does not exist, it will be created. Default is "model_weights".')
 parser.add_argument('--seed'                           , type = int  , default = -1             , help = 'Seed for reproducibility. It is used to split the dataset. If a negative value (or no value) is provided, the seed will be set to a random value. Default is -1.')
 # Boolean arguments
-parser.add_argument('--use_scheduler'                  , default = True  , action = "store_true", help = 'If True, use a learning rate scheduler. Default is True.')
-parser.add_argument('--measure_metrics_during_training', default = True  , action = "store_true", help = 'Measure metrics during training. If True various secondary metrics (e.g. accuracy, f1 score, etc.) will be computed during training. Default is True.')
-parser.add_argument('--print_var'                      , default = True  , action = "store_true", help = 'If True print information during training. Default is True.')
-parser.add_argument('--wandb_training'                 , default = False , action = "store_true", help = 'If True, use Weights & Biases (wandb) for tracking the training. Default is False.')
-parser.add_argument('--debug'                          , default = False , action = "store_true", help = 'Used only as a flag to quickly find runs in wandb. Used to test the code. Default is False.')
+parser.add_argument('--use_scheduler'                  , default = True , action = "store_true", help = 'If True, use a learning rate scheduler. Default is True.')
+parser.add_argument('--measure_metrics_during_training', default = True , action = "store_true", help = 'Measure metrics during training. If True various secondary metrics (e.g. accuracy, f1 score, etc.) will be computed during training. Default is True.')
+parser.add_argument('--print_var'                      , default = True , action = "store_true", help = 'If True print information during training. Default is True.')
+parser.add_argument('--wandb_training'                 , default = False, action = "store_true", help = 'If True, use Weights & Biases (wandb) for tracking the training. Default is False.')
+parser.add_argument('--fl_training'                    , default = False, action = "store_true", help = "If True, the training is done in Federated Learning mode. Default is False.")
+parser.add_argument('--vgg_training'                   , default = False, action = "store_true", help = "If True, the training is done using a VGG network. Default is False.")
 # Boolen negate
 parser.add_argument('--no-use_scheduler'                  , dest ='use_scheduler'                  , action = 'store_false')
-parser.add_argument('--no-debug'                          , dest ='feature'                        , action = 'store_false')
 parser.add_argument('--no-measure_metrics_during_training', dest ='measure_metrics_during_training', action = 'store_false')
 parser.add_argument('--no-print_var'                      , dest ='print_var'                      , action = 'store_false')
-parser.add_argument('--no-wandb_training'                 , dest ='wandb_training'                 , action = 'store_false')
+# *******************************
 # Wandb settings
 parser.add_argument('--project_name'       , type = str, default = None, help = 'Name of the wandb project. Default is None.')
 parser.add_argument('--model_artifact_name', type = str, default = None, help = 'Name of the wandb model artifact. Default is None.')
 parser.add_argument('--name_training_run'  , type = str, default = None, help = 'Name of the training run in wandb. Default is None.')
 parser.add_argument('--notes'              , type = str, default = None, help = 'Notes for the training run in wandb. Default is None.')
 parser.add_argument('--log_freq'           , type = int, default = 1   , help = 'Frequency of wandb logging during training. Default is 1 (every epoch).')
-
+parser.add_argument('--debug'              , default = False, action = "store_true", help = 'Used only as a flag to quickly find runs in wandb. Used to test the code. Default is False.')
+parser.add_argument('--no-debug'           , dest ='feature', action = 'store_false')
 # *******************************
 # Arguments for Federated Learning only
-parser.add_argument('--fl_training'                               , default = False, action = "store_true", help = "If True, the training is done in Federated Learning mode. Default is False.")
 parser.add_argument('--use_weights_with_lower_validation_error'   , default = False, action = "store_true" , help = "This value is used only during FL training. If True, each client will send to the central server the weights that achieve the lowest validation error, if False the weights at the end of training will be sent. Default is False.")
 parser.add_argument('--no-use_weights_with_lower_validation_error', dest ='use_weights_with_lower_validation_error', action = 'store_false')
-
 # *******************************
 # VGG training arguments
-parser.add_argument('--vgg_training'                   , default = False, action = "store_true", help = "If True, the training is done using a VGG network. Default is False.")
 parser.add_argument('--use_vgg_normalization_values'   , default = True , action = "store_true", help = "If True, when vgg is trained, the data are normalized using the values used in the original VGG paper. Default is None")
 parser.add_argument('--no-use_vgg_normalization_values', dest = 'use_vgg_normalization_values' , action = 'store_false')
 parser.add_argument('--vgg_training_mode'              , type = int, default = 0, help = "Training mode for the VGG network. Possible values are 0, 1, 2 or 3. See set_training_model method in the VGG class for more details on the training modes. Note that this argument is used only if the VGG network is trained, i.e. if the model is a VGG network.")
-
 # *******************************
 
 args = parser.parse_args()
@@ -181,6 +178,9 @@ training_config['debug'] = args.debug
 if args.fl_training is not None and args.fl_training is True :
     training_config['fl_training'] = True
     training_config['use_weights_with_lower_validation_error'] = args.use_weights_with_lower_validation_error
+else :
+    training_config['fl_training'] = None
+    training_config['use_weights_with_lower_validation_error'] = None
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Update the training config for VGG training
@@ -197,6 +197,10 @@ if args.vgg_training is not None and args.vgg_training is True :
         training_config['vgg_training_mode'] = args.vgg_training_mode
     else :
         raise ValueError(f"Invalid vgg_training_mode provided: {args.vgg_training_mode}. Possible values are 0, 1, 2 or 3.")
+else :
+    training_config['vgg_training'] = None
+    training_config['use_vgg_normalization_values'] = None
+    training_config['vgg_training_mode'] = None
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

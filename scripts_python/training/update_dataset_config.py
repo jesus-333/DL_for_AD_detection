@@ -54,8 +54,8 @@ dataset_config['name_tensor_file'] = args.name_tensor_file
 
 # Filter AD data
 # Note that no check is done on the class_to_keep values. The check are done later, inside the function filter_AD_data (inside support_dataset_ADNI.py)
+dataset_config['filter_AD_data'] = args.filter_AD_data
 if args.filter_AD_data :
-    dataset_config['filter_AD_data'] = True
     if len(args.class_to_keep) == 0 :
         raise ValueError("If filter_AD_data is set to True, class_to_keep must be provided as a list of strings or integers.")
     else :
