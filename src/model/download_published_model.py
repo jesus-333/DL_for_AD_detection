@@ -2,12 +2,12 @@
 This files contains the functions used to download models published on the PyTorch hub
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import torch
 from torchvision import transforms
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def download_Inception_v3(pretrained = True) :
     """
@@ -18,14 +18,16 @@ def download_Inception_v3(pretrained = True) :
     model = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', pretrained = pretrained)
     preprocess_functions = get_preprocess_functions('inception')
 
-    return model,preprocess_functions
+    return model, preprocess_functions
 
 def download_resnet50(pretrained = True) :
     """
     Download the resnet50 model
     https://pytorch.org/hub/nvidia_deeplearningexamples_resnet50/
     """
-    resnet50 = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_resnet50', pretrained = pretrained)
+    model = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_resnet50', pretrained = pretrained)
+
+    return model
 
 def download_vgg_nets(version : int, batch_normalization : bool, pretrained = True) :
     """
@@ -58,7 +60,7 @@ def download_resnet_3D(pretrained = True) :
 
 def download_UNet(pretrained = True) :
     """
-    Get the pretrained UNet, a model for abnormality segmentation on a dataset of brain MRI volumes 
+    Get the pretrained UNet, a model for abnormality segmentation on a dataset of brain MRI volumes
 
     https://pytorch.org/hub/mateuszbuda_brain-segmentation-pytorch_unet/
     https://arxiv.org/abs/1505.04597
@@ -69,7 +71,7 @@ def download_UNet(pretrained = True) :
 
     return model
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_preprocess_functions(model_name : str, mean = None, std = None) :
     """
@@ -79,11 +81,11 @@ def get_preprocess_functions(model_name : str, mean = None, std = None) :
     If your domain is different, you may need to compute again those values based on your dataset.
     """
 
-    model_name = model_name.lower() 
+    model_name = model_name.lower()
 
     if model_name == 'inception' :
         if mean is None : mean = [0.485, 0.456, 0.406]
-        if std is None  : std = [0.229, 0.224, 0.225]
+        if std is None  : std  = [0.229, 0.224, 0.225]
 
         preprocess_functions = transforms.Compose([
             transforms.Resize(299),
@@ -93,7 +95,7 @@ def get_preprocess_functions(model_name : str, mean = None, std = None) :
         ])
     elif model_name == 'vgg' :
         if mean is None : mean = [0.485, 0.456, 0.406]
-        if std is None  : std = [0.229, 0.224, 0.225]
+        if std is None  : std  = [0.229, 0.224, 0.225]
 
         preprocess_functions  = transforms.Compose([
             transforms.Resize(256),

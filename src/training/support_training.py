@@ -9,6 +9,7 @@ Support functions used for the training
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import gc
+import numpy as np
 import os
 import psutil
 from threading import Thread
@@ -25,6 +26,9 @@ def update_log_dict_metrics(metrics_dict, log_dict, label = None):
             log_dict['{}'.format(key)] = value
 
 def check_training_config(config : dict) :
+
+    # *******************************
+    # Common settings
 
     if 'batch_size' not in config :
         raise ValueError('The training configuration must contain the key "batch_size"')
@@ -75,6 +79,18 @@ def check_training_config(config : dict) :
         print('This values set to True print the metrics and the loss during training, and other information before the start of the training')
         config['print_var'] = True
 
+    if 'seed' not in config :
+        seed = np.random.randint(0, 1e9)
+        print(f'Warning: the training configuration does not contain the seed. A random integer ({seed}) will be used as default value')
+        config['seed'] = seed
+    
+    if config['seed'] < 0 :
+        config['seed'] = np.random.randint(0, 1e9)
+        print(f'Invalid seed value: {config["seed"]}. A random integer ({config["seed"]}) will be used as default value')
+
+    # *******************************
+    # Wandb settings
+
     if 'wandb_training' not in config :
         print('Warning: the training configuration does not contain the key "wandb_training". False will be used as default value')
         print('If you want to use wandb to monitor the training, please set this value to True and make sure to have wandb installed')
@@ -92,6 +108,10 @@ def check_training_config(config : dict) :
             print('This means that the metrics will be logged every epoch')
             config['log_freq'] = 1
 
+        if config['log_freq'] <= 0 :
+            print(f'Invalid log frequency value: {config["log_freq"]}. 1 will be used as default value')
+            config['log_freq'] = 1
+
         if 'name_training_run' not in config :
             print('Warning: the training configuration does not contain the key "name_training_run". None will be used as default value')
             print('A random name will be assigned by wandb to the training run')
@@ -101,6 +121,24 @@ def check_training_config(config : dict) :
             print('Warning: the training configuration does not contain the key "debug". False will be used as default value')
             print('This key is not used in the training functions. It is only useful if you want to quickly filter the training run in wandb')
             config['debug'] = False
+
+    # *******************************
+    # FL only settings
+
+    if 'fl_training' in config :
+        if 'use_weights_with_lower_validation_error' not in config :
+            print('Warning: the training configuration does not contain the key "use_weights_with_lower_validation_error". False will be used as default value')
+            config['use_weights_with_lower_validation_error'] = False
+
+    # *******************************
+    # VGG only settings
+
+    if 'vgg_training' in config :
+        if 'use_vgg_normalization_values' not in config :
+            print('Warning: the training configuration does not contain the key "use_vgg_normalization_values". True will be used as default value')
+            print('This means that the images will be normalized using the VGG normalization values')
+            config['use_vgg_normalization_values'] = True
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # optimizer config config

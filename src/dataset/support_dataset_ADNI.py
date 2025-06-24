@@ -1,5 +1,5 @@
 """
-Due to the increase in size of the support_dataset.py file, I decided to split the code in different files. 
+Due to the increase in size of the support_dataset.py file, I decided to split the code in different files.
 This file contains the functions to get the ADNI dataset.
 Note that some of the functions are specific for my folder structure.
 
@@ -7,21 +7,21 @@ Note that some of the functions are specific for my folder structure.
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
-import os 
+import os
 import numpy as np
 import torch
 import torchvision
 
 from . import support_dataset
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_dataset(list_of_path_to_data : list, n_samples : int = -1, merge_AD_class : int = 0, print_var : bool = True, seed : int = None) :
     """
-    This function is similar to get_kaggle_AD_dataset but for the ADNI dataset. It basically works as support_dataset_kaggle.get_dataset(), 
+    This function is similar to get_kaggle_AD_dataset but for the ADNI dataset. It basically works as support_dataset_kaggle.get_dataset().
     Note that also this function is written with my folder structure in mind.
 
     Parameters
@@ -34,7 +34,7 @@ def get_dataset(list_of_path_to_data : list, n_samples : int = -1, merge_AD_clas
         This can be specified to reduce the size of the dataset, due to the large size of the ADNI dataset.
         When specified the dataset is balanced, i.e. the same number of samples for each class.
     merge_AD_class : int
-        An int that represent how to merge the AD class. 
+        An int that represent how to merge the AD class.
         If 0 no merge will be applied
         If 1 all the AD class will be merged in a single class. I.e. the AD and CN will be merged in a single class.
         Other value will raise error. Default value is 0.
@@ -256,6 +256,62 @@ def get_preprocess_functions_ADNI_3D_png(input_size : int, use_normalization : b
     preprocess_functions  = torchvision.transforms.Compose(tmp_list)
 
     return preprocess_functions
+
+def filter_AD_data(labels_list : list, class_to_keep : list, return_boolean_index : bool = False) :
+    """
+    Create an index array where only the samples with labels in class_to_keep are kept.
+    The labels_list is a list of labels, where each label is a string or an integer.
+    The class_to_keep is the list of labels to keep in the index array.
+
+    Parameters
+    ----------
+    labels_list : list
+        List of labels, where each label is a string or an integer.
+    class_to_keep : list
+        List of labels to keep in the index array. The labels must be in the labels_list.
+    return_boolean_index : bool, optional
+        If True, the function will return a boolean index array where True means that the sample is kept and False means that the sample is not kept.
+        If False, the function will return an index array with the indexes of the samples that are kept. The default is False.
+
+    Returns
+    -------
+    index_array : np.ndarray
+        If return_boolean_index is False, an array of integers with the indexes of the samples that are kept.
+        If return_boolean_index is True, an array of booleans with the same length of labels_list, where True means that the sample is kept and False means that the sample is not kept. By default, return_boolean_index is False.
+    """
+
+    # Check that labels_list and class_to_keep are not empty
+    if len(labels_list) == 0 or len(class_to_keep) == 0 :
+        raise ValueError(f"labels_list and class_to_keep must not be empty. Current lengths : labels_list={labels_list}, class_to_keep={class_to_keep}")
+
+    # Check if labels_list contains only strings or integers
+    for label in labels_list :
+        if not isinstance(label, (str, int)):
+            raise ValueError(f"labels_list must contain only strings or integers. Current value: {label}")
+    type_element_labels_list = str(type(labels_list[0]))
+
+    # Check if class_to_keep is a list of strings or integers
+    for label in class_to_keep :
+        if not isinstance(label, (str, int)):
+            raise ValueError(f"class_to_keep must contain only strings or integers. Current value: {label}")
+    type_element_class_to_keep = str(type(class_to_keep[0]))
+
+    # Check if the type of the elements in labels_list and class_to_keep is the same
+    if type_element_labels_list != type_element_class_to_keep :
+        raise ValueError(f"The type of the elements in labels_list and class_to_keep must be the same. Current types: labels_list={type_element_labels_list}, class_to_keep={type_element_class_to_keep}")
+
+    # Create the index array
+    index_array = []
+    
+    # Get only the indexes of the labels that are in class_to_keep
+    for i in range(len(labels_list)) :
+        if return_boolean_index :
+            index_array.append(labels_list[i] in class_to_keep)
+        else :
+            if labels_list[i] in class_to_keep :
+                index_array.append(i)
+
+    return np.asarray(index_array, dtype = bool) if return_boolean_index else np.asarray(index_array, dtype = int)
 
 def merge_AD_class_function(labels_int, labels_str, merge_AD_class : int) :
     """

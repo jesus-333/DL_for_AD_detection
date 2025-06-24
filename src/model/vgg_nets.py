@@ -2,18 +2,18 @@
 
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import torch
 
 from . import download_published_model
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
 class VGG(torch.nn.Module):
     
-    def __init__(self, model, num_classes : int, use_single_channel_input : bool = False) :
+    def __init__(self, model, num_classes : int, input_channels : int = 3) :
         """
         Create a VGG network. The model must be a VGG network downloaded through the download_vgg_nets function in the download_published_model module.
 
@@ -24,8 +24,8 @@ class VGG(torch.nn.Module):
             VGG network model. As defined in https://pytorch.org/vision/main/models/vgg.html
         num_classes : int
             Number of classes of the dataset
-        use_single_channel_input : bool
-            If True, the firts layer of the model will be modified to accept single channel input
+        input_channels : int
+            Number of input channels of the model. Default is 3 (i.e. RGB image). If set to 1, the first layer of the model will be modified to accept single channel input (i.e. grayscale image). Could be set to number higher than 3 if you use a different type of input (e.g. MRI scans where each channel is a different slice of the scan). Default is 3.
         """
 
         super(VGG, self).__init__()
@@ -34,13 +34,12 @@ class VGG(torch.nn.Module):
         model.classifier[-1] = torch.nn.Linear(4096, num_classes)
 
         # (OPTIONAL) Modify the first layer to accept single channel input
-        if use_single_channel_input :
-            model.features[0] = torch.nn.Conv2d(1, 64, kernel_size = (3, 3), stride = (1, 1), padding = (1, 1))
+        if input_channels != 3 :
+            model.features[0] = torch.nn.Conv2d(input_channels, 64, kernel_size = (3, 3), stride = (1, 1), padding = (1, 1))
 
         self.features = model.features
         self.avgpool = model.avgpool
         self.classifier = model.classifier
-        self.use_single_channel_input = use_single_channel_input
 
         print("Nota that the input must be in the rescaled between 0 and 1")
 
@@ -77,39 +76,36 @@ class VGG(torch.nn.Module):
         else :
             return torch.argmax(x, dim = 1)
 
-    def set_model_for_finetuning(self, finetuning_type : int = 0) :
+    def set_training_model(self, training_mode : int = 0) :
         """
-        Set the model for finetuning. The model can be set in three different ways, through the finetuning_type parameter:
-        - 0 : The model will be set to finetune all the layers
-        - 1 : The model will be set to finetune only the last layer (i.e. the classifier[6] layer)
-        - 2 : The model will be set to finetune all the classifier layers
-        - 3 : The model will be set to finetune only the first and last layer. This option is valid only if use_single_channel_input is True (i.e. the first layer has been modified))
+        Set the training modality according to the input parameter training_mode
+        - 0 : All the layer will be trained
+        - 1 : Only the last layer (i.e. the classifier[6] layer) will be trained/finetuned
+        - 2 : All the classifier layers will be trained/finetuned
+        - 3 : Only the first and last layer will be trained/finetuned.
 
         Parameters
         ----------
-        finetuning_type : int
+        training_mode : int
             Type of finetuning. Possible values are 0, 1, 2, or 3.
         """
 
-        if finetuning_type == 0 :
+        if training_mode == 0 :
             for param in self.parameters() : param.requires_grad = True
 
-        elif finetuning_type == 1 :
+        elif training_mode == 1 :
             self.freeze_model()
 
             for param in self.classifier[6].parameters() :
                 param.requires_grad = True
 
-        elif finetuning_type == 2 :
+        elif training_mode == 2 :
             self.freeze_model()
 
             for param in self.classifier.parameters() :
                 param.requires_grad = True
 
-        elif finetuning_type == 3 :
-            if not self.use_single_channel_input :
-                raise ValueError('The finetuning_type 2 is valid only if use_single_channel_input is True')
-
+        elif training_mode == 3 :
             self.freeze_model()
 
             for param in self.features[0].parameters() :
@@ -119,6 +115,10 @@ class VGG(torch.nn.Module):
                 param.requires_grad = True
 
     def freeze_model(self) :
+        """
+        Freeze all the layers of the model. This means that the parameters of the model will not be updated during training.
+        """
+
         for param in self.features.parameters() : param.requires_grad = False
         for param in self.avgpool.parameters() : param.requires_grad = False
         for param in self.classifier.parameters() : param.requires_grad = False
@@ -130,10 +130,9 @@ class VGG(torch.nn.Module):
         for name, param in self.named_parameters():
             print(name, "\t", param.requires_grad)
 
-    
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def get_vgg(config : dict) :
+def get_vgg(config : dict, return_preprocess_functions : bool = True) :
     """
     Create and return a VGG network and the preprocess functions.
 
@@ -152,6 +151,17 @@ def get_vgg(config : dict) :
             If True, the firts layer of the model will be modified to accept single channel input
         - num_classes : int
             Number of classes of the dataset
+    return_preprocess_functions : bool
+        If True, the function will return also the preprocessing functions to use with the model. Otherwise, it will return only the model.
+
+    Returns
+    -------
+    model : VGG
+        The VGG network model, implemented through the VGG class defined in this module.
+    preprocess_functions : torchvision.transforms.Compose
+        The preprocessing functions to use with the model. This variable will be returned only if return_preprocess_functions is True. Otherwise, only the model will be returned.
+        Note that the preprocessing functions are torchvision.transforms.Compose() object, that Resize, CenterCrop and Normalize the input images.
+        The preprocessing functions are defined in the download_published_model module. They expect to receive input images in the range [0, 1] (i.e. rescaled images) with 3 depth channels (i.e. RGB images).
     """
     
     # Check config
@@ -162,9 +172,11 @@ def get_vgg(config : dict) :
 
     # Create the model
     model = VGG(model, config['num_classes'], config['use_single_channel_input'])
-
-    return model, preprocess_functions 
-
+    
+    if return_preprocess_functions :
+        return model, preprocess_functions
+    else :
+        return model
 
 def check_model_config(config : dict) :
     """
@@ -189,9 +201,12 @@ def check_model_config(config : dict) :
     if 'pretrained' not in config :
         raise ValueError('The pretrained key is missing in the configuration')
 
-    if 'use_single_channel_input' not in config :
-        print('The use_single_channel_input key is missing in the configuration. It will be set to False')
-        config['use_single_channel_input'] = False
+    if 'input_channels' not in config :
+        print('The input_channels key is missing in the configuration. It will be set to 3')
+        config['input_channels'] = 3
+    
+    if config['input_channels'] <= 0 :
+        raise ValueError(f'The input_channels key must be greater than 0. Current value is {config["input_channels"]}')
 
     if 'num_classes' not in config :
         raise ValueError('The num_classes key is missing in the configuration')
