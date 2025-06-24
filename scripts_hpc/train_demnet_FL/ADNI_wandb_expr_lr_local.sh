@@ -29,18 +29,21 @@ percentage_validation=0.1
 percentage_test=0
 rescale_factor=4095
 
+# Lr scheduler settings
+gamma=0.92
+
 # Training settings (single client)
 batch_size=128
 lr=1e-3
-epochs=5
+epochs=10
 device="mps"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
 seed=-1
 
 # FL settings
-num_rounds=3
-num_clients=8
+num_rounds=50
+num_clients=6
 fraction_fit=1
 num_cpus=3 # Default is 2
 max_cpu_allowed=3
@@ -50,7 +53,7 @@ max_gpu_allowed=0
 # wandb settings
 project_name="demnet_training_ADNI_FL"
 model_artifact_name="demnet_z_${input_channels}"
-name_training_run="test_cpus_${num_cpus}_max_cpu_${max_cpu_allowed}"
+name_training_run="lr_exp_gamma_rounds_${num_rounds}_clients_${num_clients}_epochs_${epochs}_batch_${batch_size}"
 log_freq=1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -119,7 +122,7 @@ python ./scripts_python/training_FL/update_server_config.py\
 python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--name="ExponentialLR"\
-	--gamma=0.9\
+	--gamma=${gamma}\
 	
 # Update training config. Note that this are the config for the local training runs
 python ./scripts_python/training/update_training_config.py\
@@ -134,6 +137,7 @@ python ./scripts_python/training/update_training_config.py\
 	--seed=-1\
 	--use_scheduler\
 	--measure_metrics_during_training\
+	--fl_training\
 	--use_weights_with_lower_validation_error\
 	--print_var\
 	--no-wandb_training\
