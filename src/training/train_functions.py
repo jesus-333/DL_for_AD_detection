@@ -26,10 +26,10 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     Parameters
     ----------
     training_config : dict
-        Dictionary containing the training configuration. The dictionary will be check through the function check_training_config. 
+        Dictionary containing the training configuration. The dictionary will be check through the function check_training_config.
         If some keys are missing a defualt value will be used or an error will be raised (depending on the key).
         The dictionary should contain the following keys:
-        - batch_size : int 
+        - batch_size : int
             Batch size to use for training. If missing an error will be raised.
         - lr : float
             Learning rate to use for training. If missing or it has a value <= 0 an error will be raised.
@@ -72,12 +72,12 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
             This key is not used in the training functions. It is only useful if you want to quickly filter the training run in wandb. If not specified, False will be used as default value.
     model : torch.nn.Module
         Model to train
-    train_dataset : torch.utils.data.Dataset 
+    train_dataset : torch.utils.data.Dataset
         Dataset to use for training
     validation_dataset : torch.utils.data.Dataset, optional
         Dataset to use for validation, by default None. If None, no validation will be performed
     wandb_model_artifact : wandb.Artifact, optional
-        If wandb is installed, the artifact of the model to use for logging, by default None. If None, no logging will be performed. 
+        If wandb is installed, the artifact of the model to use for logging, by default None. If None, no logging will be performed.
         If you want to track the training with wandb you should use the function wandb_train instead of this one (Note that wandb_train function will internally call this function).
     """
     
@@ -90,8 +90,8 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     # Create DataLoaders
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size = training_config['batch_size'], shuffle = True)
     if validation_dataset is not None : validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size = training_config['batch_size'], shuffle = True)
-    else : validation_dataloader = None
-    
+    else : validation_loader = None
+
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Creation of loss function, optimizer and scheduler
 
@@ -220,7 +220,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
                 if validation_loader is not None: support_training.update_log_dict_metrics(validation_metrics_dict, log_dict, 'validation')
             
             # Add the model to the artifact
-            if (epoch + 1) % training_config['epoch_to_save_model'] == 0:
+            if (epoch + 1) % training_config['epoch_to_save_model'] == 0 and training_config['log_model_artifact']:
                 model_file_path = '{}/{}'.format(training_config['path_to_save_model'], "model_{}.pth".format(epoch + 1))
                 wandb_model_artifact.add_file(model_file_path)
                 wandb.save(model_file_path)
@@ -236,15 +236,18 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     
     # Save in wandb the model at the end of the training (and the best model if validation is performed)
     if training_config['wandb_training'] :
-        # Model at the end of the training
-        wandb_model_artifact.add_file(model_file_path_END)
-        wandb.save(model_file_path_END)
+        # The if are separated because if wandb_training is False the key log_model_artifact probably is not inside the training_config dictionary
+        # The check for log_model_artifact inside the if avoid to raise an error if the key is not present in the training_config dictionary
+        if training_config['log_model_artifact'] :
+            # Model at the end of the training
+            wandb_model_artifact.add_file(model_file_path_END)
+            wandb.save(model_file_path_END)
 
-        # If validation is performed, save the model with the best validation loss
-        if validation_loader is not None:
-            model_file_path_BEST = '{}/{}'.format(training_config['path_to_save_model'], 'model_BEST.pth')
-            wandb_model_artifact.add_file(model_file_path_BEST)
-            wandb.save(model_file_path_BEST)
+            # If validation is performed, save the model with the best validation loss
+            if validation_loader is not None:
+                model_file_path_BEST = '{}/{}'.format(training_config['path_to_save_model'], 'model_BEST.pth')
+                wandb_model_artifact.add_file(model_file_path_BEST)
+                wandb.save(model_file_path_BEST)
 
     # Return the trained model
     return model, computed_metrics_during_training
@@ -284,16 +287,20 @@ def wandb_train(config : dict, model, train_dataset, validation_dataset = None) 
         # Setup artifact to save model
         model_artifact_name = training_config['model_artifact_name'] + '_trained'
         metadata = config
-        wandb_model_artifact = wandb.Artifact(model_artifact_name, type = "model",
-                                              description = "Trained {} model".format(training_config['model_artifact_name']),
-                                              metadata = metadata
-                                              )
+        
+        if training_config['log_model_artifact'] :
+            wandb_model_artifact = wandb.Artifact(model_artifact_name, type = "model",
+                                                  description = "Trained {} model".format(training_config['model_artifact_name']),
+                                                  metadata = metadata
+                                                  )
+        else :
+            wandb_model_artifact = None
         
         # Train the model
         model, computed_metrics_during_training = train(training_config, model, train_dataset, validation_dataset, wandb_model_artifact)
         
         # Log the model artifact
-        run.log_artifact(wandb_model_artifact)
+        if training_config['log_model_artifact'] : run.log_artifact(wandb_model_artifact)
 
     return model, computed_metrics_during_training
 
