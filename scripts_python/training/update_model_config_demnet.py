@@ -9,7 +9,6 @@ As the update_training_config.py script, this script does not overwrite the file
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import argparse
-import numpy as np
 import toml
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

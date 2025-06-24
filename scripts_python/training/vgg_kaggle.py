@@ -102,12 +102,12 @@ training_config['idx_test']       = idx_test
 training_config['idx_validation'] = idx_validation
 
 # Split the data
-train_file_path_list,      label_train_list_int      = file_path_list[idx_train],      label_list_int[idx_train]
+train_file_path_list     , label_train_list_int      = file_path_list[idx_train]     , label_list_int[idx_train]
 validation_file_path_list, label_validation_list_int = file_path_list[idx_validation], label_list_int[idx_validation]
-test_file_path_list,       label_test_list_int       = file_path_list[idx_test],       label_list_int[idx_test]
+test_file_path_list      , label_test_list_int       = file_path_list[idx_test]      , label_list_int[idx_test]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Select training device 
+# Select training device
 
 if torch.cuda.is_available() :
     device = torch.device("cuda")
@@ -128,7 +128,7 @@ if dataset_mean is not None : preprocess_functions.transforms[2].mean = dataset_
 if dataset_std is not None : preprocess_functions.transforms[2].std = dataset_std
 
 # Set type of finetuning
-vgg_model.set_model_for_finetuning(training_config['finetuning_type'])
+vgg_model.set_training_model(training_config['training_mode'])
 vgg_model.check_freeze_layer()
 
 # Create datasets

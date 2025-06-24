@@ -27,11 +27,17 @@ parser.add_argument('--rescale_factor'       , type = float, default = 4095     
 # Boolean arguments
 parser.add_argument('--apply_rescale'       , default = False, action = 'store_true', help = 'Rescale the value of the data dividing by the value stored in rescale_factor. This is used in case the data where stored in uint16 (or similar format) and you want to rescale them to the 0-1 range. Default is False')
 parser.add_argument('--use_normalization'   , default = True , action = 'store_true', help = 'Use normalization in the dataset. Default is True.')
+parser.add_argument('--filter_AD_data'      , default = False, action = 'store_true', help = 'Filter the AD data from the dataset. Only the class passed in the class_to_keep argument will be kept. Default is False. If True, the class_to_keep argument must be passed.')
 parser.add_argument('--load_data_in_memory' , default = False, action = 'store_true', help = 'Load the data in memory. Default is False.')
+parser.add_argument('--use_rgb_input'       , default = None , action = 'store_true', help = 'Use RGB input instead of grayscale. Default is False. This is used only if the model requires RGB input (e.g. VGG).')
 # Boolean negate
 parser.add_argument('--no-apply_rescale'      , dest = 'apply_rescale'      , action = 'store_false')
 parser.add_argument('--no-use_normalization'  , dest = 'use_normalization'  , action = 'store_false')
 parser.add_argument('--no-load_data_in_memory', dest = 'load_data_in_memory', action = 'store_false')
+parser.add_argument('--no-filter_AD_data'     , dest = 'filter_AD_data'     , action = 'store_false')
+parser.add_argument('--no-use_rgb_input'      , dest = 'use_rgb_input'      , action = 'store_false')
+# nargs
+parser.add_argument('--class_to_keep', nargs = '+', default = [], help = 'Class to keep when filtering the AD data. Used only if filter_AD_data is set to True. Default is an empty list. You could pass the argument as a list of strings or a list of integers. Example: --class_to_keep CN AD or --class_to_keep 0 1')
 
 args = parser.parse_args()
 
@@ -45,6 +51,15 @@ dataset_config['path_dataset_config'] = args.path_dataset_config
 # Save path to data folder and name of the tensor file
 dataset_config['path_data'] = args.path_data
 dataset_config['name_tensor_file'] = args.name_tensor_file
+
+# Filter AD data
+# Note that no check is done on the class_to_keep values. The check are done later, inside the function filter_AD_data (inside support_dataset_ADNI.py)
+if args.filter_AD_data :
+    dataset_config['filter_AD_data'] = True
+    if len(args.class_to_keep) == 0 :
+        raise ValueError("If filter_AD_data is set to True, class_to_keep must be provided as a list of strings or integers.")
+    else :
+        dataset_config['class_to_keep'] = args.class_to_keep
 
 # merge_AD_class
 if args.merge_AD_class not in [0, 1, 2] :
@@ -80,6 +95,7 @@ if args.apply_rescale :
 dataset_config['apply_rescale']       = args.apply_rescale
 dataset_config['load_data_in_memory'] = args.load_data_in_memory
 dataset_config['use_normalization']   = args.use_normalization
+if args.use_rgb_input is not None : dataset_config['use_rgb_input'] = args.use_rgb_input
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save the updated dataset config

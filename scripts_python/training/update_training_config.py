@@ -18,6 +18,9 @@ parser = argparse.ArgumentParser(description = 'Update the training configuratio
 
 # Add arguments
 
+
+# *******************************
+# General arguments (i.e. arguments valid for all models and training type)
 # Various arguments
 parser.add_argument('--path_training_config'           , type = str  , default = './config/training.toml'    , help = 'Path to the toml file with the training config. Default is ./config/training.toml')
 parser.add_argument('--path_lr_scheduler_config'       , type = str  , default = './config/lr_scheduler.toml', help = 'Path to the toml file with the learning rate scheduler config. Default is ./config/lr_scheduler.toml')
@@ -41,15 +44,26 @@ parser.add_argument('--no-measure_metrics_during_training', dest ='measure_metri
 parser.add_argument('--no-print_var'                      , dest ='print_var'                      , action = 'store_false')
 parser.add_argument('--no-wandb_training'                 , dest ='wandb_training'                 , action = 'store_false')
 # Wandb settings
-parser.add_argument('--project_name'                   , type = str  , default = None    , help = 'Name of the wandb project. Default is None.')
-parser.add_argument('--model_artifact_name'            , type = str  , default = None    , help = 'Name of the wandb model artifact. Default is None.')
-parser.add_argument('--name_training_run'              , type = str  , default = None    , help = 'Name of the training run in wandb. Default is None.')
-parser.add_argument('--notes'                          , type = str  , default = None    , help = 'Notes for the training run in wandb. Default is None.')
-parser.add_argument('--log_freq'                       , type = int  , default = 1       , help = 'Frequency of wandb logging during training. Default is 1 (every epoch).')
+parser.add_argument('--project_name'       , type = str, default = None, help = 'Name of the wandb project. Default is None.')
+parser.add_argument('--model_artifact_name', type = str, default = None, help = 'Name of the wandb model artifact. Default is None.')
+parser.add_argument('--name_training_run'  , type = str, default = None, help = 'Name of the training run in wandb. Default is None.')
+parser.add_argument('--notes'              , type = str, default = None, help = 'Notes for the training run in wandb. Default is None.')
+parser.add_argument('--log_freq'           , type = int, default = 1   , help = 'Frequency of wandb logging during training. Default is 1 (every epoch).')
 
+# *******************************
 # Arguments for Federated Learning only
-parser.add_argument('--use_weights_with_lower_validation_error', default = None, action = "store_true", help="This value is used only during FL training. If True, each client will send to the central server the weights that achieve the lowest validation error, if False the weights at the end of training will be sent. If None, the value from the training config will be used. Default is None.")
+parser.add_argument('--fl_training'                               , default = False, action = "store_true", help = "If True, the training is done in Federated Learning mode. Default is False.")
+parser.add_argument('--use_weights_with_lower_validation_error'   , default = False, action = "store_true" , help = "This value is used only during FL training. If True, each client will send to the central server the weights that achieve the lowest validation error, if False the weights at the end of training will be sent. Default is False.")
 parser.add_argument('--no-use_weights_with_lower_validation_error', dest ='use_weights_with_lower_validation_error', action = 'store_false')
+
+# *******************************
+# VGG training arguments
+parser.add_argument('--vgg_training'                   , default = False, action = "store_true", help = "If True, the training is done using a VGG network. Default is False.")
+parser.add_argument('--use_vgg_normalization_values'   , default = True , action = "store_true", help = "If True, when vgg is trained, the data are normalized using the values used in the original VGG paper. Default is None")
+parser.add_argument('--no-use_vgg_normalization_values', dest = 'use_vgg_normalization_values' , action = 'store_false')
+parser.add_argument('--vgg_training_mode'              , type = int, default = 0, help = "Training mode for the VGG network. Possible values are 0, 1, 2 or 3. See set_training_model method in the VGG class for more details on the training modes. Note that this argument is used only if the VGG network is trained, i.e. if the model is a VGG network.")
+
+# *******************************
 
 args = parser.parse_args()
 
@@ -163,8 +177,26 @@ training_config['debug'] = args.debug
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Update the training config for Federated Learning
-if args.use_weights_with_lower_validation_error is not None :
+
+if args.fl_training is not None and args.fl_training is True :
+    training_config['fl_training'] = True
     training_config['use_weights_with_lower_validation_error'] = args.use_weights_with_lower_validation_error
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Update the training config for VGG training
+
+if args.vgg_training is not None and args.vgg_training is True :
+    training_config['vgg_training'] = True
+
+    # Use VGG normalization values (see https://pytorch.org/hub/pytorch_vision_vgg/)
+    if args.use_vgg_normalization_values is not None :
+        training_config['use_vgg_normalization_values'] = args.use_vgg_normalization_values
+
+    # Training mode for VGG
+    if args.vgg_training_mode in [0, 1, 2, 3] :
+        training_config['vgg_training_mode'] = args.vgg_training_mode
+    else :
+        raise ValueError(f"Invalid vgg_training_mode provided: {args.vgg_training_mode}. Possible values are 0, 1, 2 or 3.")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
