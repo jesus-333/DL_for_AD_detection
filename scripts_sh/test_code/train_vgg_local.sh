@@ -78,7 +78,6 @@ python ./scripts_python/training/update_training_config.py\
 	--no-log_model_artifact\
 	--no-debug\
 	--project_name="test_code"\
-	--name_training_run="${name_training_run}"\
 	--model_artifact_name="test_artifact"\
 	--log_freq=1\
 

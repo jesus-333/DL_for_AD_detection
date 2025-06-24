@@ -81,7 +81,6 @@ num_clients=8
 num_rounds=10
 fraction_fit=1
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Reset config files (Note that this reset only the config for the client side)
 
