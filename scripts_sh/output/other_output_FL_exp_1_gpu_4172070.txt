@@ -1,0 +1,281 @@
+
+CondaError: Run 'conda init' before 'conda activate'
+
+/var/lib/slurmd/job4172070/slurm_script: line 24: hatchling: command not found
+[91mERROR [0m:     ServerApp thread raised an exception: Unable to load module server_app
+
+
+The object reference string should have the form <module>:<attribute>. Valid
+examples include `client:app` and `project.package.module:wrapper.app`. It must
+refer to a module on the PYTHONPATH and the module needs to have the specified
+attribute.
+
+[91mERROR [0m:     Traceback (most recent call last):
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/common/object_ref.py", line 170, in load_app
+    module = importlib.import_module(module_str)
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/mnt/aiongpfs/users/azancanaro/DL_for_AD_detection/scripts_python/training_FL/ADNI_fedavg_with_wandb/server_app.py", line 21, in <module>
+    from addl.training import test_functions
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/training/test_functions.py", line 13, in <module>
+    from .train_functions import validation_epoch_function
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/training/train_functions.py", line 18, in <module>
+    from . import metrics, support_training
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/training/metrics.py", line 13, in <module>
+    from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_score, confusion_matrix
+ModuleNotFoundError: No module named 'sklearn'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/simulation/run_simulation.py", line 268, in server_th_with_start_checks
+    updated_context = _run(
+        grid=_grid,
+    ...<3 lines>...
+        loaded_server_app=_server_app,
+    )
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/server/run_serverapp.py", line 59, in run
+    server_app = _load()
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/server/run_serverapp.py", line 46, in _load
+    server_app: ServerApp = load_app(
+                            ~~~~~~~~^
+        server_app_attr, LoadServerAppError, server_app_dir
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/common/object_ref.py", line 175, in load_app
+    raise error_type(
+        f"Unable to load module {module_str}{OBJECT_REF_HELP_STR}",
+    ) from err
+flwr.server.server_app.LoadServerAppError: Unable to load module server_app
+
+
+The object reference string should have the form <module>:<attribute>. Valid
+examples include `client:app` and `project.package.module:wrapper.app`. It must
+refer to a module on the PYTHONPATH and the module needs to have the specified
+attribute.
+
+
+Exception in thread Thread-1 (server_th_with_start_checks):
+Traceback (most recent call last):
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/common/object_ref.py", line 170, in load_app
+    module = importlib.import_module(module_str)
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/mnt/aiongpfs/users/azancanaro/DL_for_AD_detection/scripts_python/training_FL/ADNI_fedavg_with_wandb/server_app.py", line 21, in <module>
+    from addl.training import test_functions
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/training/test_functions.py", line 13, in <module>
+    from .train_functions import validation_epoch_function
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/training/train_functions.py", line 18, in <module>
+    from . import metrics, support_training
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/training/metrics.py", line 13, in <module>
+    from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_score, confusion_matrix
+ModuleNotFoundError: No module named 'sklearn'
+[91mERROR [0m:     LoadClientAppError exception encountered. Terminating simulation in 10s
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/threading.py", line 1041, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/threading.py", line 992, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/simulation/run_simulation.py", line 268, in server_th_with_start_checks
+    updated_context = _run(
+        grid=_grid,
+    ...<3 lines>...
+        loaded_server_app=_server_app,
+    )
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/server/run_serverapp.py", line 59, in run
+    server_app = _load()
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/server/run_serverapp.py", line 46, in _load
+    server_app: ServerApp = load_app(
+                            ~~~~~~~~^
+        server_app_attr, LoadServerAppError, server_app_dir
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/common/object_ref.py", line 175, in load_app
+    raise error_type(
+        f"Unable to load module {module_str}{OBJECT_REF_HELP_STR}",
+    ) from err
+flwr.server.server_app.LoadServerAppError: Unable to load module server_app
+
+
+The object reference string should have the form <module>:<attribute>. Valid
+examples include `client:app` and `project.package.module:wrapper.app`. It must
+refer to a module on the PYTHONPATH and the module needs to have the specified
+attribute.
+
+[91mERROR [0m:     An exception occurred !! Unable to load module client_app
+
+
+The object reference string should have the form <module>:<attribute>. Valid
+examples include `client:app` and `project.package.module:wrapper.app`. It must
+refer to a module on the PYTHONPATH and the module needs to have the specified
+attribute.
+
+[91mERROR [0m:     Traceback (most recent call last):
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/common/object_ref.py", line 170, in load_app
+    module = importlib.import_module(module_str)
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/mnt/aiongpfs/users/azancanaro/DL_for_AD_detection/scripts_python/training_FL/ADNI_fedavg_with_wandb/client_app.py", line 19, in <module>
+    from addl.federated import client
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/federated/client.py", line 15, in <module>
+    from ..training import train_functions, test_functions
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/training/train_functions.py", line 18, in <module>
+    from . import metrics, support_training
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/training/metrics.py", line 13, in <module>
+    from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_score, confusion_matrix
+ModuleNotFoundError: No module named 'sklearn'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/simulation/run_simulation.py", line 370, in _main_loop
+    vce.start_vce(
+    ~~~~~~~~~~~~~^
+        num_supernodes=num_supernodes,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+        flwr_dir=flwr_dir,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/server/superlink/fleet/vce/vce_api.py", line 385, in start_vce
+    raise loadapp_ex
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/server/superlink/fleet/vce/vce_api.py", line 356, in start_vce
+    client_app = app_fn()
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/server/superlink/fleet/vce/vce_api.py", line 343, in _load
+    return get_load_client_app_fn(
+           ~~~~~~~~~~~~~~~~~~~~~~~
+    ...<3 lines>...
+        multi_app=False,
+        ~~~~~~~~~~~~~~~~
+    )(run.fab_id, run.fab_version, run.fab_hash)
+    ~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/client/clientapp/utils.py", line 106, in _load
+    client_app = load_app(client_app_ref, LoadClientAppError, runtime_app_dir)
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/common/object_ref.py", line 175, in load_app
+    raise error_type(
+        f"Unable to load module {module_str}{OBJECT_REF_HELP_STR}",
+    ) from err
+flwr.client.client_app.LoadClientAppError: Unable to load module client_app
+
+
+The object reference string should have the form <module>:<attribute>. Valid
+examples include `client:app` and `project.package.module:wrapper.app`. It must
+refer to a module on the PYTHONPATH and the module needs to have the specified
+attribute.
+
+
+Traceback (most recent call last):
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/common/object_ref.py", line 170, in load_app
+    module = importlib.import_module(module_str)
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/mnt/aiongpfs/users/azancanaro/DL_for_AD_detection/scripts_python/training_FL/ADNI_fedavg_with_wandb/client_app.py", line 19, in <module>
+    from addl.federated import client
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/federated/client.py", line 15, in <module>
+    from ..training import train_functions, test_functions
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/training/train_functions.py", line 18, in <module>
+    from . import metrics, support_training
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/addl/training/metrics.py", line 13, in <module>
+    from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_score, confusion_matrix
+ModuleNotFoundError: No module named 'sklearn'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/simulation/run_simulation.py", line 370, in _main_loop
+    vce.start_vce(
+    ~~~~~~~~~~~~~^
+        num_supernodes=num_supernodes,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+        flwr_dir=flwr_dir,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/server/superlink/fleet/vce/vce_api.py", line 385, in start_vce
+    raise loadapp_ex
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/server/superlink/fleet/vce/vce_api.py", line 356, in start_vce
+    client_app = app_fn()
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/server/superlink/fleet/vce/vce_api.py", line 343, in _load
+    return get_load_client_app_fn(
+           ~~~~~~~~~~~~~~~~~~~~~~~
+    ...<3 lines>...
+        multi_app=False,
+        ~~~~~~~~~~~~~~~~
+    )(run.fab_id, run.fab_version, run.fab_hash)
+    ~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/client/clientapp/utils.py", line 106, in _load
+    client_app = load_app(client_app_ref, LoadClientAppError, runtime_app_dir)
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/common/object_ref.py", line 175, in load_app
+    raise error_type(
+        f"Unable to load module {module_str}{OBJECT_REF_HELP_STR}",
+    ) from err
+flwr.client.client_app.LoadClientAppError: Unable to load module client_app
+
+
+The object reference string should have the form <module>:<attribute>. Valid
+examples include `client:app` and `project.package.module:wrapper.app`. It must
+refer to a module on the PYTHONPATH and the module needs to have the specified
+attribute.
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/simulation/run_simulation.py", line 393, in _main_loop
+    raise RuntimeError("An error was encountered. Ending simulation.") from ex
+RuntimeError: An error was encountered. Ending simulation.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/users/azancanaro/miniconda3/bin/flower-simulation", line 8, in <module>
+    sys.exit(run_simulation_from_cli())
+             ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/simulation/run_simulation.py", line 131, in run_simulation_from_cli
+    _ = _run_simulation(
+        server_app_attr=server_app_attr,
+    ...<10 lines>...
+        exit_event=EventType.CLI_FLOWER_SIMULATION_LEAVE,
+    )
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/simulation/run_simulation.py", line 510, in _run_simulation
+    updated_context = _main_loop(*args)
+  File "/home/users/azancanaro/miniconda3/lib/python3.13/site-packages/flwr/simulation/run_simulation.py", line 408, in _main_loop
+    raise RuntimeError("Exception in ServerApp thread")
+RuntimeError: Exception in ServerApp thread
