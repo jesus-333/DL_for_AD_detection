@@ -98,13 +98,17 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     # Move model to training device
     model.to(training_config['device'])
     
-    # Create loss function and optimizer
+    # Create loss function 
     loss_function = torch.nn.CrossEntropyLoss()
-
+    
+    # TODO REMOVE AFTER TESTING get_optimizer
     optimizer = torch.optim.AdamW(model.parameters(),
                                   lr = training_config['lr'],
                                   weight_decay = training_config['optimizer_weight_decay']
                                   )
+
+    # Get optimizer
+    optimizer = support_training.get_optimizer(training_config['optimizer_config'], model)
 
     # (OPTIONAL) Setup lr scheduler
     if training_config['use_scheduler'] :

@@ -44,7 +44,7 @@ args = parser.parse_args()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Load the dataset config
-dataset_config = {}
+dataset_config = dict()
 
 dataset_config['path_dataset_config'] = args.path_dataset_config
 

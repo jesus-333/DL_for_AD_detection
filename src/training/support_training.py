@@ -39,6 +39,10 @@ def check_training_config(config : dict) :
     if config['epochs'] <= 0 :
         raise ValueError(f"The number of epochs must be greater than 0. Current value: {config['epochs']}")
 
+    if 'optimizer_config' not in config : raise ValueError('The training configuration must contain the key "optimizer_config"')
+
+    check_optimizer_config(config['optimizer_config'])
+
     if 'use_scheduler' not in config :
         print('Warning: the training configuration does not contain the key "use_scheduler". Default value will be used False, i.e. no learning rate scheduler will be used')
         config['use_scheduler'] = False
