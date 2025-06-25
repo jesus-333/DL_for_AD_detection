@@ -59,9 +59,11 @@ parser.add_argument('--use_weights_with_lower_validation_error'   , default = Fa
 parser.add_argument('--no-use_weights_with_lower_validation_error', dest ='use_weights_with_lower_validation_error', action = 'store_false')
 # *******************************
 # VGG training arguments
+parser.add_argument('--vgg_training_mode'              , type = int, default = 0, help = "Training mode for the VGG network. Possible values are 0, 1, 2 or 3. See set_training_model method in the VGG class for more details on the training modes. Note that this argument is used only if the VGG network is trained, i.e. if the model is a VGG network.")
+parser.add_argument('--use_pretrained_vgg'             , default = True , action = "store_true", help = "If True, the VGG network is pretrained on ImageNet. Default is True.")
 parser.add_argument('--use_vgg_normalization_values'   , default = True , action = "store_true", help = "If True, when vgg is trained, the data are normalized using the values used in the original VGG paper. Default is None")
+parser.add_argument('--no-use_pretrained_vgg'          , dest = 'use_pretrained_vgg'          , action = 'store_false')
 parser.add_argument('--no-use_vgg_normalization_values', dest = 'use_vgg_normalization_values' , action = 'store_false')
-parser.add_argument('--vgg_training_mode'              , type = int, default = 0, help = "Training mode for the VGG network. Possible values are 0, 1, 2 or 3. See set_training_mode method in the VGG class for more details on the training modes. Note that this argument is used only if the VGG network is trained, i.e. if the model is a VGG network.")
 # *******************************
 
 args = parser.parse_args()
@@ -193,9 +195,9 @@ else :
 if args.vgg_training is not None and args.vgg_training is True :
     training_config['vgg_training'] = True
 
-    # Use VGG normalization values (see https://pytorch.org/hub/pytorch_vision_vgg/)
-    if args.use_vgg_normalization_values is not None :
-        training_config['use_vgg_normalization_values'] = args.use_vgg_normalization_values
+    # Use pretrained VGG and use VGG normalization values to normalize input (see https://pytorch.org/hub/pytorch_vision_vgg/)
+    training_config['use_pretrained_vgg'] = args.use_pretrained_vgg
+    training_config['use_vgg_normalization_values'] = args.use_vgg_normalization_values
 
     # Training mode for VGG
     if args.vgg_training_mode in [0, 1, 2, 3] :
@@ -204,6 +206,7 @@ if args.vgg_training is not None and args.vgg_training is True :
         raise ValueError(f"Invalid vgg_training_mode provided: {args.vgg_training_mode}. Possible values are 0, 1, 2 or 3.")
 else :
     training_config['vgg_training'] = None
+    training_config['use_pretrained_vgg'] = None
     training_config['use_vgg_normalization_values'] = None
     training_config['vgg_training_mode'] = None
 
