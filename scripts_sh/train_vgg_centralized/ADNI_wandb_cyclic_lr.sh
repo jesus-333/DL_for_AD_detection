@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=25G
-#SBATCH --time=0-00:35:00
+#SBATCH --time=0-01:45:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/output/std_output_%x_%j.txt
@@ -47,20 +47,25 @@ percentage_test=0.1
 rescale_factor=4095
 
 # Lr scheduler settings
-gamma=0.95
+base_lr=5e-5
+max_lr=1e-3
+step_size_up=2
+step_size_down=8
+mode="exp_range"
+gamma=0.98
 
 # Training settings
 batch_size=128
-lr=1e-4
-epochs=15
+lr=1e-3
+epochs=60
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
 seed=-1
-vgg_training_mode=2
+vgg_training_mode=0
 
 # Wandb Settings
-name_training_run="vgg_trainin_mode_${vgg_training_mode}_lr_exp_gamma_${gamma}_epochs_${epochs}_batch_${batch_size}"
+name_training_run="vgg_trainin_mode_${vgg_training_mode}_cyclic_lr_epochs_${epochs}_batch_${batch_size}"
 
 # Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
 
@@ -72,7 +77,12 @@ srun python ./scripts_python/training/reset_config_files.py\
 
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="ExponentialLR"\
+	--name="CyclicLR"\
+	--base_lr=${base_lr}\
+	--max_lr=${max_lr}\
+	--step_size_up=${step_size_up}\
+	--step_size_down=${step_size_down}\
+	--mode=${mode}\
 	--gamma=${gamma}\
 
 srun python ./scripts_python/training/update_dataset_config.py\

@@ -7,8 +7,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=25G
-#SBATCH --time=0-00:35:00
+#SBATCH --mem=10G
+#SBATCH --time=0-01:38:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/output/std_output_%x_%j.txt
@@ -46,13 +46,10 @@ percentage_validation=0.1
 percentage_test=0.1
 rescale_factor=4095
 
-# Lr scheduler settings
-gamma=0.95
-
 # Training settings
 batch_size=128
 lr=1e-4
-epochs=15
+epochs=60
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
@@ -60,7 +57,7 @@ seed=-1
 vgg_training_mode=2
 
 # Wandb Settings
-name_training_run="vgg_trainin_mode_${vgg_training_mode}_lr_exp_gamma_${gamma}_epochs_${epochs}_batch_${batch_size}"
+name_training_run="vgg_trainin_mode_${vgg_training_mode}_fixed_lr_epochs_${epochs}_batch_${batch_size}"
 
 # Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
 
@@ -69,11 +66,6 @@ name_training_run="vgg_trainin_mode_${vgg_training_mode}_lr_exp_gamma_${gamma}_e
 srun python ./scripts_python/training/reset_config_files.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
-
-srun python ./scripts_python/training/update_lr_scheduler.py\
-	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="ExponentialLR"\
-	--gamma=${gamma}\
 
 srun python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
@@ -98,7 +90,7 @@ srun python ./scripts_python/training/update_training_config.py\
 	--epoch_to_save_model=${epoch_to_save_model}\
 	--path_to_save_model="${path_to_save_model}"\
 	--seed=${seed}\
-	--use_scheduler\
+	--no-use_scheduler\
 	--measure_metrics_during_training\
 	--print_var\
 	--vgg_training\

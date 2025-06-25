@@ -34,6 +34,8 @@ path_to_save_model="model_weights_ADNI"
 seed=-1
 vgg_training_mode=1
 
+# Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 python ./scripts_python/training/reset_config_files.py\
