@@ -23,9 +23,9 @@ parser.add_argument('--path_lr_scheduler_config', type = str  , default = './con
 parser.add_argument('--name'                    , type = str  , default = None, help = 'Name of the learning rate scheduler. If None is provided, an error is raised. Default is None.')
 parser.add_argument('--gamma'                   , type = float, default = None, help = 'Gamma for ExponentialLR/StepLR/CyclicLR. The parameter is required for ExponentialLR but optional for StepLR and CyclicLR. In the latter case, if None is provided, the default PyTorch value is used. In the case of ExponentialLR, if None is provided, an error is raised. Default is None.')
 parser.add_argument('--T_max'                   , type = int  , default = None, help = 'T_max for CosineAnnealingLR. If None is provided, an error is raised. Default is None.')
-parser.add_argument('--eta_min'                 , type = float, default = 0.0, help = 'Eta_min for CosineAnnealingLR/CosineAnnealingWarmRestarts. Default is 0.0.')
+parser.add_argument('--eta_min'                 , type = float, default = 0.0 , help = 'Eta_min for CosineAnnealingLR/CosineAnnealingWarmRestarts. Default is 0.0.')
 parser.add_argument('--T_0'                     , type = int  , default = None, help = 'T_0 for CosineAnnealingWarmRestarts. If None is provided, an error is raised. Default is None.')
-parser.add_argument('--T_mult'                  , type = int  , default = 1, help = 'T_mult for CosineAnnealingWarmRestarts. Default is 1.')
+parser.add_argument('--T_mult'                  , type = int  , default = 1   , help = 'T_mult for CosineAnnealingWarmRestarts. Default is 1.')
 parser.add_argument('--step_size'               , type = int  , default = None, help = 'Step size for StepLR. If None is provided, an error is raised. Default is None.')
 parser.add_argument('--base_lr'                 , type = float, default = None, help = 'Base learning rate for CyclicLR. If None is provided, an error is raised. Default is None.')
 parser.add_argument('--max_lr'                  , type = float, default = None, help = 'Maximum learning rate for CyclicLR. If None is provided, an error is raised. Default is None.')
@@ -38,7 +38,7 @@ args = parser.parse_args()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Load the toml file
-lr_scheduler_config = {}
+lr_scheduler_config = dict()
 
 valid_name = [
     'ExponentialLR',
