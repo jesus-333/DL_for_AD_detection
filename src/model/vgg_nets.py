@@ -168,7 +168,7 @@ def get_vgg(config : dict, return_preprocess_functions : bool = True) :
     check_model_config(config)
 
     # Get the model
-    model, preprocess_functions = download_published_model.download_vgg_nets(config['version'], config['batch_normalization'], config['pretrained'])
+    model, preprocess_functions = download_published_model.download_vgg_nets(config['version'], config['batch_normalization'], pretrained = config['use_pretrained_vgg'])
 
     # Create the model
     model = VGG(model, config['num_classes'], config['input_channels'])
