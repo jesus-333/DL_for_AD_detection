@@ -75,11 +75,11 @@ python ./scripts_python/training/update_training_config.py\
 	--vgg_training_mode=${vgg_training_mode}\
 	--use_vgg_normalization_values\
 	--wandb_training\
-	--no-log_model_artifact\
-	--no-debug\
 	--project_name="test_code"\
 	--model_artifact_name="test_artifact"\
 	--log_freq=1\
+	--no-log_model_artifact\
+	--no-debug\
 
 python ./scripts_python/training/vgg_ADNI_wandb.py \
 	--path_src="${PATH_SRC}"\

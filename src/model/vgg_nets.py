@@ -76,7 +76,7 @@ class VGG(torch.nn.Module):
         else :
             return torch.argmax(x, dim = 1)
 
-    def set_training_model(self, training_mode : int = 0) :
+    def set_training_mode(self, training_mode : int = 0) :
         """
         Set the training modality according to the input parameter training_mode
         - 0 : All the layer will be trained

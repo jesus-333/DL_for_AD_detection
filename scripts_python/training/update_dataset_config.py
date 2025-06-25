@@ -29,7 +29,7 @@ parser.add_argument('--apply_rescale'       , default = False, action = 'store_t
 parser.add_argument('--use_normalization'   , default = True , action = 'store_true', help = 'Use normalization in the dataset. Default is True.')
 parser.add_argument('--filter_AD_data'      , default = False, action = 'store_true', help = 'Filter the AD data from the dataset. Only the class passed in the class_to_keep argument will be kept. Default is False. If True, the class_to_keep argument must be passed.')
 parser.add_argument('--load_data_in_memory' , default = False, action = 'store_true', help = 'Load the data in memory. Default is False.')
-parser.add_argument('--use_rgb_input'       , default = None , action = 'store_true', help = 'Use RGB input instead of grayscale. Default is False. This is used only if the model requires RGB input (e.g. VGG).')
+parser.add_argument('--use_rgb_input'       , default = None , action = 'store_true', help = 'Use RGB input instead of grayscale. This is used only if the model requires RGB input (e.g. VGG).')
 # Boolean negate
 parser.add_argument('--no-apply_rescale'      , dest = 'apply_rescale'      , action = 'store_false')
 parser.add_argument('--no-use_normalization'  , dest = 'use_normalization'  , action = 'store_false')

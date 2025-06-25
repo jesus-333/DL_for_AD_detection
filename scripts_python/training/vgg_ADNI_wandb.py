@@ -180,7 +180,7 @@ training_config['device'] = device
 # Load model
 model_config['num_classes'] = len(np.unique(labels_int))
 model = vgg_nets.get_vgg(model_config, return_preprocess_functions = False)
-model.set_training_model(training_config['vgg_training_mode'])
+model.set_training_mode(training_config['vgg_training_mode'])
 
 # Split data in train/validation/test
 if dataset_config['apply_rescale'] :

@@ -128,7 +128,7 @@ if dataset_mean is not None : preprocess_functions.transforms[2].mean = dataset_
 if dataset_std is not None : preprocess_functions.transforms[2].std = dataset_std
 
 # Set type of finetuning
-vgg_model.set_training_model(training_config['training_mode'])
+vgg_model.set_training_mode(training_config['training_mode'])
 vgg_model.check_freeze_layer()
 
 # Create datasets

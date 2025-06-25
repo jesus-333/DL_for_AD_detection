@@ -7,7 +7,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=30G
+#SBATCH --mem=25G
 #SBATCH --time=0-00:35:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -57,7 +57,7 @@ device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
 seed=-1
-vgg_training_mode=1
+vgg_training_mode=3
 
 # Wandb Settings
 name_training_run="vgg_trainin_mode_${vgg_training_mode}_lr_exp_gamma_${gamma}_epochs_${epochs}_batch_${batch_size}"
@@ -84,7 +84,7 @@ srun python ./scripts_python/training/update_dataset_config.py\
 	--rescale_factor=${rescale_factor}\
 	--use_normalization\
 	--no-load_data_in_memory\
-	--use_rgb_input\
+	--no-use_rgb_input\
 	
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
@@ -101,13 +101,14 @@ srun python ./scripts_python/training/update_training_config.py\
 	--print_var\
 	--vgg_training\
 	--vgg_training_mode=${vgg_training_mode}\
-	--use_vgg_normalization_values\
+	--no-use_vgg_normalization_values\
 	--wandb_training\
-	--no-debug\
 	--project_name="vgg_ADNI"\
 	--name_training_run="${name_training_run}"\
 	--model_artifact_name="${model_artifact_name}"\
 	--log_freq=1\
+	--no-log_model_artifact
+	--no-debug\
 
 srun python ./scripts_python/training/vgg_ADNI_wandb.py \
 	--path_src="${PATH_SRC}"\
