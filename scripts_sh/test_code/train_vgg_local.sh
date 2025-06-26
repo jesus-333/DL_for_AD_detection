@@ -11,6 +11,7 @@ PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset.toml"
 PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model_vgg.toml"
 PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training.toml"
 PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config.toml"
+PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_config.toml"
 
 # Path to data
 PATH_DATA="data/ADNI_axial_middle_slice/" 
@@ -23,7 +24,6 @@ percentage_validation=0.1
 percentage_test=0.1
 rescale_factor=4095
 
-
 # Training settings
 batch_size=128
 lr=1e-3
@@ -34,6 +34,13 @@ path_to_save_model="model_weights_ADNI"
 seed=-1
 vgg_training_mode=1
 
+# Optimizer config
+name_optimizer='SGD'
+momentum=0.09
+weight_decay=1e-4
+dampening=0
+
+# For SGD optimizer you could add/remove the nestorov parameter
 # Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -41,11 +48,6 @@ vgg_training_mode=1
 python ./scripts_python/training/reset_config_files.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
-
-python ./scripts_python/training/update_lr_scheduler.py\
-	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="ExponentialLR"\
-	--gamma=0.9\
 
 python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
@@ -59,6 +61,19 @@ python ./scripts_python/training/update_dataset_config.py\
 	--use_normalization\
 	--no-load_data_in_memory\
 	--use_rgb_input\
+
+srun python ./scripts_python/training/update_optimizer.py\
+	--path_lr_scheduler_config="${PATH_OPTIMIZER_CONFIG}"\
+	--name="${name_optimizer}"\
+	--momentum=${momentum}\
+	--weight_decay=${weight_decay}\
+	--dampening=${dampening}\
+	# --nestorov\
+
+python ./scripts_python/training/update_lr_scheduler.py\
+	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
+	--name="ExponentialLR"\
+	--gamma=0.9\
 	
 python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\

@@ -40,13 +40,15 @@ def check_training_config(config : dict) :
         raise ValueError(f"The number of epochs must be greater than 0. Current value: {config['epochs']}")
 
     if 'optimizer_config' not in config : raise ValueError('The training configuration must contain the key "optimizer_config"')
-
+    
+    # Check optimizer config (dedicated function)
     check_optimizer_config(config['optimizer_config'])
 
     if 'use_scheduler' not in config :
         print('Warning: the training configuration does not contain the key "use_scheduler". Default value will be used False, i.e. no learning rate scheduler will be used')
         config['use_scheduler'] = False
     
+    # (OPTIONAL) Check lr scheduler config (dedicated function)
     if config['use_scheduler'] and 'lr_scheduler_config' not in config :
         raise ValueError('The training configuration must contain the key "lr_scheduler_config" if "use_scheduler" is set to True')
 
@@ -226,7 +228,7 @@ def check_optimizer_config(optimizer_config : dict) :
             print('Warning: the optimizer configuration does not contain the key "max_iter". 20 will be used as default value')
             optimizer_config['max_iter'] = 20
         if 'max_eval' not in optimizer_config :
-            print('Warning: the optimizer configuration does not contain the key "max_eval". max_eval * 1.25 will be used as default value')
+            print(f'Warning: the optimizer configuration does not contain the key "max_eval". max_eval * 1.25 will be used as default value. Value of max_eval will be {optimizer_config['max_iter'] * 1.25}')
             optimizer_config['max_eval'] = optimizer_config['max_iter'] * 1.25
         if 'tolerance_grad' not in optimizer_config :
             print('Warning: the optimizer configuration does not contain the key "tolerance_grad". 1e-7 will be used as default value')

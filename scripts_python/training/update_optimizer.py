@@ -14,6 +14,8 @@ The optimizer currently available are Adam, AdamW, LBFGS, SGD. For more informat
 import argparse
 import toml
 
+from src.training.support_training import check_optimizer_config
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Create parser
@@ -21,8 +23,74 @@ parser = argparse.ArgumentParser(description = 'Update the training configuratio
 
 # Add arguments
 parser.add_argument('--path_optimizer_config', type = str  , default = './config/optimizer_scheduler.toml', help = 'Path to the toml file with the optimizer scheduler config. Default is ./config/optimizer_scheduler.toml')
+parser.add_argument('--name'                 , type = str  , default = None, help = 'Name of the optimizer. If None is provided, an error is raised. Default is None.')
+# *******************************
+# Adam and AdamW parameters
+parser.add_argument('--betas'                 , nargs = '+', type = float, default = [0.9, 0.999]   , help = 'Betas for the Adam or AdamW optimizer. Default is [0.9, 0.999].')
+parser.add_argument('--eps'                   , type = float, default = 1e-8                        , help = 'Epsilon for the Adam or AdamW optimizer. Default is 1e-08.')
+parser.add_argument('--weight_decay'          , type = float, default = 0.0                         , help = 'Weight decay for the Adam, AdamW or SGD optimizer. Default is 0.0.')
+parser.add_argument('--amsgrad'               , type = bool , default = False, action = 'store_true', help = 'Amsgrad for the Adam or AdamW optimizer. Default is False.')
+parser.add_argument('--maximize'              , type = bool , default = False, action = 'store_true', help = 'Maximize for the Adam or AdamW or SGD optimizer. Default is False.')
+parser.add_argument('--decoupled_weight_decay', type = bool , default = False, action = 'store_true', help = 'Decoupled weight decay for the Adam optimizer. Note that if this parameter is set to True, the Adam optimizer will be equivalent to AdamW. Default is False.')
+# *******************************
+# LBFGS parameters
+parser.add_argument('--max_iter'              , type = int  , default = 20  , help = 'Maximum number of iterations for the LBFGS optimizer. Default is 20.')
+parser.add_argument('--max_eval'              , type = int  , default = None, help = 'Maximum number of evaluations for the LBFGS optimizer. If not provided (None), it is set to max_iter * 1.25. Default is None.')
+parser.add_argument('--tolerance_grad'        , type = float, default = 1e-7, help = 'Tolerance for the gradient for the LBFGS optimizer. Default is 1e-07.')
+parser.add_argument('--tolerance_change'      , type = float, default = 1e-9, help = 'Tolerance for the change in the parameters for the LBFGS optimizer. Default is 1e-09.')
+parser.add_argument('--history_size'          , type = int  , default = 100 , help = 'History size for the LBFGS optimizer. Default is 100.')
+parser.add_argument('--line_search_fn'        , type = str  , default = None, help = 'Line search function for the LBFGS optimizer. The possible values are "strong_wolfe" and None. Default is None.')
+# *******************************
+# SGD parameters
+parser.add_argument('--momentum'              , type = float, default = 0.0                         , help = 'Momentum for the SGD optimizer. Default is 0.0.')
+parser.add_argument('--dampening'             , type = float, default = 0.0                         , help = 'Dampening for the SGD optimizer. Default is 0.0.')
+parser.add_argument('--nesterov'              , type = bool , default = False, action = 'store_true', help = 'Nesterov for the SGD optimizer. Default is False.')
+# *******************************
+args = parser.parse_args()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 optimizer_config = dict()
 
+valid_name_list = [
+    'Adam',
+    'AdamW',
+    'LBFGS',
+    'SGD'
+]
+
+# Check if the name provided is valid
+if args.name is None                : raise ValueError('The name of the optimizer must be provided.')
+if args.name not in valid_name_list : raise ValueError(f'The name of the optimizer must be one of {valid_name_list}. Provided: {args.name}')
+
+# Set parameters in the config
+if args.name == 'Adam' or args.name == 'AdamW' :
+    optimizer_config['name'] = args.name
+    optimizer_config['betas'] = args.betas
+    optimizer_config['eps'] = args.eps
+    optimizer_config['weight_decay'] = args.weight_decay
+    optimizer_config['amsgrad'] = args.amsgrad
+    optimizer_config['maximize'] = args.maximize
+    optimizer_config['decoupled_weight_decay'] = args.decoupled_weight_decay if args.name == 'Adam' else None
+elif args.name == 'LBFGS' :
+    optimizer_config['name'] = args.name
+    optimizer_config['max_iter'] = args.max_iter
+    optimizer_config['max_eval'] = args.max_eval if args.max_eval is not None else args.max_iter * 1.25
+    optimizer_config['tolerance_grad'] = args.tolerance_grad
+    optimizer_config['tolerance_change'] = args.tolerance_change
+    optimizer_config['history_size'] = args.history_size
+    optimizer_config['line_search_fn'] = args.line_search_fn
+elif args.name == 'SGD' :
+    optimizer_config['name'] = args.name
+    optimizer_config['momentum'] = args.momentum
+    optimizer_config['dampening'] = args.dampening
+    optimizer_config['nesterov'] = args.nesterov
+    optimizer_config['weight_decay'] = args.weight_decay
+    optimizer_config['maximize'] = args.maximize
+
+# Check config
+check_optimizer_config(args)
+
+# Save the config to a toml file
+with open(args.path_optimizer_config, 'w') as f:
+    toml.dump(optimizer_config, f)

@@ -34,6 +34,7 @@ PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset.toml"
 PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model_vgg.toml"
 PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training.toml"
 PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config.toml"
+PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_config.toml"
 
 # Path to data
 PATH_DATA="data/ADNI_axial_middle_slice/" 
@@ -46,14 +47,6 @@ percentage_validation=0.1
 percentage_test=0.1
 rescale_factor=4095
 
-# Lr scheduler settings
-base_lr=5e-5
-max_lr=1e-3
-step_size_up=2
-step_size_down=8
-mode="exp_range"
-gamma=0.98
-
 # Training settings
 batch_size=128
 lr=1e-3
@@ -64,9 +57,24 @@ path_to_save_model="model_weights_ADNI"
 seed=-1
 vgg_training_mode=0
 
+# Optimizer config
+name_optimizer='SGD'
+momentum=0.09
+weight_decay=1e-4
+dampening=0
+
+# Lr scheduler settings
+base_lr=5e-5
+max_lr=1e-3
+step_size_up=2
+step_size_down=8
+mode="exp_range"
+gamma=0.98
+
 # Wandb Settings
 name_training_run="vgg_trainin_mode_${vgg_training_mode}_cyclic_lr_epochs_${epochs}_batch_${batch_size}"
 
+# For SGD optimizer you could add/remove the nestorov parameter
 # Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -74,16 +82,6 @@ name_training_run="vgg_trainin_mode_${vgg_training_mode}_cyclic_lr_epochs_${epoc
 srun python ./scripts_python/training/reset_config_files.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
-
-srun python ./scripts_python/training/update_lr_scheduler.py\
-	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="CyclicLR"\
-	--base_lr=${base_lr}\
-	--max_lr=${max_lr}\
-	--step_size_up=${step_size_up}\
-	--step_size_down=${step_size_down}\
-	--mode=${mode}\
-	--gamma=${gamma}\
 
 srun python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
@@ -97,6 +95,24 @@ srun python ./scripts_python/training/update_dataset_config.py\
 	--use_normalization\
 	--load_data_in_memory\
 	--no-use_rgb_input\
+
+srun python ./scripts_python/training/update_optimizer.py\
+	--path_lr_scheduler_config="${PATH_OPTIMIZER_CONFIG}"\
+	--name="${name_optimizer}"\
+	--momentum=${momentum}\
+	--weight_decay=${weight_decay}\
+	--dampening=${dampening}\
+	# --nestorov\
+
+srun python ./scripts_python/training/update_lr_scheduler.py\
+	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
+	--name="CyclicLR"\
+	--base_lr=${base_lr}\
+	--max_lr=${max_lr}\
+	--step_size_up=${step_size_up}\
+	--step_size_down=${step_size_down}\
+	--mode=${mode}\
+	--gamma=${gamma}\
 	
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\

@@ -98,7 +98,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     # Move model to training device
     model.to(training_config['device'])
     
-    # Create loss function 
+    # Create loss function
     loss_function = torch.nn.CrossEntropyLoss()
     
     # TODO REMOVE AFTER TESTING get_optimizer
@@ -128,8 +128,8 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     best_loss_val = sys.maxsize # Best total loss for the validation data
 
     # Dictionaries used to saved information during training and load them on wandb.
-    # Note that this due dcitionaries serves different from purposes. 
-    # computed_metrics_during_training is used to save each metric at each epoch and it is returned at the end of the training. 
+    # Note that this due dcitionaries serves different from purposes.
+    # computed_metrics_during_training is used to save each metric at each epoch and it is returned at the end of the training.
     # log_dict save the metrics of a single epoch and it is used by wandb to log the metrics. It is reset at every epoch. The reset is not hardcoded (i.e. I don't have any log_dict = {} for each iteration of the cycle)
     # But at each iteration the same key are used so basically it the same a reset because each time the values are overwritten.
     log_dict = {}
