@@ -14,5 +14,6 @@ scripts_sh/output/
 dist/
 config/test_code/
 config/test_code_FL/
-config/vgg_finetuning/
-config/demnet_wandb/
+config/demnet_wandb
+config/test_code
+config/vgg_finetuning

@@ -1,7 +1,0 @@
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# CosineAnnealingLR Config
-name = 'CosineAnnealingLR'
-T_max = 20
-eta_min = 1e-5
-gamma = 0.96 
-step_size = 5
