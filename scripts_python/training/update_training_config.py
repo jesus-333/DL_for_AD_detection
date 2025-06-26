@@ -23,9 +23,10 @@ parser = argparse.ArgumentParser(description = 'Update the training configuratio
 # General arguments (i.e. arguments valid for all models and training type)
 # Various arguments
 parser.add_argument('--path_training_config'           , type = str  , default = './config/training.toml'    , help = 'Path to the toml file with the training config. Default is ./config/training.toml')
+parser.add_argument('--path_optimizer_config'          , type = str  , default = './config/optimizer.toml'   , help = 'Path to the toml file with the learning rate optimizer config. Default is ./config/optimizer.toml')
 parser.add_argument('--path_lr_scheduler_config'       , type = str  , default = './config/lr_scheduler.toml', help = 'Path to the toml file with the learning rate scheduler config. Default is ./config/lr_scheduler.toml')
 parser.add_argument('--batch_size'                     , type = int  , default = -1             , help = 'Batch size for training. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new batch size. Default is -1 (do not change).')
-parser.add_argument('--lr'                             , type = float, default = -1             , help = 'Learning rate for the optimizer. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new learning rate. Default is -1 (do not change).')
+# parser.add_argument('--lr'                             , type = float, default = -1             , help = 'Learning rate for the optimizer. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new learning rate. Default is -1 (do not change).') # Moved directly to opimizer config
 parser.add_argument('--epochs'                         , type = int  , default = -1             , help = 'Number of epochs for training. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new number of epochs. Default is -1 (do not change).')
 parser.add_argument('--device'                         , type = str  , default = 'cpu'          , help = 'Device to use for training. Default is "cpu".')
 parser.add_argument('--epoch_to_save_model'            , type = int  , default = -1             , help = 'Save model every n epochs. If a negative value (or no value) is provided, it will be set to epochs + 1, i.e. only the model at the end of training will be saved. If a positive value is provided, it will be used as the new value. Default is -1.')
@@ -80,11 +81,17 @@ if args.batch_size is not None and args.batch_size > 0 :
 else :
     print(f"Invalid batch size provided: {args.batch_size}. Using value from config: {training_config['batch_size']}.")
 
+# MOVED DIRECTLY to optimizer config
 # Learning rate
-if args.lr is not None and args.lr > 0 :
-    training_config['lr'] = args.lr
-else :
-    print(f"Invalid learning rate provided: {args.lr}. Using value from config: {training_config['lr']}.")
+# if args.lr is not None and args.lr > 0 :
+#     training_config['lr'] = args.lr
+# else :
+#     print(f"Invalid learning rate provided: {args.lr}. Using value from config: {training_config['lr']}.")
+
+# Set the optimizer config in the training config
+# The check for the optimizer config are done directly before the training.
+optimizer_config = toml.load(args.path_optimizer_config)
+training_config['optimizer_config'] = optimizer_config
 
 # Number of epochs
 if args.epochs is not None and args.epochs > 0 :

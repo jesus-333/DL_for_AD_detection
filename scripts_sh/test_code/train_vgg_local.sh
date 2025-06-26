@@ -27,7 +27,7 @@ rescale_factor=4095
 # Training settings
 batch_size=128
 lr=1e-3
-epochs=2
+epochs=1
 device="mps"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
@@ -59,11 +59,12 @@ python ./scripts_python/training/update_dataset_config.py\
 	--apply_rescale\
 	--rescale_factor=${rescale_factor}\
 	--use_normalization\
-	--no-load_data_in_memory\
+	--load_data_in_memory\
 	--use_rgb_input\
 
-srun python ./scripts_python/training/update_optimizer.py\
-	--path_lr_scheduler_config="${PATH_OPTIMIZER_CONFIG}"\
+python ./scripts_python/training/update_optimizer.py\
+	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
+	--lr=${lr}\
 	--name="${name_optimizer}"\
 	--momentum=${momentum}\
 	--weight_decay=${weight_decay}\
@@ -77,9 +78,9 @@ python ./scripts_python/training/update_lr_scheduler.py\
 	
 python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
+	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--batch_size=${batch_size}\
-	--lr=${lr}\
 	--epochs=${epochs}\
 	--device="${device}"\
 	--epoch_to_save_model=${epoch_to_save_model}\

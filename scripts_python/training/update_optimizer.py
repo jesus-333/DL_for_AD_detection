@@ -10,28 +10,26 @@ The optimizer currently available are Adam, AdamW, LBFGS, SGD. For more informat
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 import argparse
-import toml
-
-from src.training.support_training import check_optimizer_config
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Create parser
 parser = argparse.ArgumentParser(description = 'Update the training configuration file with new parameters.')
 
-# Add arguments
-parser.add_argument('--path_optimizer_config', type = str  , default = './config/optimizer_scheduler.toml', help = 'Path to the toml file with the optimizer scheduler config. Default is ./config/optimizer_scheduler.toml')
+
+# *******************************
+# General parameters
+parser.add_argument('--path_optimizer_config', type = str  , default = './config/optimizer.toml', help = 'Path to the toml file with the optimizer scheduler config. Default is ./config/optimizer_scheduler.toml')
+parser.add_argument('--path_src'             , type = str, default = None, help = 'Path of the src folder') # This was added only to execute without problem the line with args.path_src
 parser.add_argument('--name'                 , type = str  , default = None, help = 'Name of the optimizer. If None is provided, an error is raised. Default is None.')
+parser.add_argument('--lr'                   , type = float, default = 0.001                    , help = 'Learning rate for the optimizer. Default is 0.001 (1e-3).')
 # *******************************
 # Adam and AdamW parameters
-parser.add_argument('--betas'                 , nargs = '+', type = float, default = [0.9, 0.999]   , help = 'Betas for the Adam or AdamW optimizer. Default is [0.9, 0.999].')
-parser.add_argument('--eps'                   , type = float, default = 1e-8                        , help = 'Epsilon for the Adam or AdamW optimizer. Default is 1e-08.')
-parser.add_argument('--weight_decay'          , type = float, default = 0.0                         , help = 'Weight decay for the Adam, AdamW or SGD optimizer. Default is 0.0.')
-parser.add_argument('--amsgrad'               , type = bool , default = False, action = 'store_true', help = 'Amsgrad for the Adam or AdamW optimizer. Default is False.')
-parser.add_argument('--maximize'              , type = bool , default = False, action = 'store_true', help = 'Maximize for the Adam or AdamW or SGD optimizer. Default is False.')
-parser.add_argument('--decoupled_weight_decay', type = bool , default = False, action = 'store_true', help = 'Decoupled weight decay for the Adam optimizer. Note that if this parameter is set to True, the Adam optimizer will be equivalent to AdamW. Default is False.')
+parser.add_argument('--betas'                 , nargs = '+', type = float, default = [0.9, 0.999], help = 'Betas for the Adam or AdamW optimizer. Default is [0.9, 0.999].')
+parser.add_argument('--eps'                   , type = float, default = 1e-8                     , help = 'Epsilon for the Adam or AdamW optimizer. Default is 1e-08.')
+parser.add_argument('--weight_decay'          , type = float, default = 0.0                      , help = 'Weight decay for the Adam, AdamW or SGD optimizer. Default is 0.0.')
+parser.add_argument('--amsgrad'               , default = False, action = 'store_true'           , help = 'Amsgrad for the Adam or AdamW optimizer. Default is False.')
+parser.add_argument('--maximize'              , default = False, action = 'store_true'           , help = 'Maximize for the Adam or AdamW or SGD optimizer. Default is False.')
+parser.add_argument('--decoupled_weight_decay', default = False, action = 'store_true'           , help = 'Decoupled weight decay for the Adam optimizer. Note that if this parameter is set to True, the Adam optimizer will be equivalent to AdamW. Default is False.')
 # *******************************
 # LBFGS parameters
 parser.add_argument('--max_iter'              , type = int  , default = 20  , help = 'Maximum number of iterations for the LBFGS optimizer. Default is 20.')
@@ -42,11 +40,24 @@ parser.add_argument('--history_size'          , type = int  , default = 100 , he
 parser.add_argument('--line_search_fn'        , type = str  , default = None, help = 'Line search function for the LBFGS optimizer. The possible values are "strong_wolfe" and None. Default is None.')
 # *******************************
 # SGD parameters
-parser.add_argument('--momentum'              , type = float, default = 0.0                         , help = 'Momentum for the SGD optimizer. Default is 0.0.')
-parser.add_argument('--dampening'             , type = float, default = 0.0                         , help = 'Dampening for the SGD optimizer. Default is 0.0.')
-parser.add_argument('--nesterov'              , type = bool , default = False, action = 'store_true', help = 'Nesterov for the SGD optimizer. Default is False.')
+parser.add_argument('--momentum'              , type = float, default = 0.0           , help = 'Momentum for the SGD optimizer. Default is 0.0.')
+parser.add_argument('--dampening'             , type = float, default = 0.0           , help = 'Dampening for the SGD optimizer. Default is 0.0.')
+parser.add_argument('--nesterov'              , default = False, action = 'store_true', help = 'Nesterov for the SGD optimizer. Default is False.')
 # *******************************
 args = parser.parse_args()
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# This specific import was added to allow the execution of the script with the "python" command from any folder you like.
+# If the argument path_src is not provided, the script assume you will run it from the root folder of the repository.
+import sys
+if args.path_src is not None : sys.path.append(args.path_src)
+else : sys.path.append('./')
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+import toml
+from src.training.support_training import check_optimizer_config
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -62,6 +73,9 @@ valid_name_list = [
 # Check if the name provided is valid
 if args.name is None                : raise ValueError('The name of the optimizer must be provided.')
 if args.name not in valid_name_list : raise ValueError(f'The name of the optimizer must be one of {valid_name_list}. Provided: {args.name}')
+
+# Set the learning rate
+optimizer_config['lr'] = args.lr
 
 # Set parameters in the config
 if args.name == 'Adam' or args.name == 'AdamW' :
@@ -89,7 +103,7 @@ elif args.name == 'SGD' :
     optimizer_config['maximize'] = args.maximize
 
 # Check config
-check_optimizer_config(args)
+check_optimizer_config(optimizer_config)
 
 # Save the config to a toml file
 with open(args.path_optimizer_config, 'w') as f:

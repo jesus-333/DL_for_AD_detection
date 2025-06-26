@@ -92,8 +92,9 @@ srun python ./scripts_python/training/update_dataset_config.py\
 	--no-use_rgb_input\
 
 srun python ./scripts_python/training/update_optimizer.py\
-	--path_lr_scheduler_config="${PATH_OPTIMIZER_CONFIG}"\
+	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 	--name="${name_optimizer}"\
+	--lr=${lr}\
 	--momentum=${momentum}\
 	--weight_decay=${weight_decay}\
 	--dampening=${dampening}\
@@ -106,9 +107,9 @@ srun python ./scripts_python/training/update_lr_scheduler.py\
 
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
+	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--batch_size=${batch_size}\
-	--lr=${lr}\
 	--epochs=${epochs}\
 	--device="${device}"\
 	--epoch_to_save_model=${epoch_to_save_model}\
