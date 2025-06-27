@@ -108,3 +108,5 @@ check_optimizer_config(optimizer_config)
 # Save the config to a toml file
 with open(args.path_optimizer_config, 'w') as f:
     toml.dump(optimizer_config, f)
+
+print("Update optimizer config - OK")

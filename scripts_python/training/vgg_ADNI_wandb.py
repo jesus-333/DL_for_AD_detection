@@ -20,6 +20,7 @@ parser.add_argument('--path_model_config'     , type = str, default = None, help
 parser.add_argument('--path_data'             , type = str, default = None, help = 'Path to the folder with the data. If not provided, it will use the value defined in this script.')
 parser.add_argument('--name_tensor_file'      , type = str, default = None, help = 'Name of the tensor file with the dataset. If not provided, it will use the default value defined in this script.')
 args = parser.parse_args()
+print("Parser - OK")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -83,6 +84,8 @@ training_config['wandb_training'] = True
 # Percentage used to split data in train/validation/test
 percentage_split_list = [dataset_config['percentage_train'], dataset_config['percentage_validation'], dataset_config['percentage_test']]
 
+print("Config loaded")
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get all the files divided per folder
 
@@ -107,6 +110,7 @@ else :
 
 # Get data
 data = torch.load(f'{path_to_data}{dataset_tensor_file_name}', mmap = True)
+print("Data loaded")
 
 # Get the number of channels
 model_config['input_channels'] = data.shape[1]
@@ -123,6 +127,7 @@ elif model_config['input_channels'] == 3 and data.shape[1] not in [1, 3] :
 dataset_info = pd.read_csv(f'{path_to_data}dataset_info.csv')
 labels_int = dataset_info['labels_int'].to_numpy()
 labels_str = dataset_info['labels_str'].to_numpy()
+print("Labels loaded")
 
 # (OPTIONAL) Filter AD data
 if dataset_config['filter_AD_data'] :
@@ -182,6 +187,7 @@ model_config['num_classes'] = len(np.unique(labels_int))
 model_config['use_pretrained_vgg'] = training_config['use_pretrained_vgg']
 model = vgg_nets.get_vgg(model_config, return_preprocess_functions = False)
 model.set_training_mode(training_config['vgg_training_mode'])
+print("Model created")
 
 # Split data in train/validation/test
 if dataset_config['apply_rescale'] :
@@ -210,6 +216,7 @@ if dataset_config['load_data_in_memory'] :
     MRI_train_dataset.move_data_and_labels_to_device(device)
     MRI_validation_dataset.move_data_and_labels_to_device(device)
     # MRI_test_dataset.move_data_and_labels_to_device(device)
+    print(f"Dataset moved to {device}")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model

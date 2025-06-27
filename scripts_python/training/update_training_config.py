@@ -222,3 +222,5 @@ else :
 # Save the updated training config to the same file
 with open(args.path_training_config, 'w') as f:
     toml.dump(training_config, f)
+
+print("Update training config - OK")

@@ -125,3 +125,4 @@ elif args.name == 'ChainedScheduler' :
 with open(args.path_lr_scheduler_config, 'w') as f:
     toml.dump(lr_scheduler_config, f)
 
+print("Update lr scheduler config - OK")
