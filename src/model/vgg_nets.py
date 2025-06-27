@@ -89,25 +89,23 @@ class VGG(torch.nn.Module):
         training_mode : int
             Type of finetuning. Possible values are 0, 1, 2, or 3.
         """
-
-        if training_mode == 0 :
+        
+        # Freeze all the model
+        self.freeze_model()
+    
+        # Defreeze only the layer I want to train
+        if training_mode == 0 : # All the model
             for param in self.parameters() : param.requires_grad = True
 
-        elif training_mode == 1 :
-            self.freeze_model()
-
+        elif training_mode == 1 : # Only last layer of the classifier
             for param in self.classifier[6].parameters() :
                 param.requires_grad = True
 
-        elif training_mode == 2 :
-            self.freeze_model()
-
+        elif training_mode == 2 : # All the classifier (i.e. all feedforward layer)
             for param in self.classifier.parameters() :
                 param.requires_grad = True
 
-        elif training_mode == 3 :
-            self.freeze_model()
-
+        elif training_mode == 3 : # First input layer and last layer of classifier
             for param in self.features[0].parameters() :
                 param.requires_grad = True
 

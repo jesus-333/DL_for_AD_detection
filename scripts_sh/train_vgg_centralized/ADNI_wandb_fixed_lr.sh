@@ -38,6 +38,7 @@ PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config.toml"
 # Path to data
 PATH_DATA="data/ADNI_axial_middle_slice/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
+# Remember to change apply_rescale to no-apply_rescale if you do not used data saved in interger (like the middle_slice)
 
 # Dataset settings
 merge_AD_class=1
@@ -54,7 +55,7 @@ device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
 seed=-1
-vgg_training_mode=2
+vgg_training_mode=0
 
 # Wandb Settings
 name_training_run="vgg_trainin_mode_${vgg_training_mode}_fixed_lr_epochs_${epochs}_batch_${batch_size}"

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#SBATCH --job-name="train_vgg_ADNI_wandb_exp_lr"
+#SBATCH --job-name="train_vgg_ADNI_wandb_cyclic_lr"
 #SBATCH --nodes=1
 #SBATCH --partition=hopper
 #SBATCH --qos=iris-hopper
@@ -39,6 +39,7 @@ PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer.toml"
 # Path to data
 PATH_DATA="data/ADNI_axial_middle_slice/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
+# Remember to change apply_rescale to no-apply_rescale if you do not used data saved in interger (like the middle_slice)
 
 # Dataset settings
 merge_AD_class=1
