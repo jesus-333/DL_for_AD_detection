@@ -196,8 +196,8 @@ def check_model_config(config : dict) :
     if 'batch_normalization' not in config :
         raise ValueError('The batch_normalization key is missing in the configuration')
 
-    if 'pretrained' not in config :
-        raise ValueError('The pretrained key is missing in the configuration')
+    # if 'pretrained' not in config :
+    #     raise ValueError('The pretrained key is missing in the configuration')
 
     if 'input_channels' not in config :
         print('The input_channels key is missing in the configuration. It will be set to 3')
