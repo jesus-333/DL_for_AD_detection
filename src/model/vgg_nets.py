@@ -82,7 +82,7 @@ class VGG(torch.nn.Module):
         - 0 : All the layer will be trained
         - 1 : Only the last layer (i.e. the classifier[6] layer) will be trained/finetuned
         - 2 : All the classifier layers will be trained/finetuned
-        - 3 : Only the first and last layer will be trained/finetuned.
+        - 3 : Only the first layer (i.e. features[0], the convulutional layer that receive the input data) and last layer (i.e. classifier[6]) will be trained/finetuned.
 
         Parameters
         ----------
