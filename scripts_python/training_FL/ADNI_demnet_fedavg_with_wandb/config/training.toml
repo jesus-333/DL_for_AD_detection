@@ -1,13 +1,13 @@
 batch_size = 128
 lr = 0.001
-epochs = 2
+epochs = 10
 use_scheduler = true
 device = "mps"
-epoch_to_save_model = 3
+epoch_to_save_model = 11
 path_to_save_model = "model_weights_ADNI"
 measure_metrics_during_training = true
 print_var = true
-seed = 920918399
+seed = 378412813
 wandb_training = false
 notes = ""
 log_freq = 1
@@ -16,4 +16,4 @@ use_weights_with_lower_validation_error = true
 
 [lr_scheduler_config]
 name = "ExponentialLR"
-gamma = 0.9
+gamma = 0.92
