@@ -1,20 +1,14 @@
-# Path to library
-PATH_SRC="./"
+#!/bin/sh
+
+idx=1
 
 # Paths to config files
-PATH_CONFIG_FOLDER="./config/vgg_finetuning/"
-PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset.toml"
-PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model_vgg.toml"
-PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training.toml"
-PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config.toml"
-PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer.toml"
-
-# Path to data
-PATH_DATA="data/ADNI_axial_middle_slice/" 
-NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
-# PATH_DATA="data/ADNI_axial_3D_z_48_size_176_int/" 
-# NAME_TENSOR_FILE="dataset_tensor___176_resize___int.pt"
-# Remember to change apply_rescale to no-apply_rescale if you do not used data saved in interger (like the middle_slice)
+PATH_CONFIG_FOLDER="./scripts_hpc/train_vgg_centralized_parallel/config/"
+PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset_${idx}.toml"
+PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model_vgg_${idx}.toml"
+PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training_${idx}.toml"
+PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${idx}.toml"
+PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_${idx}.toml"
 
 # Dataset settings
 merge_AD_class=0
@@ -48,6 +42,7 @@ eta_min=1e-6
 name_training_run="vgg_trainin_mode_${vgg_training_mode}_${name_optimizer}_cosine_warm_lr_epochs_${epochs}_batch_${batch_size}"
 name_training_run="low_lr_batch_128"
 
+# Remember to check all the boolean argument
 # For SGD optimizer you could add/remove the nestorov parameter
 # Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
 

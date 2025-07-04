@@ -1,13 +1,14 @@
-# Path to library
-PATH_SRC="./"
+#!/bin/sh
+
+idx=1
 
 # Paths to config files
-PATH_CONFIG_FOLDER="./config/vgg_finetuning/"
-PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset.toml"
-PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model_vgg.toml"
-PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training.toml"
-PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config.toml"
-PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_config.toml"
+PATH_CONFIG_FOLDER="./scripts_hpc/train_vgg_centralized_parallel/config/"
+PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset_${idx}.toml"
+PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model_vgg_${idx}.toml"
+PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training_${idx}.toml"
+PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${idx}.toml"
+PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_${idx}.toml"
 
 # Path to data
 PATH_DATA="data/ADNI_axial_middle_slice/" 
