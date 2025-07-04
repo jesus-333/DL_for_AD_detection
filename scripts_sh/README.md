@@ -1,4 +1,5 @@
-Collection of scripts to use on the [HPC of unilu](https://hpc-docs.uni.lu/)
+Collection of shell scripts to train the models. Notes that most of the scripts are written with the purpose of running on an HPC with a SLURM scheduler (in my specific case the [HPC of unilu](https://hpc-docs.uni.lu/)).
+The scripts with the suffix `_local` in the file name instead, could be executed on any machine (however all the scripts could be converted to local version removing the `srun` part from every command).
 
 List of folders 
 - `debug` : Contains script to debug and test the code.
