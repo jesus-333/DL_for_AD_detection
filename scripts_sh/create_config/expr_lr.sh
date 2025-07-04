@@ -1,30 +1,3 @@
-#!/bin/sh
-
-#SBATCH --job-name="train_vgg_ADNI_wandb_exp_lr"
-#SBATCH --nodes=1
-#SBATCH --partition=hopper
-#SBATCH --qos=iris-hopper
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=28
-#SBATCH --gpus-per-task=1
-#SBATCH --mem=25G
-#SBATCH --time=0-02:00:00
-#SBATCH --mail-user=alberto.zancanaro@uni.lu
-#SBATCH --mail-type=end,fail 
-#SBATCH --output=./scripts_sh/output/std_output_%x_%j.txt
-#SBATCH --error=./scripts_sh/output/other_output_%x_%j.txt
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Load python environment
-
-conda init
-conda activate jesus-hpc
-
-#conda list
-#pip list
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
 # Path to library
 PATH_SRC="./"
 
@@ -76,11 +49,11 @@ name_training_run="vgg_training_mode_${vgg_training_mode}_${name_optimizer}_lr_e
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-srun python ./scripts_python/training/reset_config_files.py\
+python ./scripts_python/training/reset_config_files.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 
-srun python ./scripts_python/training/update_dataset_config.py\
+python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--no-filter_AD_data\
 	--merge_AD_class=${merge_AD_class}\
@@ -93,7 +66,7 @@ srun python ./scripts_python/training/update_dataset_config.py\
 	--load_data_in_memory\
 	--use_rgb_input\
 
-srun python ./scripts_python/training/update_optimizer.py\
+python ./scripts_python/training/update_optimizer.py\
 	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 	--name="${name_optimizer}"\
 	--lr=${lr}\
@@ -102,12 +75,12 @@ srun python ./scripts_python/training/update_optimizer.py\
 	--dampening=${dampening}\
 	# --nestorov\
 
-srun python ./scripts_python/training/update_lr_scheduler.py\
+python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--name="ExponentialLR"\
 	--gamma=${gamma}\
 
-srun python ./scripts_python/training/update_training_config.py\
+python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
@@ -131,11 +104,3 @@ srun python ./scripts_python/training/update_training_config.py\
 	--log_freq=1\
 	--no-log_model_artifact
 	--no-debug\
-
-srun python ./scripts_python/training/vgg_ADNI_wandb.py \
-	--path_src="${PATH_SRC}"\
-	--path_dataset_config="${PATH_DATASET_CONFIG}"\
-	--path_model_config="${PATH_MODEL_CONFIG}"\
-	--path_training_config="${PATH_TRAINING_CONFIG}"\
-	--path_data="${PATH_DATA}"\
-	--name_tensor_file="${NAME_TENSOR_FILE}"

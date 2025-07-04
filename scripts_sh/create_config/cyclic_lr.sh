@@ -1,30 +1,3 @@
-#!/bin/sh
-
-#SBATCH --job-name="train_vgg_ADNI_wandb_cyclic_lr"
-#SBATCH --nodes=1
-#SBATCH --partition=hopper
-#SBATCH --qos=iris-hopper
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=3
-#SBATCH --gpus-per-task=1
-#SBATCH --mem=25G
-#SBATCH --time=0-01:30:00
-#SBATCH --mail-user=alberto.zancanaro@uni.lu
-#SBATCH --mail-type=end,fail 
-#SBATCH --output=./scripts_sh/output/std_output_%x_%j.txt
-#SBATCH --error=./scripts_sh/output/other_output_%x_%j.txt
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Load python environment
-
-conda init
-conda activate jesus-hpc
-
-#conda list
-#pip list
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
 # Path to library
 PATH_SRC="./"
 
@@ -55,7 +28,7 @@ device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
 seed=-1
-vgg_training_mode=1
+vgg_training_mode=0
 
 # Optimizer config
 lr=1e-3
@@ -65,35 +38,40 @@ weight_decay=1e-5
 dampening=0
 
 # Lr scheduler settings
-T_max=10
-eta_min=1e-4
+base_lr=1e-5
+max_lr=2e-3
+step_size_up=1
+step_size_down=4
+mode="exp_range"
+gamma=0.98
 
 # Wandb Settings
 name_training_run="vgg_trainin_mode_${vgg_training_mode}_${name_optimizer}_cyclic_lr_epochs_${epochs}_batch_${batch_size}"
+name_training_run="pretrained_training_mode_3_batch_128"
 
 # For SGD optimizer you could add/remove the nestorov parameter
 # Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-srun python ./scripts_python/training/reset_config_files.py\
+python ./scripts_python/training/reset_config_files.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 
-srun python ./scripts_python/training/update_dataset_config.py\
+python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
 	--no-filter_AD_data\
 	--merge_AD_class=${merge_AD_class}\
 	--percentage_train=${percentage_train}\
 	--percentage_validation=${percentage_validation}\
 	--percentage_test=${percentage_test}\
-	--apply_rescale\
+	--no-apply_rescale\
 	--rescale_factor=${rescale_factor}\
 	--use_normalization\
 	--load_data_in_memory\
-	--use_rgb_input\
+	--no-use_rgb_input\
 
-srun python ./scripts_python/training/update_optimizer.py\
+python ./scripts_python/training/update_optimizer.py\
 	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 	--name="${name_optimizer}"\
 	--lr=${lr}\
@@ -102,13 +80,7 @@ srun python ./scripts_python/training/update_optimizer.py\
 	--dampening=${dampening}\
 	# --nestorov\
 
-srun python ./scripts_python/training/update_lr_scheduler.py\
-	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="CosineAnnealingLR"\
-	--T_max=${T_max}\
-	--eta_min=${eta_min}\
-
-srun python ./scripts_python/training/update_lr_scheduler.py\
+python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--name="CyclicLR"\
 	--base_lr=${base_lr}\
@@ -118,7 +90,7 @@ srun python ./scripts_python/training/update_lr_scheduler.py\
 	--mode=${mode}\
 	--gamma=${gamma}\
 	
-srun python ./scripts_python/training/update_training_config.py\
+python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
@@ -132,9 +104,9 @@ srun python ./scripts_python/training/update_training_config.py\
 	--measure_metrics_during_training\
 	--print_var\
 	--vgg_training\
-	--use_pretrained_vgg\
+	--no-use_pretrained_vgg\
 	--vgg_training_mode=${vgg_training_mode}\
-	--use_vgg_normalization_values\
+	--no-use_vgg_normalization_values\
 	--wandb_training\
 	--project_name="vgg_ADNI"\
 	--name_training_run="${name_training_run}"\
@@ -142,11 +114,3 @@ srun python ./scripts_python/training/update_training_config.py\
 	--log_freq=1\
 	--no-log_model_artifact
 	--no-debug\
-
-srun python ./scripts_python/training/vgg_ADNI_wandb.py \
-	--path_src="${PATH_SRC}"\
-	--path_dataset_config="${PATH_DATASET_CONFIG}"\
-	--path_model_config="${PATH_MODEL_CONFIG}"\
-	--path_training_config="${PATH_TRAINING_CONFIG}"\
-	--path_data="${PATH_DATA}"\
-	--name_tensor_file="${NAME_TENSOR_FILE}"
