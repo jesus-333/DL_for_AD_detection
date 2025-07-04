@@ -61,5 +61,4 @@ done
 for i in $(1, $n_parallel_training);
 do
 	wait
-
 done
