@@ -1,13 +1,13 @@
 batch_size = 128
 lr = 0.001
-epochs = 2
+epochs = 5
 use_scheduler = true
 device = "mps"
-epoch_to_save_model = 3
+epoch_to_save_model = 6
 path_to_save_model = "model_weights_ADNI"
 measure_metrics_during_training = true
 print_var = true
-seed = 920918399
+seed = 821285970
 wandb_training = false
 notes = ""
 log_freq = 1

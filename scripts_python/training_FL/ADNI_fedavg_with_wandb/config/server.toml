@@ -1,5 +1,5 @@
 path_server_config = "scripts_python/training_FL/ADNI_fedavg_with_wandb/config/server.toml"
-num_rounds = 3
+num_rounds = 10
 n_client = 8
 fraction_fit = 1.0
 fraction_evaluate = 1.0
@@ -8,8 +8,8 @@ centralized_evaluation = false
 
 [wandb_config]
 wandb_training = true
-project_name = "test_code"
-model_artifact_name = "test_artifact"
+project_name = "demnet_training_ADNI_FL"
+model_artifact_name = "demnet_z_48"
 log_freq = 1
 metrics_to_log_from_clients = [ "accuracy_train accuracy_validation",]
 debug = true
