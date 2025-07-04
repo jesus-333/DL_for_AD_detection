@@ -5,7 +5,7 @@ idx=1
 # Paths to config files
 PATH_CONFIG_FOLDER="./scripts_hpc/train_vgg_centralized_parallel/config/"
 PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset_${idx}.toml"
-PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model_vgg_${idx}.toml"
+PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model_${idx}.toml"
 PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training_${idx}.toml"
 PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${idx}.toml"
 PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_${idx}.toml"
