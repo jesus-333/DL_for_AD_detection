@@ -1,9 +1,11 @@
 #!/bin/sh
 
+# TO DEBUG
+
 idx=1
 
 # Paths to config files
-PATH_CONFIG_FOLDER="./scripts_hpc/train_vgg_centralized_parallel/config/"
+PATH_CONFIG_FOLDER="./scripts_sh/train_vgg_centralized_parallel/config/"
 PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset_${idx}.toml"
 PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model_${idx}.toml"
 PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training_${idx}.toml"
@@ -50,9 +52,9 @@ name_training_run="vgg_trainin_mode_${vgg_training_mode}_${name_optimizer}_cycli
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-python ./scripts_python/training/reset_config_files.py\
-	--path_dataset_config="${PATH_DATASET_CONFIG}"\
-	--path_training_config="${PATH_TRAINING_CONFIG}"\
+# python ./scripts_python/training/reset_config_files.py\
+# 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
+# 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 
 python ./scripts_python/training/update_dataset_config.py\
 	--path_dataset_config="${PATH_DATASET_CONFIG}"\

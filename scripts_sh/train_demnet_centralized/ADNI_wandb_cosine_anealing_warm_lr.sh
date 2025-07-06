@@ -11,8 +11,8 @@
 #SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
-#SBATCH --output=./scripts_hpc/output/std_output_%x_%j.txt
-#SBATCH --error=./scripts_hpc/output/other_output_%x_%j.txt
+#SBATCH --output=./scripts_sh/output/std_output_%x_%j.txt
+#SBATCH --error=./scripts_sh/output/other_output_%x_%j.txt
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
