@@ -1,11 +1,11 @@
 #!/bin/sh
 
-#SBATCH --job-name="train_vgg_ADNI_wandb_cyclic_lr"
+#SBATCH --job-name="vgg_parallel_ADNI"
 #SBATCH --nodes=1
 #SBATCH --partition=hopper
 #SBATCH --qos=iris-hopper
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=3
+#SBATCH --cpus-per-task=10
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=25G
 #SBATCH --time=0-01:30:00
@@ -30,10 +30,13 @@ n_parallel_training=2
 # Array used to save PID for each process
 pid_wait_array=()
 
-for idx in $(1, $n_parallel_training);
+# for idx in $(1, $n_parallel_training)
+for (( idx = 1; idx <= $n_parallel_training; idx++ ))
 do
-
+	
+	echo "----------------------------------------------------------"
 	echo "Launch training with index ${idx}"
+	echo "----------------------------------------------------------"
 
 	# Path to library
 	PATH_SRC="./"
@@ -56,7 +59,12 @@ do
 		pid_wait_array[${idx}]=$!
 done
 
+echo "\n"
+
 # wait for all PIDs
-for pid in ${pids[*]}; do
+for pid in ${pid_wait_array[*]} 
+do
+	echo "Wait training $pid"
     wait $pid
 done
+

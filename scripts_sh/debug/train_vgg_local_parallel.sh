@@ -7,6 +7,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=10
 #SBATCH --gpus-per-task=1
+#SBATCH --mem=120G
 #SBATCH --time=0-00:10:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
@@ -29,7 +30,8 @@ n_parallel_training=2
 # Array used to save PID for each process
 pid_wait_array=()
 
-for idx in $(1, $n_parallel_training)
+# for idx in $(1, $n_parallel_training)
+for (( idx = 1; idx <= $n_parallel_training; idx++ ))
 do
 	
 	echo "----------------------------------------------------------"
@@ -57,7 +59,11 @@ do
 		pid_wait_array[${idx}]=$!
 done
 
+echo "\n"
+
 # wait for all PIDs
-for pid in ${pids[*]}; do
+for pid in ${pid_wait_array[*]} 
+do
+	echo "Wait training $pid"
     wait $pid
 done
