@@ -1,6 +1,6 @@
 #!/bin/sh
 
-idx=1
+idx=2
 
 # Paths to config files
 PATH_CONFIG_FOLDER="./scripts_sh/train_vgg_centralized_parallel/config/"
@@ -19,7 +19,7 @@ rescale_factor=1
 
 # Training settings
 batch_size=128
-epochs=100
+epochs=5
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
@@ -27,14 +27,14 @@ seed=-1
 vgg_training_mode=0
 
 # Optimizer config
-lr=1e-4
+lr=1e-3
 name_optimizer='SGD'
 momentum=0.9
 weight_decay=1e-5
 dampening=0
 
 # Lr scheduler settings
-T_0=4
+T_0=2
 T_mult=2
 eta_min=1e-6
 
@@ -103,5 +103,5 @@ python ./scripts_python/training/update_training_config.py\
 	--name_training_run="${name_training_run}"\
 	--model_artifact_name="${model_artifact_name}"\
 	--log_freq=1\
-	--no-log_model_artifact
+	--no-log_model_artifact\
 	--no-debug\

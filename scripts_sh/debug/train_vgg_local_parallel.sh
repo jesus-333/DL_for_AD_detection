@@ -1,18 +1,17 @@
 #!/bin/sh
 
-#SBATCH --job-name="train_vgg_ADNI_wandb_cyclic_lr"
+#SBATCH --job-name="debug_parallel_training"
 #SBATCH --nodes=1
 #SBATCH --partition=hopper
 #SBATCH --qos=iris-hopper
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=10
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=100G
 #SBATCH --time=0-00:10:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
-#SBATCH --output=./scripts_sh/output/std_output_%x_%j.txt
-#SBATCH --error=./scripts_sh/output/other_output_%x_%j.txt
+#SBATCH --output=./scripts_sh/debug/output/std_output_%x_%j.txt
+#SBATCH --error=./scripts_sh/debug/output/other_output_%x_%j.txt
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
@@ -30,10 +29,12 @@ n_parallel_training=2
 # Array used to save PID for each process
 pid_wait_array=()
 
-for idx in $(1, $n_parallel_training);
+for idx in $(1, $n_parallel_training)
 do
-
+	
+	echo "----------------------------------------------------------"
 	echo "Launch training with index ${idx}"
+	echo "----------------------------------------------------------"
 
 	# Path to library
 	PATH_SRC="./"
