@@ -1,6 +1,6 @@
-path_server_config = "scripts_python/training_FL/ADNI_fedavg_with_wandb/config/server.toml"
-num_rounds = 10
-n_client = 8
+path_server_config = "scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb/config/server.toml"
+num_rounds = 2
+n_client = 3
 fraction_fit = 1.0
 fraction_evaluate = 1.0
 keep_labels_proportion = true
@@ -9,12 +9,11 @@ centralized_evaluation = false
 [wandb_config]
 wandb_training = true
 project_name = "demnet_training_ADNI_FL"
-model_artifact_name = "demnet_z_48"
-name_training_run = "lr_exp_gamma_rounds_50_clients_6_epochs_10_batch_128"
+model_artifact_name = "demnet_z_1"
 log_freq = 1
 metrics_to_log_from_clients = [ "accuracy_train accuracy_validation",]
 debug = false
-num_cpus = 3
-num_gpus = 0
-max_cpu_allowed = 3
-max_gpu_allowed = 0
+num_cpus = 10
+num_gpus = 1
+max_cpu_allowed = 10
+max_gpu_allowed = 1

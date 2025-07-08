@@ -3,16 +3,16 @@
 #SBATCH --job-name="train_demnet_ADNI_wandb_exp_lr"
 #SBATCH --nodes=1
 #SBATCH --partition=hopper
-#SBATCH --qos=besteffort
+#SBATCH --qos=iris-hopper
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=10
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=12G
+#SBATCH --mem=25G
 #SBATCH --time=0-00:05:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
-#SBATCH --output=./scripts_sh/output/std_output_%x_%j.txt
-#SBATCH --error=./scripts_sh/output/other_output_%x_%j.txt
+#SBATCH --output=./scripts_sh/train_demnet_FL/output/std_output_%x_%j.txt
+#SBATCH --error=./scripts_sh/train_demnet_FL/output/other_output_%x_%j.txt
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
@@ -41,20 +41,20 @@ pip list
 PATH_SRC="./"
 
 # Paths to config files
-PATH_CONFIG_FOLDER="scripts_python/training_FL/ADNI_fedavg_with_wandb/config/"
+PATH_CONFIG_FOLDER="scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb/config/"
 PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset.toml"
 PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model.toml"
 PATH_SERVER_CONFIG="${PATH_CONFIG_FOLDER}server.toml"
 PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training.toml"
+PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_config.toml"
 PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config.toml"
 
-# Information about data
-input_channels=48
-input_size=176
 
 # Path to data
-PATH_DATA="data/ADNI_axial_3D_z_${input_channels}_size_${input_size}_int/" 
-NAME_TENSOR_FILE="dataset_tensor___176_resize___int.pt"
+# PATH_DATA="data/ADNI_axial_3D_z_${input_channels}_size_${input_size}_int/" 
+# NAME_TENSOR_FILE="dataset_tensor___176_resize___int.pt"
+PATH_DATA="data/ADNI_axial_middle_slice/" 
+NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
 
 # Dataset settings for each client
 merge_AD_class=1
@@ -65,20 +65,34 @@ rescale_factor=4095
 
 # Training settings
 batch_size=128
-lr=1e-3
-epochs=5
-device="mps"
+epochs=1
+device="cpu"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
 seed=-1
 
+# Optimizer config
+lr=1e-4
+name_optimizer='SGD'
+momentum=0.9
+weight_decay=1e-5
+dampening=0
+
+# Lr scheduler settings
+gamma=0.94
+
+
+# Information about data used for model_config
+input_channels=1
+input_size=176
+
 # FL settings
-num_cpus=2 # Default is 2
-max_cpu_allowed=4
+num_cpus=10 # Default is 2
+max_cpu_allowed=10
 num_gpus=1
 max_gpu_allowed=1
-num_clients=8
-num_rounds=10
+num_clients=3
+num_rounds=2
 fraction_fit=1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -91,10 +105,23 @@ srun python ./scripts_python/training/reset_config_files.py\
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Update model config
 
+if [ $merge_AD_class -eq 0 ] ; then
+	num_classes=6
+elif [ $merge_AD_class -eq 1 ] ; then
+	num_classes=2
+elif [ $merge_AD_class -eq 2 ] ; then
+	num_classes=4
+else 
+	echo "INVALID VALUE FOR merge_AD_class in the shell script"
+	num_classes=-1
+fi
+echo "NUM CLASSES ${num_classes}"
+
 srun python ./scripts_python/training/update_model_config_demnet.py\
 	--path_model_config=${PATH_MODEL_CONFIG}\
 	--input_channels=${input_channels}\
-	--input_size=${input_size}
+	--input_size=${input_size}\
+	--num_classes=${num_classes}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Update dataset config. Note that this settings will be applied to each client
@@ -137,18 +164,27 @@ srun python ./scripts_python/training_FL/update_server_config.py\
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Training config. Note that this are the config for the local training runs
 
+srun python ./scripts_python/training/update_optimizer.py\
+	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
+	--name="${name_optimizer}"\
+	--lr=${lr}\
+	--momentum=${momentum}\
+	--weight_decay=${weight_decay}\
+	--dampening=${dampening}\
+	# --nestorov\
+
 # Update learning rate scheduler config
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--name="ExponentialLR"\
-	--gamma=0.9\
+	--gamma=${gamma}\
 	
 # Update training config. 
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
+	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 	--batch_size=${batch_size}\
-	--lr=${lr}\
 	--epochs=${epochs}\
 	--device="${device}"\
 	--epoch_to_save_model=${epoch_to_save_model}\

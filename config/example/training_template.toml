@@ -1,13 +1,23 @@
 batch_size = 1
-lr = 0.01
 epochs = 1
-optimizer_weight_decay = 0.01
 device = "cpu"
 epoch_to_save_model = 1
 path_to_save_model = "model_weights"
 measure_metrics_during_training = false
 print_var = true
 seed = 42
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Optimizer config
+
+[optimizer_config]
+lr = 1e-3
+name = "SGD"
+momentum = 0.9
+dampening = 0.0
+nesterov = false
+weight_decay = 0.0
+maximize = false
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Lr scheduler settings 
