@@ -102,7 +102,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Wandb attributes
         
-        # Check if wandb is intalled
+        # Check if wandb is installed
         if not wandb_installed : raise ImportError('wandb is not installed. Please it using "pip install wandb"')
         
         # Get wandb info configuration
@@ -114,7 +114,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         notes = wandb_config['notes'] if 'notes' in wandb_config else 'No notes in training_config'
         name_training_run = wandb_config['name_training_run'] if 'name_training_run' in wandb_config else None
 
-        # Initialise wandb
+        # Initialize wandb
         self.wandb_run = wandb.init(project = wandb_config['project_name'],
                                     job_type = "train", config = all_config,
                                     name = name_training_run, notes = notes,
@@ -134,7 +134,9 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
         self.model = model
 
-        # TODO test this features. Especially the log_freq
+        # TODO test this features. 
+        # Apparently this is not working as expected. I need to investigate more.
+        # The gradient and weight info are not logged into wandb
         wandb.watch(self.model, log = "all", log_freq = 1, log_graph = True)
 
     # def __del__(self):
@@ -150,6 +152,8 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         """
 
         self.count_rounds += 1
+
+        wandb.watch(self.model, log = "all", log_freq = 1, log_graph = True)
 
         # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
         aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
