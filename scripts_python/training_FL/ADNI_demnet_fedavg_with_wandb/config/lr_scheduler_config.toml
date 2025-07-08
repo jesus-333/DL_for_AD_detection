@@ -1,2 +1,2 @@
 name = "ExponentialLR"
-gamma = 0.92
+gamma = 0.94

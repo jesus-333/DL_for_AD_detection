@@ -46,6 +46,9 @@ def client_fn_demnet(context : Context) -> Client :
     labels_int = dataset_info['labels_int'].to_numpy()
     labels_str = dataset_info['labels_str'].to_numpy()
 
+    # (OPTIONAL) Merge AD classes
+    labels_int = support_dataset_ADNI.merge_AD_class_function(labels_int, labels_str, dataset_config['merge_AD_class'])
+
     # Get client ID (it is a number from 0 to n_client - 1) and load indices for the client
     client_id = context.node_config["partition-id"]
     idx_client = np.load(dataset_config['path_data'] + f'{client_id}_idx.npy')
@@ -76,8 +79,6 @@ def client_fn_demnet(context : Context) -> Client :
     else :
         preprocess_functions = None
 
-    # (OPTIONAL) Merge AD classes
-    labels_int = support_dataset_ADNI.merge_AD_class_function(labels_int, labels_str, dataset_config['merge_AD_class'])
 
     # Split data in train/validation/test
     if dataset_config['apply_rescale'] :
@@ -88,16 +89,16 @@ def client_fn_demnet(context : Context) -> Client :
         MRI_validation_dataset = dataset.MRI_dataset(data_client[idx_validation], labels_int_client[idx_validation], preprocess_functions = preprocess_functions)
 
     # Select training device
-    if torch.cuda.is_available() :
-        device = torch.device("cuda")
-        print("\nCUDA backend in use")
-    elif torch.backends.mps.is_available():
-        device = torch.device("mps")
-        print("\nmps backend (apple metal) in use")
-    else:
-        device = torch.device("cpu")
-        print("\nNo backend in use. Device set to cpu")
-    training_config['device'] = device
+    # if torch.cuda.is_available() :
+    #     device = torch.device("cuda")
+    #     print("\nCUDA backend in use")
+    # elif torch.backends.mps.is_available():
+    #     device = torch.device("mps")
+    #     print("\nmps backend (apple metal) in use")
+    # else:
+    #     device = torch.device("cpu")
+    #     print("\nNo backend in use. Device set to cpu")
+    # training_config['device'] = device
 
     # (OPTIONAL) Move dataset to device
     if dataset_config['load_data_in_memory'] :
@@ -110,9 +111,9 @@ def client_fn_demnet(context : Context) -> Client :
 
     # Load model
     model_config['input_channels'] = data_client.shape[1]
-    model_config['num_classes'] = len(np.unique(labels_int))
+    # model_config['num_classes'] = len(np.unique(labels_int))
     model = demnet.demnet(model_config)
-    
+
     # Free memory
     del data_client
 

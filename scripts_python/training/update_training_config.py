@@ -43,6 +43,7 @@ parser.add_argument('--vgg_training'                   , default = False, action
 parser.add_argument('--no-use_scheduler'                  , dest ='use_scheduler'                  , action = 'store_false')
 parser.add_argument('--no-measure_metrics_during_training', dest ='measure_metrics_during_training', action = 'store_false')
 parser.add_argument('--no-print_var'                      , dest ='print_var'                      , action = 'store_false')
+parser.add_argument('--no-wandb_training'                 , dest ='wandb_training'                 , action = 'store_false')
 # *******************************
 # Wandb settings
 parser.add_argument('--project_name'         , type = str, default = None, help = 'Name of the wandb project. Default is None.')
