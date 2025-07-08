@@ -136,7 +136,9 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
         # TODO test this features. 
         # Apparently this is not working as expected. I need to investigate more.
-        # The gradient and weight info are not logged into wandb
+        # The gradients and weights info are not logged into wandb
+        # Probably the bug is due to the wandb.log() with a specified step
+        # Another possibility is that the weights are not "updated", i.e. I not use backpropagation to update the model so no change is registered.
         wandb.watch(self.model, log = "all", log_freq = 1, log_graph = True)
 
     # def __del__(self):
@@ -152,8 +154,9 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         """
 
         self.count_rounds += 1
-
-        wandb.watch(self.model, log = "all", log_freq = 1, log_graph = True)
+        
+        # IF executed here it throw an error
+        # wandb.watch(self.model, log = "all", log_freq = 1, log_graph = True)
 
         # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
         aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
@@ -231,6 +234,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             # Upload metric
             print("FIT ", self.count_rounds)
             self.wandb_run.log(wandb_log_dict, step = self.count_rounds)
+            # self.wandb_run.log(wandb_log_dict)
         else :
             print("Warning. No aggregated metrics obtained during aggregation phase. fit_metrics_aggregation_fn must is None or there are error with the function code.")
             print("Only the aggregated weights and the metrics of the clients will be uploaded ")
