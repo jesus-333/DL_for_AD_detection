@@ -5,10 +5,10 @@
 #SBATCH --partition=hopper
 #SBATCH --qos=iris-hopper
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=28
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=120G
-#SBATCH --time=0-00:10:00
+#SBATCH --time=0-00:50:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/debug/output/std_output_%x_%j.txt
@@ -25,7 +25,7 @@ conda activate jesus-hpc
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-n_parallel_training=2
+n_parallel_training=3
 
 # Array used to save PID for each process
 pid_wait_array=()
@@ -42,12 +42,16 @@ do
 	PATH_SRC="./"
 
 	# Paths to config files
-	PATH_CONFIG_FOLDER="./config/vgg_finetuning/"
+	PATH_CONFIG_FOLDER="./scripts_sh/train_vgg_centralized_parallel/config/"
 	PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset_${idx}.toml"
 	PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model_vgg_${idx}.toml"
 	PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training_${idx}.toml"
 	PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${idx}.toml"
 	PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_${idx}.toml"
+
+	# Path to data
+	PATH_DATA="data/ADNI_axial_middle_slice/" 
+	NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
 
 	python ./scripts_python/training/vgg_ADNI_wandb.py \
 		--path_src="${PATH_SRC}"\

@@ -49,6 +49,10 @@ do
 	PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${idx}.toml"
 	PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_${idx}.toml"
 
+	# Path to data
+	PATH_DATA="data/ADNI_axial_middle_slice/" 
+	NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
+
 	python ./scripts_python/training/vgg_ADNI_wandb.py \
 		--path_src="${PATH_SRC}"\
 		--path_dataset_config="${PATH_DATASET_CONFIG}"\
