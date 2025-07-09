@@ -111,7 +111,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         # In that case the key is not saved in the toml file.
         # To avoid error for this two specific keys, I check if they're present in the wandb_config dictionary.
         # If not I set them to None, since wandb allow None as value for the name and notes of the run.
-        notes = wandb_config['notes'] if 'notes' in wandb_config else 'No notes in training_config'
+        notes = wandb_config['notes'] if 'notes' in wandb_config else 'No notes in config'
         name_training_run = wandb_config['name_training_run'] if 'name_training_run' in wandb_config else None
 
         # Initialize wandb
@@ -121,14 +121,18 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
                                     )
 
         # Wandb artifact to save model weights
-        self.model_artifact = wandb.Artifact(wandb_config['model_artifact_name'], type = "model",
-                                             description = wandb_config['description'] if 'description' in wandb_config else None,
-                                             metadata = all_config)
+        if wandb_config['log_model_artifact'] :
+            self.model_artifact = wandb.Artifact(wandb_config['model_artifact_name'], type = "model",
+                                                 description = wandb_config['description'] if 'description' in wandb_config else None,
+                                                 metadata = all_config)
+        else :
+            self.model_artifact = None
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Other attributes
 
         self.count_rounds = 0
+        self.rounds_to_save_model = server_config['rounds_to_save_model']
         self.num_rounds = server_config['num_rounds']
         self.metrics_to_log_from_clients = server_config['metrics_to_log_from_clients'] if 'metrics_to_log_from_clients' in server_config else None
 
@@ -153,8 +157,6 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         Aggregate the results from the clients and upload the results in wandb
         """
 
-        self.count_rounds += 1
-        
         # IF executed here it throw an error
         # wandb.watch(self.model, log = "all", log_freq = 1, log_graph = True)
 
@@ -172,12 +174,14 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             # Load updated weights into the model
             support_federated_generic.set_weights(self.model, model_weights)
 
-            # Save weights
-            save_path = support_federated_generic.save_model_weights(self.model, path_to_save_model = self.all_config['training_config']['path_to_save_model'], filename = f"model_round_{self.count_rounds}.pth")
+            # Save weights every rounds_to_save_model
+            if self.count_rounds % self.rounds_to_save_model == 0 :
+                save_path = support_federated_generic.save_model_weights(self.model, path_to_save_model = self.all_config['training_config']['path_to_save_model'], filename = f"model_round_{self.count_rounds}.pth")
 
-            # Add weight to wandb
-            self.model_artifact.add_file(save_path)
-            wandb.save(save_path)
+                # Add weight to wandb
+                if self.model_artifact is not None :
+                    self.model_artifact.add_file(save_path)
+                    wandb.save(save_path)
 
             if self.metrics_to_log_from_clients is not None :
             
@@ -237,7 +241,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             # self.wandb_run.log(wandb_log_dict)
         else :
             print("Warning. No aggregated metrics obtained during aggregation phase. fit_metrics_aggregation_fn must is None or there are error with the function code.")
-            print("Only the aggregated weights and the metrics of the clients will be uploaded ")
+            # print("Only the aggregated weights and the metrics of the clients will be uploaded ")
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -245,6 +249,8 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             self.end_wandb_run_and_log_artifact()
             print("End training rounds")
 
+        self.count_rounds += 1
+        
         return aggregated_parameters, aggregated_metrics
 
     def evaluate(self, server_round, parameters):
@@ -279,7 +285,11 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         """
         Load the artifacts in wandb and finish the run.
         """
-        self.wandb_run.log_artifact(self.model_artifact)
+
+        # (OPTIONAL) Log model artifact
+        if self.model_artifact is not None : self.wandb_run.log_artifact(self.model_artifact)
+
+        # Conclude run
         self.wandb_run.finish()
 
     def create_matplotlib_metric_plot(self, metrics_to_plot_list : list, training_epochs, metrics_name_list : list, client_id : str) :

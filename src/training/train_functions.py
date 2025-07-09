@@ -289,11 +289,12 @@ def wandb_train(config : dict, model, train_dataset, validation_dataset = None) 
 
     # Get train configuration
     training_config = config['training_config']
-    notes = training_config['notes'] if 'notes' in training_config else 'No notes in training_config'
-    name = training_config['name_training_run'] if 'name_training_run' in training_config else None
+    entity = training_config['entity'] if 'entity' in training_config else None
+    name   = training_config['name_training_run'] if 'name_training_run' in training_config else None
+    notes  = training_config['notes'] if 'notes' in training_config else 'No notes in training_config'
     
     # Initialize wandb
-    with wandb.init(project = training_config['project_name'], job_type = "train", config = config, notes = notes, name = name) as run:
+    with wandb.init(project = training_config['project_name'], entity = entity, job_type = "train", config = config, notes = notes, name = name) as run:
         # Setup artifact to save model
         model_artifact_name = training_config['model_artifact_name'] + '_trained'
         metadata = config
