@@ -24,12 +24,15 @@ parser.add_argument('--name'                 , type = str  , default = None, hel
 parser.add_argument('--lr'                   , type = float, default = 0.001                    , help = 'Learning rate for the optimizer. Default is 0.001 (1e-3).')
 # *******************************
 # Adam and AdamW parameters
-parser.add_argument('--betas'                 , nargs = '+', type = float, default = [0.9, 0.999], help = 'Betas for the Adam or AdamW optimizer. Default is [0.9, 0.999].')
-parser.add_argument('--eps'                   , type = float, default = 1e-8                     , help = 'Epsilon for the Adam or AdamW optimizer. Default is 1e-08.')
-parser.add_argument('--weight_decay'          , type = float, default = 0.0                      , help = 'Weight decay for the Adam, AdamW or SGD optimizer. Default is 0.0.')
-parser.add_argument('--amsgrad'               , default = False, action = 'store_true'           , help = 'Amsgrad for the Adam or AdamW optimizer. Default is False.')
-parser.add_argument('--maximize'              , default = False, action = 'store_true'           , help = 'Maximize for the Adam or AdamW or SGD optimizer. Default is False.')
-parser.add_argument('--decoupled_weight_decay', default = False, action = 'store_true'           , help = 'Decoupled weight decay for the Adam optimizer. Note that if this parameter is set to True, the Adam optimizer will be equivalent to AdamW. Default is False.')
+parser.add_argument('--betas'                    , type = float, nargs = '+', default = [0.9, 0.999]   , help = 'Betas for the Adam or AdamW optimizer. Default is [0.9, 0.999].')
+parser.add_argument('--eps'                      , type = float             , default = 1e-8           , help = 'Epsilon for the Adam or AdamW optimizer. Default is 1e-08.')
+parser.add_argument('--weight_decay'             , type = float             , default = None           , help = 'Weight decay for the Adam, AdamW or SGD optimizer. If None the default value for those optimizer will be used, i.e. 0.0 for SGD and Adam and 1e-2 for AdamW. Default is None')
+parser.add_argument('--amsgrad'                  , action = 'store_true'    , default = False          , help = 'Amsgrad for the Adam or AdamW optimizer. Default is False.')
+parser.add_argument('--maximize'                 , action = 'store_true'    , default = False          , help = 'Maximize for the Adam or AdamW or SGD optimizer. Default is False.')
+parser.add_argument('--decoupled_weight_decay'   , action = 'store_true'    , default = False          , help = 'Decoupled weight decay for the Adam optimizer. Note that if this parameter is set to True, the Adam optimizer will be equivalent to AdamW. Default is False.')
+parser.add_argument('--no-amsgrad'               , action = 'store_false'   , dest ='wandb_training')
+parser.add_argument('--no-maximize'              , action = 'store_false'   , dest ='wandb_training')
+parser.add_argument('--no-decoupled_weight_decay', action = 'store_false'   , dest ='wandb_training')
 # *******************************
 # LBFGS parameters
 parser.add_argument('--max_iter'              , type = int  , default = 20  , help = 'Maximum number of iterations for the LBFGS optimizer. Default is 20.')
@@ -82,7 +85,8 @@ if args.name == 'Adam' or args.name == 'AdamW' :
     optimizer_config['name'] = args.name
     optimizer_config['betas'] = args.betas
     optimizer_config['eps'] = args.eps
-    optimizer_config['weight_decay'] = args.weight_decay
+    if args.name == 'Adam'  : optimizer_config['weight_decay'] = args.weight_decay if args.weight_decay is not None else 0.0
+    if args.name == 'AdamW' : optimizer_config['weight_decay'] = args.weight_decay if args.weight_decay is not None else 1e-2
     optimizer_config['amsgrad'] = args.amsgrad
     optimizer_config['maximize'] = args.maximize
     optimizer_config['decoupled_weight_decay'] = args.decoupled_weight_decay if args.name == 'Adam' else None
@@ -99,7 +103,7 @@ elif args.name == 'SGD' :
     optimizer_config['momentum'] = args.momentum
     optimizer_config['dampening'] = args.dampening
     optimizer_config['nesterov'] = args.nesterov
-    optimizer_config['weight_decay'] = args.weight_decay
+    optimizer_config['weight_decay'] = args.weight_decay if args.weight_decay is not None else 0.0
     optimizer_config['maximize'] = args.maximize
 
 # Check config

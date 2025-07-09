@@ -130,7 +130,7 @@ if args.print_var is None : print("No value provided for print_var. Using defaul
 if args.seed is not None and args.seed >= 0 :
     training_config['seed'] = args.seed
 else :
-    training_config['seed'] = np.random.randint(0, 1e9)
+    training_config['seed'] = np.random.randint(0, 2**32 - 1)
     print(f"Invalid seed provided: {args.seed}. Using a random seed: {training_config['seed']}.")
 
 # Use scheduler
