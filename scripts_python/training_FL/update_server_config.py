@@ -24,6 +24,7 @@ parser.add_argument('--num_rounds'                 , type = int  , default = Non
 parser.add_argument('--n_client'                   , type = int  , default = None, help = 'Number of clients for the federated learning. It must be a positive integer. If not provided an error will be raised.')
 parser.add_argument('--fraction_fit'               , type = float, default = 1   , help = 'Fraction of clients to be selected for training in each round. It must be a float between 0 and 1. Default is 1 (all clients are selected).')
 parser.add_argument('--fraction_evaluate'          , type = float, default = 1   , help = 'Fraction of clients to be selected for evaluation in each round. It must be a float between 0 and 1. Default is 1 (all clients are selected). For now this parameter does not have any effect because the evaluation is perfomed inside the training function (see the train function in src/training/train_functions.py). I keep it here as a placeholder for possible future use, where the evaluation is performed in a different function than the training one.')
+parser.add_argument('--clients_seed'               , nargs = '+' , default = []  , help = 'List of seeds for the clients. If not provided, the seeds will be randomly generated. If provided, the length of the list must be equal to n_client. Default is an empty list, which means that the seeds will be randomly generated.')
 # Boolean arguments
 parser.add_argument('--keep_labels_proportion'     , default = True, action = 'store_true'         , help = 'If True, when data are splitted among clients, the proportion of labels of the original dataset is kept for each client. If false, the labels are randomly assigned to the clients. Default is True.')
 parser.add_argument('--centralized_evaluation'     , default = True, action = 'store_true'         , help = 'If True, the server will perform a centralized evaluation on the whole dataset. If False, the server will not perform any evaluation. Default is True. In this the central evaluation is performed the data will be divided in n_client + 1 parts, where the last part is used for the central evaluation. If False, the data will be divided in n_client parts only, and no central evaluation will be performed.')
@@ -91,6 +92,17 @@ if args.fraction_evaluate is not None :
         raise ValueError(f'fraction_evaluate must be a float between 0 and 1. Provided value: {args.fraction_evaluate}')
     server_config['fraction_evaluate'] = args.fraction_evaluate
 
+# List of seeds for the clients
+if args.clients_seed is not None :
+    if len(args.clients_seed) == 0 :
+        print('No seeds provided for the clients. Using random seeds.')
+        server_config['clients_seed'] = np.random.randint(0, 2**31 - 1, size = args.n_client)
+    elif len(args.clients_seed) != args.n_client :
+        raise ValueError(f'The length of the clients_seed list must be equal to n_client ({args.n_client}). Provided length: {len(args.clients_seed)}')
+    else :
+        server_config['clients_seed'] = [int(seed) for seed in args.clients_seed]
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Boolean arguments
 server_config['keep_labels_proportion'] = args.keep_labels_proportion
 server_config['centralized_evaluation'] = args.centralized_evaluation
