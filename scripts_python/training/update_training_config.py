@@ -47,11 +47,12 @@ parser.add_argument('--no-wandb_training'                 , dest ='wandb_trainin
 # *******************************
 # Wandb settings
 parser.add_argument('--project_name'         , type = str, default = None, help = 'Name of the wandb project. Default is None.')
+parser.add_argument('--entity'               , type = str, default = None, help = 'Name of the wandb entity (team) where the run will be logged. Default is None.')
 parser.add_argument('--name_training_run'    , type = str, default = None, help = 'Name of the training run in wandb. Default is None.')
 parser.add_argument('--notes'                , type = str, default = None, help = 'Notes for the training run in wandb. Default is None.')
-parser.add_argument('--log_freq'             , type = int, default = 1   , help = 'Frequency of wandb logging during training. Default is 1 (every epoch).')
+parser.add_argument('--log_freq'             , type = int, default = 1   , help = 'Frequency of wandb logging during training. Default is 1 .')
 parser.add_argument('--model_artifact_name'  , type = str, default = None, help = 'Name of the wandb model artifact. Default is None. Used only if log_model_artifact is passed.')
-parser.add_argument('--log_model-artifact'   , default = True , action = "store_true", help = 'If True, the model will be logged as a wandb artifact. If you do not want to log the model, use --no-log_model_artifact.')
+parser.add_argument('--log_model_artifact'   , default = True , action = "store_true", help = 'If True, the model will be logged as a wandb artifact. If you do not want to log the model, use --no-log_model_artifact.')
 parser.add_argument('--debug'                , default = False, action = "store_true", help = 'Used only as a flag to quickly find runs in wandb. Used to test the code. Default is False.')
 parser.add_argument('--no-log_model_artifact', dest ='log_model_artifact', action = 'store_false', help = 'If passed, no model will be logged as a wandb artifact. Only metrics will be uploaded.')
 parser.add_argument('--no-debug'             , dest ='feature'           , action = 'store_false')
@@ -161,6 +162,9 @@ if args.wandb_training is True :
     # Project name
     if args.project_name is None : print("No project name provided for wandb. Using default value: None.")
     training_config['project_name'] = args.project_name
+
+    if args.entity is None : print("No entity name provided for wandb. Using default value: None.")
+    training_config['entity'] = args.entity
 
     # Name of the training run
     if args.name_training_run is None : print("No name provided for the training run in wandb. Using default value: None.")

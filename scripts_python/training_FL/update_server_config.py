@@ -21,6 +21,7 @@ parser = argparse.ArgumentParser(description = 'Update the server configuration 
 # Various arguments
 parser.add_argument('--path_server_config'         , type = str  , default = None, help = 'Path to the toml file with the server config. Default is ./config/serve.toml')
 parser.add_argument('--num_rounds'                 , type = int  , default = None, help = 'Number of rounds for the federated learning. It muse be a positive integer. If not provided an error will be raised.')
+parser.add_argument('--rounds_to_save_model'        , type = int  , default = -1  , help = 'Save the model every n epochs. Default is 1.')
 parser.add_argument('--n_client'                   , type = int  , default = None, help = 'Number of clients for the federated learning. It must be a positive integer. If not provided an error will be raised.')
 parser.add_argument('--fraction_fit'               , type = float, default = 1   , help = 'Fraction of clients to be selected for training in each round. It must be a float between 0 and 1. Default is 1 (all clients are selected).')
 parser.add_argument('--fraction_evaluate'          , type = float, default = 1   , help = 'Fraction of clients to be selected for evaluation in each round. It must be a float between 0 and 1. Default is 1 (all clients are selected). For now this parameter does not have any effect because the evaluation is perfomed inside the training function (see the train function in src/training/train_functions.py). I keep it here as a placeholder for possible future use, where the evaluation is performed in a different function than the training one.')
@@ -32,15 +33,18 @@ parser.add_argument('--centralized_evaluation'     , default = True, action = 's
 parser.add_argument('--no-keep_labels_proportion'  , action = 'store_false', dest = 'keep_labels_proportion', help = 'If passed as an argument, the labels split will be done randomly among clients')
 parser.add_argument('--no-centralized_evaluation'  , action = 'store_false', dest = 'centralized_evaluation', help = 'If passed as an argument, the server will not perform any centralized evaluation. The data will be divided in n_client parts only, and no central evaluation will be performed.')
 # Wandb settings
-parser.add_argument('--project_name'               , type = str  , default = None    , help = 'Name of the wandb project. Default is None.')
-parser.add_argument('--model_artifact_name'        , type = str  , default = None    , help = 'Name of the wandb model artifact. Default is None.')
-parser.add_argument('--name_training_run'          , type = str  , default = None    , help = 'Name of the training run in wandb. Default is None.')
-parser.add_argument('--notes'                      , type = str  , default = None    , help = 'Notes for the training run in wandb. Default is None.')
-parser.add_argument('--log_freq'                   , type = int  , default = 1       , help = 'Frequency of wandb logging during training. Default is 1 (every epoch).')
-parser.add_argument('--metrics_to_log_from_clients', nargs = '+' , default = ['accuracy_train', 'accuracy_validation'], help = 'List of metrics to log from clients. Default is ["accuracy_train", "accuracy_validation"]. The possible metrics to loads are the one computed from the function in src/training/metrics.py with added the suffix _train or _validation.')
-parser.add_argument('--metrics_plot_backend'       , type = str  , default = 'wandb', help = 'Backend to use for plotting the metrics. Default is "wandb". The other option is "matplotlib". For now the code is implemented but not used for matplotlib. The wandb plot (for now) create better plots to upload in the wandb dashboard. So for now this parameter is useless and you can ignore it.')
-parser.add_argument('--debug'                      , default = False , action = "store_true" , help = 'Used only as a flag to quickly find runs in wandb. Used to test the code. Default is False.')
-parser.add_argument('--no-debug'                   , dest = 'debug'  , action = "store_false")
+parser.add_argument('--project_name'               , type = str            , default = None   , help = 'Name of the wandb project. Default is None.')
+parser.add_argument('--entity'                     , type = str            , default = None   , help = 'Name of the wandb entity (team) where the run will be logged. Default is None.')
+parser.add_argument('--model_artifact_name'        , type = str            , default = None   , help = 'Name of the wandb model artifact. Default is None.')
+parser.add_argument('--name_training_run'          , type = str            , default = None   , help = 'Name of the training run in wandb. Default is None.')
+parser.add_argument('--notes'                      , type = str            , default = None   , help = 'Notes for the training run in wandb. Default is None.')
+parser.add_argument('--log_freq'                   , type = int            , default = 1      , help = 'Frequency of wandb logging during training. Default is 1.')
+parser.add_argument('--metrics_plot_backend'       , type = str            , default = 'wandb', help = 'Backend to use for plotting the metrics. Default is "wandb". The other option is "matplotlib". For now the code is implemented but not used for matplotlib. The wandb plot (for now) create better plots to upload in the wandb dashboard. So for now this parameter is useless and you can ignore it.')
+parser.add_argument('--log_model_artifact'         , action = "store_true" , default = True   , help = 'If True, the model will be logged as a wandb artifact. If you do not want to log the model, use --no-log_model_artifact. The model will be logged every rounds_to_save_model epochs')
+parser.add_argument('--debug'                      , action = "store_true" , default = False  , help = 'Used only as a flag to quickly find runs in wandb. Used to test the code. Default is False.')
+parser.add_argument('--no-log_model_artifact'      , action = 'store_false', dest ='log_model_artifact', help = 'If passed, no model will be logged as a wandb artifact. Only metrics will be uploaded.')
+parser.add_argument('--no-debug'                   , action = 'store_false', dest ='feature')
+parser.add_argument('--metrics_to_log_from_clients', nargs = '+'           , default = ['accuracy_train', 'accuracy_validation'], help = 'List of metrics to log from clients. Default is ["accuracy_train", "accuracy_validation"]. The possible metrics to loads are the one computed from the function in src/training/metrics.py with added the suffix _train or _validation.')
 # Flower CPU/GPU settings. Note that saving these parameters in the server config does not affect the training in any way. The only purpose is to have a record of the settings and upload them to wandb.
 # These parameters are set when the flwr run command is executed. See for example the script train_local_FL.sh inside scripts_sh/test_code/
 parser.add_argument('--num_cpus'                   , type = float, default = None, help = 'Number of CPUs for each client (i.e. the options.backend.client-resources.num-cpus argument flwr run command). Note that saving these parameters in the server config does not affect the training in any way. The only purpose is to have a record of the settings and upload them to wandb.')
@@ -71,6 +75,14 @@ if args.num_rounds is not None :
     server_config['num_rounds'] = args.num_rounds
 else :
     raise ValueError('num_rounds must be provided and must be a positive integer.')
+
+rounds_to_save_model
+if args.rounds_to_save_model is not None and args.rounds_to_save_model > 0 :
+    server_config['rounds_to_save_model'] = args.rounds_to_save_model
+    print(f"Model will be saved every {server_config['rounds_to_save_model']} epochs.")
+else :
+    server_config['rounds_to_save_model'] = server_config['num_rounds'] + 1
+    print("Model will ba saved on the end of training.")
 
 # Number of clients
 if args.n_client is not None :
@@ -120,6 +132,10 @@ if args.project_name is None :
     raise ValueError("No project name provided for wandb. Please provide a valid project name.")
 wandb_config['project_name'] = args.project_name
 
+# Entity (team)
+if args.entity is None : print("No entity name provided for wandb. Using default value: None.")
+training_config['entity'] = args.entity
+
 # Model artifact name
 if args.model_artifact_name is None : print("No model artifact name provided for wandb. Using default value: model.")
 wandb_config['model_artifact_name'] = "model" if args.model_artifact_name is None else args.model_artifact_name
@@ -159,7 +175,6 @@ wandb_config['num_cpus'] = args.num_cpus
 wandb_config['num_gpus'] = args.num_gpus
 wandb_config['max_cpu_allowed'] = args.max_cpu_allowed
 wandb_config['max_gpu_allowed'] = args.max_gpu_allowed
-
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save the config
