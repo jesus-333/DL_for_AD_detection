@@ -74,7 +74,7 @@ if 'path_to_data' in dataset_config : path_to_data = dataset_config['path_to_dat
 # training_config['epoch_to_save_model'] = training_config['epochs'] + 2
 
 # Note that toml file din't have (yet) the null type
-if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 1e9)
+if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 2**32 - 1)
 
 # Wand Setting
 training_config['wandb_training'] = True

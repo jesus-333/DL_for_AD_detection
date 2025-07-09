@@ -7,8 +7,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=10G
-#SBATCH --time=0-00:30:00
+#SBATCH --mem=5G
+#SBATCH --time=0-02:00:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_FL/output/std_output_%x_%j.txt
@@ -55,7 +55,7 @@ PATH_DATA="data/ADNI_axial_middle_slice/"
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
 
 # Dataset settings for each client
-merge_AD_class=1
+merge_AD_class=0
 percentage_train=0.9
 percentage_validation=0.1
 percentage_test=0
@@ -63,7 +63,7 @@ rescale_factor=4095
 
 # Training settings
 batch_size=128
-epochs=10
+epochs=20
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
@@ -71,10 +71,11 @@ seed=-1
 
 # Optimizer config
 lr=1e-3
-name_optimizer='SGD'
-momentum=0.9
+name_optimizer='AdamW'
+beta_low=0.9
+beta_high=0.999
+eps=1e-8
 weight_decay=1e-5
-dampening=0
 
 # Lr scheduler settings
 gamma=0.94
@@ -88,8 +89,8 @@ num_cpus=4 # Default is 2
 max_cpu_allowed=4
 num_gpus=1
 max_gpu_allowed=1
-num_clients=4
-num_rounds=20
+num_clients=3
+num_rounds=60
 fraction_fit=1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -161,14 +162,16 @@ srun python ./scripts_python/training_FL/update_server_config.py\
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Training config CLIENT. 
 
+# Update optimizer
 srun python ./scripts_python/training/update_optimizer.py\
 	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 	--name="${name_optimizer}"\
 	--lr=${lr}\
-	--momentum=${momentum}\
+	--betas ${beta_low} $beta_high\
+	--eps=${eps}\
 	--weight_decay=${weight_decay}\
-	--dampening=${dampening}\
-	# --nestorov\
+	--no-amsgrad\
+	--no-maximize\
 
 # Update learning rate scheduler config
 srun python ./scripts_python/training/update_lr_scheduler.py\

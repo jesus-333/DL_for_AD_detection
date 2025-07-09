@@ -28,20 +28,20 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     training_config : dict
         Dictionary containing the training configuration. The dictionary will be check through the function check_training_config.
         If some keys are missing a defualt value will be used or an error will be raised (depending on the key).
-        The dictionary should contain the following keys:
+        The dictionary should contain the following keys : (TODO : Check if need to be updated)
         - batch_size : int
             Batch size to use for training. If missing an error will be raised.
         - lr : float
             Learning rate to use for training. If missing or it has a value <= 0 an error will be raised.
         - epochs : int
             Number of epochs to use for training. If missing or it has a value <= 0 an error will be raised.
+        - optimizer_config : dict
+            Dictionary with the configuration of the optimizer.
         - use_scheduler : bool
             If True, a learning rate scheduler will be used. If not specified, False will be used as default value.
         - lr_scheduler_config : dict
             Dictionary with the configuration of the selected lr scheduler. The possible keys depend from the selected scheduler (see https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate for a complete list).
             Scheduler currently implemented : ExponentialLR, CosineAnnealingLR.
-        - optimizer_weight_decay : float
-            Weight decay for the AdamW optimizer. If not specified, 0.01 will be used as default value.
         - device : str
             Device to use for training. If not specified, "cpu" will be used as default value.
         - epoch_to_save_model : int
@@ -99,14 +99,9 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     model.to(training_config['device'])
     
     # Create loss function
+    # TODO Add option for other loss funciton
     loss_function = torch.nn.CrossEntropyLoss()
     
-    # TODO REMOVE AFTER TESTING get_optimizer
-    optimizer = torch.optim.AdamW(model.parameters(),
-                                  lr = training_config['lr'],
-                                  weight_decay = training_config['optimizer_weight_decay']
-                                  )
-
     # Get optimizer
     optimizer = support_training.get_optimizer(training_config['optimizer_config'], model)
 
@@ -152,6 +147,11 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
         if (epoch + 1) % training_config['epoch_to_save_model'] == 0 and training_config['epoch_to_save_model'] > 0:
             torch.save(model.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], "model_{}.pth".format(epoch + 1)))
 
+        if epoch == 0 : # If it is the first epoch create the list for the specific metric
+            computed_metrics_during_training["train_loss"] = [train_loss]
+        else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
+            computed_metrics_during_training["train_loss"].append(train_loss)
+
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # (OPTIONAL) Validation epoch
 
@@ -166,23 +166,29 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
                 best_loss_val = validation_loss
                 torch.save(model.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], 'model_BEST.pth'))
 
+            if epoch == 0 : # If it is the first epoch create the list for the specific metric
+                computed_metrics_during_training["validation_loss"] = [train_loss]
+            else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
+                computed_metrics_during_training["validation_loss"].append(train_loss)
+
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # (OPTIONAL) Optional steps during the training
+        # Note that the train loss and validation loss values are still saved in dictionary metrics
 
         #  Measure the various metrics related to classification (accuracy, precision etc)
         if training_config['measure_metrics_during_training'] :
             # Compute the various metrics
             train_metrics_dict = metrics.compute_metrics(model, train_loader, training_config['device'])
-            validation_metrics_dict = metrics.compute_metrics(model, validation_loader, training_config['device'])
+            if validation_loader is not None : validation_metrics_dict = metrics.compute_metrics(model, validation_loader, training_config['device'])
 
             # Save metrics
             for metric in train_metrics_dict :
                 if epoch == 0 : # If it is the first epoch create the list for the specific metric
-                    computed_metrics_during_training[f"{metric}_train"]      = [train_metrics_dict[metric]]
-                    computed_metrics_during_training[f"{metric}_validation"] = [validation_metrics_dict[metric]]
+                    computed_metrics_during_training[f"{metric}_train"] = [train_metrics_dict[metric]]
+                    if validation_loader is not None : computed_metrics_during_training[f"{metric}_validation"] = [validation_metrics_dict[metric]]
                 else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
                     computed_metrics_during_training[f"{metric}_train"].append(train_metrics_dict[metric])
-                    computed_metrics_during_training[f"{metric}_validation"].append(validation_metrics_dict[metric])
+                    if validation_loader is not None : computed_metrics_during_training[f"{metric}_validation"].append(validation_metrics_dict[metric])
 
         #  Update learning rate (if a scheduler is provided)
         if lr_scheduler is not None:

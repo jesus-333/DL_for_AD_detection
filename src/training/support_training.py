@@ -86,12 +86,12 @@ def check_training_config(config : dict) :
         config['print_var'] = True
 
     if 'seed' not in config :
-        seed = np.random.randint(0, 1e9)
+        seed = np.random.randint(0, 2**32 - 1)
         print(f'Warning: the training configuration does not contain the seed. A random integer ({seed}) will be used as default value')
         config['seed'] = seed
     
     if config['seed'] < 0 :
-        config['seed'] = np.random.randint(0, 1e9)
+        config['seed'] = np.random.randint(0, 2**32 - 1)
         print(f'Invalid seed value: {config["seed"]}. A random integer ({config["seed"]}) will be used as default value')
 
     # *******************************
