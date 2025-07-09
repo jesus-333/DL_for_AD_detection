@@ -37,7 +37,10 @@ def client_fn_demnet(context : Context) -> Client :
     
     # Set the seed
     # NOT USED NOW. Since I launch all the training from the sh script, before the flwr command I called the update_trainig.py script that already set the seed in the toml file
-    # training_config['seed'] = context.run_config["seed"] if 'seed' in context.run_config else np.random.randint(0, 1e9)
+    # training_config['seed'] = context.run_config["seed"] if 'seed' in context.run_config else np.random.randint(0, 2**32)
+    # import pprint
+    # print("training config for cleint", context.node_config["partition-id"])
+    # pprint.pprint(training_config)
 
     # Get dataset info
     dataset_tensor_file_name = dataset_config['name_tensor_file']
@@ -79,7 +82,6 @@ def client_fn_demnet(context : Context) -> Client :
     else :
         preprocess_functions = None
 
-
     # Split data in train/validation/test
     if dataset_config['apply_rescale'] :
         MRI_train_dataset      = dataset.MRI_dataset(data_client[idx_train] / dataset_config['rescale_factor']     , labels_int_client[idx_train]     , preprocess_functions = preprocess_functions)
@@ -102,9 +104,9 @@ def client_fn_demnet(context : Context) -> Client :
 
     # (OPTIONAL) Move dataset to device
     if dataset_config['load_data_in_memory'] :
-        MRI_train_dataset.move_data_and_labels_to_device(device)
-        MRI_validation_dataset.move_data_and_labels_to_device(device)
-        # MRI_test_dataset.move_data_and_labels_to_device(device)
+        MRI_train_dataset.move_data_and_labels_to_device(training_config['device'])
+        MRI_validation_dataset.move_data_and_labels_to_device(training_config['device'])
+        # MRI_test_dataset.move_data_and_labels_to_device(training_config['device'])
     
     # Add client id to dictionary (so ti can be saved inside the class)
     training_config['client_id'] = client_id

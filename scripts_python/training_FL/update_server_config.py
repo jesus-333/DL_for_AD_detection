@@ -76,7 +76,7 @@ if args.num_rounds is not None :
 else :
     raise ValueError('num_rounds must be provided and must be a positive integer.')
 
-rounds_to_save_model
+# Save the model every n rounds
 if args.rounds_to_save_model is not None and args.rounds_to_save_model > 0 :
     server_config['rounds_to_save_model'] = args.rounds_to_save_model
     print(f"Model will be saved every {server_config['rounds_to_save_model']} epochs.")
@@ -134,7 +134,7 @@ wandb_config['project_name'] = args.project_name
 
 # Entity (team)
 if args.entity is None : print("No entity name provided for wandb. Using default value: None.")
-training_config['entity'] = args.entity
+wandb_config['entity'] = args.entity
 
 # Model artifact name
 if args.model_artifact_name is None : print("No model artifact name provided for wandb. Using default value: model.")
@@ -163,11 +163,17 @@ else :
     wandb_config['metrics_to_log_from_clients'] = ['accuracy_train', 'accuracy_validation']
     print(f"No metrics to log from clients provided. Using default value: {wandb_config['metrics_to_log_from_clients']}.")
 
+# Log model artifact
+wandb_config['log_model_artifact'] = args.log_model_artifact
+
 # Debug flag
 wandb_config['debug'] = args.debug
 
 # Update server config with wandb settings
 server_config['wandb_config'] = wandb_config
+
+# import pprint
+# pprint.pprint(server_config)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Flower CPU/GPU settings

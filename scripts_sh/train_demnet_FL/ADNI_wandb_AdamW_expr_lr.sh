@@ -5,10 +5,10 @@
 #SBATCH --partition=hopper
 #SBATCH --qos=iris-hopper
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=12
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=5G
-#SBATCH --time=0-02:00:00
+#SBATCH --time=0-00:05:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_FL/output/std_output_%x_%j.txt
@@ -59,11 +59,11 @@ merge_AD_class=0
 percentage_train=0.9
 percentage_validation=0.1
 percentage_test=0
-rescale_factor=4095
+rescale_factor=1
 
 # Training settings
 batch_size=128
-epochs=20
+epochs=3
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
@@ -86,12 +86,15 @@ input_size=176
 
 # FL settings
 num_cpus=4 # Default is 2
-max_cpu_allowed=4
-num_gpus=1
+max_cpu_allowed=12
+num_gpus=0.2
 max_gpu_allowed=1
-num_clients=3
-num_rounds=60
+num_clients=4
+num_rounds=100
 fraction_fit=1
+
+# Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
+# Remember also to check the wandb config inside the server config (e.g. the log_model_artifact parameter)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Reset config files (Note that this reset only the config for the client side)
@@ -132,10 +135,10 @@ srun python ./scripts_python/training/update_dataset_config.py\
 	--percentage_train=${percentage_train}\
 	--percentage_validation=${percentage_validation}\
 	--percentage_test=${percentage_test}\
-	--apply_rescale\
+	--no-apply_rescale\
 	--rescale_factor=${rescale_factor}\
 	--use_normalization\
-	--no-load_data_in_memory\
+	--load_data_in_memory\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Update server config
@@ -149,7 +152,9 @@ srun python ./scripts_python/training_FL/update_server_config.py\
 	--keep_labels_proportion\
 	--no-centralized_evaluation\
 	--project_name="demnet_training_ADNI_FL"\
+	--entity="alberto_zancanaro_academic"\
 	--model_artifact_name="demnet_z_${input_channels}"\
+	--no-log_model_artifact\
 	--log_freq=1\
 	--metrics_to_log_from_clients="accuracy_train accuracy_validation"\
 	--metrics_plot_backend="wandb"\
@@ -200,7 +205,9 @@ srun python ./scripts_python/training/update_training_config.py\
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Launch FL Training
 
-srun flwr run ./scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb/\
+flwr run ./scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb/\
 	--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
-	--run-config "num-server-rounds=5 local-epochs=2 path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
+	--run-config "path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
 
+# N.B. If in the future you will check flower slack or documentation and you will see the parameter local-simulation-gpu remember that it's only the name of the federation used in the flower example
+# It is not a parameter that have any influences in your code

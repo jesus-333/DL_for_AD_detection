@@ -115,8 +115,8 @@ def server_fn(context : Context) :
     server_config   = toml.load(context.run_config["path_server_config"])
     training_config = toml.load(context.run_config["path_training_config"])
 
-    # Get seed
-    if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 1e9)
+    # Get seed 
+    if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 2**32 - 1)
     
     # Create single config dictionary
     all_config = dict(
