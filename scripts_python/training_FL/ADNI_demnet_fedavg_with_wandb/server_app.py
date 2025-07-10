@@ -69,10 +69,10 @@ def prepare_data_for_FL_training(all_config : dict) :
     dataset_info = pd.read_csv(f'{path_to_data}dataset_info.csv')
     labels_int = dataset_info['labels_int'].to_numpy()
 
-    # Set the number of clients (NOT USED).
+    # Set the number of clients .
     # If I use the centralized_evaluation, I add an extra client for the server. In this way the data will be split in n + 1 parts.
     # n parts will be used for the clients and the last one will be used for the server.
-    # n_client = all_config['server_config']['n_client'] if not all_config['server_config']['centralized_evaluation'] else all_config['server_config']['n_client'] + 1
+    n_client = all_config['server_config']['n_client'] if not all_config['server_config']['centralized_evaluation'] else all_config['server_config']['n_client'] + 1
 
     data = torch.load(f'{path_to_data}{dataset_tensor_file_name}', mmap = True)
     idx = np.arange(len(data))
@@ -80,7 +80,7 @@ def prepare_data_for_FL_training(all_config : dict) :
     # Split the data uniformly between clients
     # In this case, I only interested in the split of the indices, not the data/labels itself.The data/labels will be loaded later in the client.
     # Note that even if I not keep the labels here, I still pass them to the function, so I can use the keep_labels_proportion parameter.
-    idx_per_client, _ = support_federated_generic.split_data_for_clients_uniformly(idx, n_client = all_config['server_config']['n_client'],
+    idx_per_client, _ = support_federated_generic.split_data_for_clients_uniformly(idx, n_client = n_client,
                                                                                    seed = all_config['training_config']['seed'],
                                                                                    labels = labels_int, keep_labels_proportion = all_config['server_config']['keep_labels_proportion']
                                                                                    )
@@ -146,7 +146,6 @@ def server_fn(context : Context) :
     all_config['backup_dataset'] = dict(
         idx_data_per_client = idx_data_per_client,
         idx_data_server     = idx_data_server,
-        labels_server       = labels_server
     )
 
     # Get the number of labels
@@ -172,7 +171,7 @@ def server_fn(context : Context) :
         fraction_fit       = fraction_fit,
         fraction_evaluate  = fraction_eval,
         initial_parameters = parameters,
-        evaluate_fn        = gen_evaluate_fn(model, data_server, labels_server, all_config) if all_config['server_config']['centralized_evaluation'] else None,
+        evaluate_fn        = gen_evaluate_fn(model, idx_data_server, all_config) if all_config['server_config']['centralized_evaluation'] else None,
         fit_metrics_aggregation_fn      = support_federated_generic.weighted_average,
         evaluate_metrics_aggregation_fn = support_federated_generic.weighted_average,
         # on_fit_config_fn = on_fit_config, # TODO in future iteration
