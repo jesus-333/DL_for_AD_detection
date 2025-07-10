@@ -50,6 +50,6 @@ def test(training_config : dict, model, test_dataset) :
         test_metrics_dict = metrics.compute_metrics(model, test_loader, training_config['device'])
 
         # Save metrics
-        update_log_dict_metrics(test_metrics_dict, log_dict)
+        update_log_dict_metrics(test_metrics_dict, log_dict, label = 'test')
 
     return test_loss, log_dict

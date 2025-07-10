@@ -3,8 +3,8 @@
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Imports 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Imports
 
 import toml
 import os
@@ -18,7 +18,7 @@ from src.dataset import support_dataset_kaggle
 from src.federated import server, support_federated_generic
 from src.training import test_functions
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def gen_evaluate_fn(model, data, labels, all_config : dict) :
     """
@@ -37,13 +37,13 @@ def gen_evaluate_fn(model, data, labels, all_config : dict) :
         # Set the model weights
         support_federated_generic.set_weights(model, parameters_ndarrays)
         
-        # Trasform data and label in the dataset 
+        # Transform data and label in the dataset
         test_dataset = support_dataset_kaggle.get_dataset_with_preprocess_function_from_data(data, labels, model_config, dataset_config)
 
         # Evaluate the model on test data
         test_loss, test_metrics_dict = test_functions.test(training_config, model, test_dataset)
 
-        return test_loss, test_metrics_dict  
+        return test_loss, test_metrics_dict
 
     return evaluate
 
@@ -62,7 +62,7 @@ def prepare_data_for_FL_training(all_config : dict) :
                                                                                         )
 
     # Set the number of clients. 
-    # If I use the centralized_evaluation, I add an extra client for the server. In this way the the data will be split in n + 1 parts.
+    # If I use the centralized_evaluation, I add an extra client for the server. In this way the data will be split in n + 1 parts.
     # n parts will be used for the clients and the last one will be used for the server.
     n_client = all_config['server_config']['n_client'] if not all_config['server_config']['centralized_evaluation'] else all_config['server_config']['n_client'] + 1
 
@@ -101,7 +101,7 @@ def server_fn(context : Context):
     server_config   = toml.load(context.run_config["path_server_config"])
     training_config = toml.load(context.run_config["path_training_config"])
 
-    # Get seed 
+    # Get seed
     if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 1e8)
     
     # Create single config dictionary
@@ -116,7 +116,7 @@ def server_fn(context : Context):
     num_rounds    = server_config["num_rounds"]
     fraction_fit  = server_config["fraction_fit"]
     fraction_eval = server_config["fraction_evaluate"]
-    if len(server_config['metrics_to_log_from_clients']) == 0 : server_config['metrics_to_log_from_clients'] = None 
+    if len(server_config['metrics_to_log_from_clients']) == 0 : server_config['metrics_to_log_from_clients'] = None
 
     # Prepare dataset for FL training and central evaluation
     data_per_client, labels_per_client = prepare_data_for_FL_training(all_config)

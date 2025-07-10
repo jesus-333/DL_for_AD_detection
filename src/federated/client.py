@@ -28,7 +28,7 @@ class flower_client_v1(NumPyClient):
         self.validation_dataset = validation_dataset
 
         # Check if client id is saved inside training_config
-        # Note that usually the client_id is not speciefied in the toml file. It is added during the client creation in through the client_fn functions
+        # Note that usually the client_id is not specified in the toml file. It is added during the client creation in through the client_fn functions
         # E.g. see the function client_fn_demnet in scripts/training_FL/fedavg_with_wandb/client_app.py
         self.client_id = training_config["client_id"] if 'client_id' in training_config else -1
         if self.client_id == -1 : print('WARNING: client id not found in training_config. Set to -1')

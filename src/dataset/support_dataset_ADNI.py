@@ -10,12 +10,13 @@ Note that some of the functions are specific for my folder structure.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
-import os
 import numpy as np
+import os
+import pandas as pd
 import torch
 import torchvision
 
-from . import support_dataset
+from . import dataset, support_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -150,6 +151,99 @@ def create_ADNI_partition(file_path_list : list, label_list_int : list, label_li
     label_list_str_sampled = np.array(label_list_str_sampled)
 
     return file_path_list_sampled, label_list_int_sampled, label_list_str_sampled
+
+def get_dataset_V2(dataset_config : dict, percentage_split_train_val : float = 1, idx_to_use = None, seed : int = -1) :
+    """
+    This function is used to create the dataset when the data is stored in a single tensor file.
+    The function creates two datasets: one for training and one for validation, with the data split according to the percentage_split_train_val parameter.
+
+    TODO (?) : add the possibility to pass specific preprocessing functions to the dataset.
+
+    Parameters
+    ----------
+    dataset_config : dict
+        Dictionary with the configuration of the dataset. It must contain the following keys:
+            - 'name_tensor_file': name of the tensor file with the data.
+            - 'path_data': path to the folder with the data.
+            - 'merge_AD_class': int that represent how to merge the AD class. See merge_AD_class_function for more details.
+            - 'use_normalization': bool that indicates if the data should be normalized or not.
+            - 'apply_rescale': bool that indicates if the data should be rescaled or not. This option is added because to reduce the size of the tensor file, in some case I saved the data as uint16. The rescale convert the data to float in the range [0, 1].
+            - 'rescale_factor': Value that indicates the factor to rescale the data.
+    percentage_split_train_val : float, optional
+        Percentage of the data to use for training. The default is 1, which means that all the data is used for training and no validation set is created.
+        If you want to create a validation set, you can set this value to a number between 0 and 1. The split is done through the function get_idx_to_split_data_V3.
+        If you do not want to create a validation set, you can set this value to 1. By default, it is set to 1.
+    idx_to_use : list, optional
+        List with the indices of the samples to use from the dataset. If None, all the samples are used. The default is None.
+        This is useful to use only a subset of the dataset, e.g. for debugging purposes or to create an imbalanced dataset.
+    seed : int, optional
+        Seed for the random number generator. The default is -1, which means that a random seed is sampled from the range [0, 2**32 - 1].
+        If you want to use a specific seed, you can set this value to a positive integer. If you set it to 0 or a negative integer, a new random seed will be sampled.
+        The seed is used to split the data in train/validation sets through the function get_idx_to_split_data_V3.
+    """
+    
+    # Check seed and sample a new one if the value is not valid
+    if seed <= 0 :
+        seed = np.random.randint(0, 2**32 - 1)
+        print(f"Invalid seed value. Sample new random seed {seed}")
+
+    if percentage_split_train_val <= 0 or percentage_split_train_val > 1 :
+        raise ValueError(f"Invalid value for percentage_split_train_val. It must be in the range (0, 1). Current value: {percentage_split_train_val}")
+
+    # Get dataset info
+    dataset_tensor_file_name = dataset_config['name_tensor_file']
+    path_to_data = dataset_config['path_data']
+    dataset_info = pd.read_csv(f'{path_to_data}dataset_info.csv')
+    labels_int = dataset_info['labels_int'].to_numpy()
+    labels_str = dataset_info['labels_str'].to_numpy()
+
+    # (OPTIONAL) Merge AD classes
+    labels_int = merge_AD_class_function(labels_int, labels_str, dataset_config['merge_AD_class'])
+
+    # Get data and labels for the specific clients
+    data = torch.load(f'{path_to_data}{dataset_tensor_file_name}', mmap = True)
+
+    if idx_to_use is not None :
+        data_to_use = data[idx_to_use]
+        labels_int_to_use = labels_int[idx_to_use]
+    else :
+        data_to_use = data[:]
+        labels_int_to_use = labels_int[:]
+    
+    # Get idx to split the  data in train/validation/test
+    idx_list = support_dataset.get_idx_to_split_data_V3(labels_int_to_use, [percentage_split_train_val, 1 - percentage_split_train_val], seed)
+    idx_train, idx_validation = idx_list
+    
+    # (OPTIONAL) Create function to normalize the data
+    if dataset_config['use_normalization'] :
+        # Load precomputed dataset mean and std
+        # Note that to normalize the data I still used the global mean/std
+        # TODO add an option to use local mean/std
+        mean_dataset = torch.load(f'{path_to_data}dataset_mean.pt')
+        std_dataset  = torch.load(f'{path_to_data}dataset_std.pt')
+
+        # Create normalization function
+        preprocess_functions  = torchvision.transforms.Compose([torchvision.transforms.Normalize(mean = mean_dataset, std = std_dataset)])
+    else :
+        preprocess_functions = None
+
+    # Split data in train/validation/test
+    if dataset_config['apply_rescale'] :
+        MRI_train_dataset = dataset.MRI_dataset(data_to_use[idx_train] / dataset_config['rescale_factor'], labels_int_to_use[idx_train], preprocess_functions = preprocess_functions)
+
+        if percentage_split_train_val < 1 :
+            MRI_validation_dataset = dataset.MRI_dataset(data_to_use[idx_validation] / dataset_config['rescale_factor'], labels_int_to_use[idx_validation], preprocess_functions = preprocess_functions)
+        else :
+            MRI_validation_dataset = None
+    else :
+        MRI_train_dataset = dataset.MRI_dataset(data_to_use[idx_train], labels_int_to_use[idx_train], preprocess_functions = preprocess_functions)
+
+        if percentage_split_train_val < 1 :
+            MRI_validation_dataset = dataset.MRI_dataset(data_to_use[idx_validation], labels_int_to_use[idx_validation], preprocess_functions = preprocess_functions)
+        else :
+            MRI_validation_dataset = None
+
+    return MRI_train_dataset, MRI_validation_dataset, seed
 
 def get_depth_map_order_single_sample_from_files_list(files_list : list) :
     """

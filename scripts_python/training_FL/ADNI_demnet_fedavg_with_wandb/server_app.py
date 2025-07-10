@@ -25,14 +25,13 @@ os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def gen_evaluate_fn(model, data, labels, all_config : dict) :
+def gen_evaluate_fn(model, idx_data_server, all_config : dict) :
     """
     Generate the function for centralized evaluation.
     """
     
-    # Get the various config dict
+    # Get dataset and training config
     dataset_config  = all_config['dataset_config']
-    model_config    = all_config['model_config']
     training_config = all_config['training_config']
 
     def evaluate(server_round, parameters_ndarrays, config):
@@ -42,8 +41,8 @@ def gen_evaluate_fn(model, data, labels, all_config : dict) :
         # Set the model weights
         support_federated_generic.set_weights(model, parameters_ndarrays)
         
-        # Trasform data and label in the dataset
-        test_dataset = None
+        # Transform data and label in the dataset
+        test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = dataset_config['percentage_train'], idx_to_use = idx_data_server, seed = training_config['seed'])
 
         # Evaluate the model on test data
         test_loss, test_metrics_dict = test_functions.test(training_config, model, test_dataset)
@@ -57,6 +56,9 @@ def prepare_data_for_FL_training(all_config : dict) :
     Read the data and get the path to all of them, split uniformly between clients and save them in npy files.
     For the ADNI dataset, if I use single tensor file to store the data, I split the indices.
     I.e. I create an array with value from 0 to n - 1 (with n = total number of samples). After that, the array is split, so for each client I have a list of indices. When I load the data for a client I load only the data corresponding to the indices of that client.
+    
+    Note that the indices are saved in npy files that are later read by the client.
+    The returned indices have only the purpose to allow their backup in the dictionaries uploaded in wandb.
     """
 
     dataset_config = all_config['dataset_config']
@@ -66,10 +68,9 @@ def prepare_data_for_FL_training(all_config : dict) :
 
     dataset_info = pd.read_csv(f'{path_to_data}dataset_info.csv')
     labels_int = dataset_info['labels_int'].to_numpy()
-    labels_str = dataset_info['labels_str'].to_numpy()
 
-    # Set the number of clients.
-    # If I use the centralized_evaluation, I add an extra client for the server. In this way the the data will be split in n + 1 parts.
+    # Set the number of clients .
+    # If I use the centralized_evaluation, I add an extra client for the server. In this way the data will be split in n + 1 parts.
     # n parts will be used for the clients and the last one will be used for the server.
     n_client = all_config['server_config']['n_client'] if not all_config['server_config']['centralized_evaluation'] else all_config['server_config']['n_client'] + 1
 
@@ -79,7 +80,7 @@ def prepare_data_for_FL_training(all_config : dict) :
     # Split the data uniformly between clients
     # In this case, I only interested in the split of the indices, not the data/labels itself.The data/labels will be loaded later in the client.
     # Note that even if I not keep the labels here, I still pass them to the function, so I can use the keep_labels_proportion parameter.
-    idx_per_client, _ = support_federated_generic.split_data_for_clients_uniformly(idx, n_client = all_config['server_config']['n_client'],
+    idx_per_client, _ = support_federated_generic.split_data_for_clients_uniformly(idx, n_client = n_client,
                                                                                    seed = all_config['training_config']['seed'],
                                                                                    labels = labels_int, keep_labels_proportion = all_config['server_config']['keep_labels_proportion']
                                                                                    )
@@ -107,7 +108,7 @@ def server_fn(context : Context) :
     # cwd = os.getcwd()
     # print(cwd)
     # print(context)
-    # Apparently, even if it prin as working directory the one where you launch the flwr run command, it search for other files to the folder where pyproject.toml is located
+    # Apparently, even if it print as working directory the one where you launch the flwr run command, it search for other files to the folder where pyproject.toml is located
 
     # Get all the config dictionaries
     dataset_config  = toml.load(context.run_config["path_dataset_config"])
@@ -133,19 +134,18 @@ def server_fn(context : Context) :
     if len(server_config['wandb_config']['metrics_to_log_from_clients']) == 0 : server_config['wandb_config']['metrics_to_log_from_clients'] = None
 
     # Prepare dataset for FL training and central evaluation
-    data_per_client = prepare_data_for_FL_training(all_config)
+    idx_data_per_client = prepare_data_for_FL_training(all_config)
     
     # Save (separately) data for central evaluation
     if all_config['server_config']['centralized_evaluation'] :
-        data_server = data_per_client[-1]
+        idx_data_server = idx_data_per_client[-1]
     else :
-        data_server = labels_server = None
+        idx_data_server = labels_server = None
 
-    # Backup the dataset
+    # Backup of the indices for the various clients (and server)
     all_config['backup_dataset'] = dict(
-        data_per_client   = data_per_client,
-        data_server       = data_server,
-        labels_server     = labels_server
+        idx_data_per_client = idx_data_per_client,
+        idx_data_server     = idx_data_server,
     )
 
     # Get the number of labels
@@ -171,7 +171,7 @@ def server_fn(context : Context) :
         fraction_fit       = fraction_fit,
         fraction_evaluate  = fraction_eval,
         initial_parameters = parameters,
-        evaluate_fn        = gen_evaluate_fn(model, data_server, labels_server, all_config) if all_config['server_config']['centralized_evaluation'] else None,
+        evaluate_fn        = gen_evaluate_fn(model, idx_data_server, all_config) if all_config['server_config']['centralized_evaluation'] else None,
         fit_metrics_aggregation_fn      = support_federated_generic.weighted_average,
         evaluate_metrics_aggregation_fn = support_federated_generic.weighted_average,
         # on_fit_config_fn = on_fit_config, # TODO in future iteration

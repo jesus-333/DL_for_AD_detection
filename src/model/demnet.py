@@ -265,11 +265,11 @@ class demnet(torch.nn.Module) :
             print('No output will be returned.')
             print('Please install pytorch-grad-cam with the command : pip install pytorch-grad-cam and restart the script.')
         else :
-            gradcam = pytorch_grad_cam.GradCAM(model = self, target_layers = [self._modules[target_layer]])
+            # gradcam = pytorch_grad_cam.GradCAM(model = self, target_layers = [self._modules[target_layer]])
             # self.gradcam = pytorch_grad_cam.GradCAM(model = self, target_layers = [self.demnet_block_4.pool])
 
             target_class = [pytorch_grad_cam.utils.model_targets.ClassifierOutputTarget(target_class)]
-            grayscale_cam = self.gradcam(x, target_class )
+            grayscale_cam = self.gradcam(x, target_class)
 
             return grayscale_cam
 

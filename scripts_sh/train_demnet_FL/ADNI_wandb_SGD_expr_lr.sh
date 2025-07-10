@@ -92,6 +92,10 @@ num_clients=4
 num_rounds=20
 fraction_fit=1
 
+# Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
+# Remember also to check the wandb config inside the server config (e.g. the log_model_artifact parameter)
+# remember also to check the training config specific for fl training (e.g. use_weights_with_lower_validation_error)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Reset config files (Note that this reset only the config for the client side)
 
