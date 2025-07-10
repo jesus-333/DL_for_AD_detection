@@ -56,6 +56,10 @@ model_artifact_name="demnet_z_${input_channels}"
 name_training_run="lr_exp_gamma_rounds_${num_rounds}_clients_${num_clients}_epochs_${epochs}_batch_${batch_size}"
 log_freq=1
 
+# Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
+# Remember also to check the wandb config inside the server config (e.g. the log_model_artifact parameter)
+# remember also to check the training config specific for fl training (e.g. use_weights_with_lower_validation_error)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 hatchling build
