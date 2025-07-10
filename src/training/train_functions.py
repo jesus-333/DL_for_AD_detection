@@ -56,7 +56,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
         - print_var : bool
             If True, additional information will be printed during training (e.g. loss, learning rate). If not specified, True will be used as default value.
         - wandb_training : bool
-            If True, wandb will be used to monitor the training. If not specified, False will be used as default value. 
+            If True, wandb will be used to monitor the training. If not specified, False will be used as default value.
             If you want to track the training with wandb you should use the function wandb_train instead of this one (Note that wandb_train function will internally call this function).
         - project_name : str
             Name of the wandb project. This parameter is used only if wandb_training is set to True. If not specified, an error will be raised.
@@ -82,12 +82,12 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     """
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # Chek config and Dataloader creation
+    # Check config and Dataloader creation
 
     # Check if the training configuration
     support_training.check_training_config(training_config)
     
-    # Create DataLoaders
+    # Create Dataloaders
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size = training_config['batch_size'], shuffle = True)
     if validation_dataset is not None : validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size = training_config['batch_size'], shuffle = True)
     else : validation_loader = None
@@ -99,7 +99,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     model.to(training_config['device'])
     
     # Create loss function
-    # TODO Add option for other loss funciton
+    # TODO Add option for other loss function
     loss_function = torch.nn.CrossEntropyLoss()
     
     # Get optimizer
@@ -123,10 +123,10 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     best_loss_val = sys.maxsize # Best total loss for the validation data
 
     # Dictionaries used to saved information during training and load them on wandb.
-    # Note that this due dcitionaries serves different from purposes.
-    # computed_metrics_during_training is used to save each metric at each epoch and it is returned at the end of the training.
-    # log_dict save the metrics of a single epoch and it is used by wandb to log the metrics. It is reset at every epoch. The reset is not hardcoded (i.e. I don't have any log_dict = {} for each iteration of the cycle)
-    # But at each iteration the same key are used so basically it the same a reset because each time the values are overwritten.
+    # Note that this due Dictionaries serves different from purposes.
+    # The variable computed_metrics_during_training is used to save each metric at each epoch and it is returned at the end of the training.
+    # The variable log_dict save the metrics of a single epoch and it is used by wandb to log the metrics. It is reset at every epoch. The reset is not hardcoded (i.e. I don't have any log_dict = {} for each iteration of the cycle)
+    # But at each iteration the same key are used, so basically it the same a reset because each time the values are overwritten.
     log_dict = {}
     computed_metrics_during_training = dict()
 
@@ -280,7 +280,7 @@ def wandb_train(config : dict, model, train_dataset, validation_dataset = None) 
     train_dataset : torch.utils.data.Dataset
         Dataset to use for training
     validation_dataset : torch.utils.data.Dataset, optional
-        Dataset to use for validation, by default None. If None, no validation will be performed 
+        Dataset to use for validation, by default None. If None, no validation will be performed
     """
     
     # Check config

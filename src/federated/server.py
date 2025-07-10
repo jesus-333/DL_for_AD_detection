@@ -21,7 +21,7 @@ except ImportError :
 from . import support_federated_generic
 from . import support_federated_server
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
     """
@@ -48,7 +48,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
                 Fraction of clients to use for evaluation. It must be between 0 and 1.
                 This parameter is not used inside the class but it is used in the server_app.py file.
             - keep_labels_proportion : bool
-                If True when the data are divided among the clients, the labels proportions are kept (e.g. if the original data has 10% of class A and 90% of class B, the data for each client will have the same proportion). 
+                If True when the data are divided among the clients, the labels proportions are kept (e.g. if the original data has 10% of class A and 90% of class B, the data for each client will have the same proportion).
                 If False, the data are divided uniformly among the clients without considering the labels proportions.
                 This parameter is not used inside the class but it is used in the server_app.py file.
                 Note that this is used for FL simulation.
@@ -94,8 +94,8 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Get config dictionaries
         server_config   = all_config['server_config']
-        training_config = all_config['training_config']
         wandb_config    = server_config['wandb_config']
+        # training_config = all_config['training_config']
 
         self.all_config = all_config
 
@@ -131,14 +131,14 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Other attributes
 
-        self.count_rounds = 0
-        self.rounds_to_save_model = server_config['rounds_to_save_model']
-        self.num_rounds = server_config['num_rounds']
+        self.count_rounds = 0                                             # Track the current number of round executed
+        self.num_rounds           = server_config['num_rounds']           # Total number of federated round
+        self.rounds_to_save_model = server_config['rounds_to_save_model'] # Save the model every n rounds
         self.metrics_to_log_from_clients = server_config['metrics_to_log_from_clients'] if 'metrics_to_log_from_clients' in server_config else None
 
         self.model = model
 
-        # TODO test this features. 
+        # TODO test this features.
         # Apparently this is not working as expected. I need to investigate more.
         # The gradients and weights info are not logged into wandb
         # Probably the bug is due to the wandb.log() with a specified step
@@ -175,10 +175,11 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             support_federated_generic.set_weights(self.model, model_weights)
 
             # Save weights every rounds_to_save_model
-            if self.count_rounds % self.rounds_to_save_model == 0 :
+            if self.count_rounds % self.rounds_to_save_model == 0 and self.rounds_to_save_model > 0:
                 save_path = support_federated_generic.save_model_weights(self.model, path_to_save_model = self.all_config['training_config']['path_to_save_model'], filename = f"model_round_{self.count_rounds}.pth")
-
-                # Add weight to wandb
+                
+                # Upload the model in wandb
+                # N.B. The self.model_artifact is None only if the parameter log_model_artifact in wandb config is False
                 if self.model_artifact is not None :
                     self.model_artifact.add_file(save_path)
                     wandb.save(save_path)
@@ -244,12 +245,27 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             # print("Only the aggregated weights and the metrics of the clients will be uploaded ")
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-        if self.count_rounds == self.num_rounds and not self.all_config['server_config']['centralized_evaluation'] :
-            self.end_wandb_run_and_log_artifact()
-            print("End training rounds")
-
+        # Final operation of the round
+        
+        # Increase the number of executed rounds
         self.count_rounds += 1
+    
+        # Check If I finished the FL training
+        if self.count_rounds == self.num_rounds :
+            
+            # Save model at the end of the training
+            save_path = support_federated_generic.save_model_weights(self.model, path_to_save_model = self.all_config['training_config']['path_to_save_model'], filename = "model_round_END.pth")
+            
+            # (OPTIONAL) Upload the model in wandb
+            if self.model_artifact is not None :
+                self.model_artifact.add_file(save_path)
+                wandb.save(save_path)
+            
+            # If I did not have any evaluation function conclude the run
+            # Otherwise, if there is a central evaluation function the run is concluded inside evaluate()
+            if not self.all_config['server_config']['centralized_evaluation'] :
+                self.end_wandb_run_and_log_artifact()
+                print("End training rounds")
         
         return aggregated_parameters, aggregated_metrics
 
@@ -278,7 +294,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
                 print("NO centralized evaluation funciton provided.")
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # New function (i.e. all this funciton are not inherited from FedAvg)
+    # New function (i.e. all this function are not inherited from FedAvg)
     # TODO : consider if move them to support_federated_server
 
     def end_wandb_run_and_log_artifact(self) :
@@ -300,7 +316,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         # Apparently matplotlib is not thread safe.
         # The creation of fig and ax with the command plt.subplots() without using the default backend will cause the following warning and the crash of python.
         # UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
-        # A possibile solution suggested online was the use of a non-interactive backend
+        # A possible solution suggested online was the use of a non-interactive backend
         matplotlib.use('agg')
 
         # Create figure
@@ -373,8 +389,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             
             # Note on the / symbol inside the name of the object logged.
             # If I had the / symbol in the name all the log will be grouped together in a new section with that symbol.
-            # E.g. if I log cleint_1/train_loss and client_1/test_loss I will create to plot called train_loss and test_loss in a specific NEW section called cleint_1
-
+            # E.g. if I log client_1/train_loss and client_1/test_loss I will create to plot called train_loss and test_loss in a specific NEW section called client_1
 
     def create_and_log_wandb_metric_plot_together(self, metrics_to_plot_list, training_epochs, metrics_name_list, client_id) :
         """
