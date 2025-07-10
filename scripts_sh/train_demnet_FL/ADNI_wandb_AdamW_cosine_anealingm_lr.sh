@@ -78,7 +78,8 @@ eps=1e-8
 weight_decay=1e-5
 
 # Lr scheduler settings
-gamma=0.94
+T_max=10
+eta_min=1e-4
 
 # Information about data used for model_config
 input_channels=1
@@ -181,8 +182,9 @@ srun python ./scripts_python/training/update_optimizer.py\
 # Update learning rate scheduler config
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="ExponentialLR"\
-	--gamma=${gamma}\
+	--name="CosineAnnealingLR"\
+	--T_max=${T_max}\
+	--eta_min=${eta_min}\
 	
 # Update training config. 
 srun python ./scripts_python/training/update_training_config.py\
