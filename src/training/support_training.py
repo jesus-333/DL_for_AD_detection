@@ -54,10 +54,6 @@ def check_training_config(config : dict) :
 
     if config['use_scheduler'] : check_lr_scheduler_config(config['lr_scheduler_config'])
 
-    if 'optimizer_weight_decay' not in config :
-        print('Warning: the training configuration does not contain the key "optimizer_weight_decay" for the AdamW optimizer. 0.01 will be used as default value')
-        config['optimizer_weight_decay'] = 0.01
-
     if 'device' not in config :
         print('Warning: the training configuration does not contain the key "device". "cpu" will be used as default value')
         config['device'] = "cpu"

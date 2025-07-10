@@ -2,16 +2,14 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import flwr
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import torch
-import os
 
-try : 
+try :
     import wandb
     wandb_installed = True
 except ImportError :
@@ -114,7 +112,6 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         entity            = wandb_config['entity'] if 'entity' in wandb_config else None
         name_training_run = wandb_config['name_training_run'] if 'name_training_run' in wandb_config else None
         notes             = wandb_config['notes'] if 'notes' in wandb_config else 'No notes in config'
-
 
         # Initialize wandb
         self.wandb_run = wandb.init(project = wandb_config['project_name'],
