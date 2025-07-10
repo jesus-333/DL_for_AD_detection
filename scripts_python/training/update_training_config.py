@@ -26,10 +26,9 @@ parser.add_argument('--path_training_config'           , type = str  , default =
 parser.add_argument('--path_optimizer_config'          , type = str  , default = './config/optimizer.toml'   , help = 'Path to the toml file with the learning rate optimizer config. Default is ./config/optimizer.toml')
 parser.add_argument('--path_lr_scheduler_config'       , type = str  , default = './config/lr_scheduler.toml', help = 'Path to the toml file with the learning rate scheduler config. Default is ./config/lr_scheduler.toml')
 parser.add_argument('--batch_size'                     , type = int  , default = -1             , help = 'Batch size for training. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new batch size. Default is -1 (do not change).')
-# parser.add_argument('--lr'                             , type = float, default = -1             , help = 'Learning rate for the optimizer. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new learning rate. Default is -1 (do not change).') # Moved directly to opimizer config
 parser.add_argument('--epochs'                         , type = int  , default = -1             , help = 'Number of epochs for training. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new number of epochs. Default is -1 (do not change).')
 parser.add_argument('--device'                         , type = str  , default = 'cpu'          , help = 'Device to use for training. Default is "cpu".')
-parser.add_argument('--epoch_to_save_model'            , type = int  , default = -1             , help = 'Save model every n epochs. If a negative value (or no value) is provided, it will be set to epochs + 1, i.e. only the model at the end of training will be saved. If a positive value is provided, it will be used as the new value. Default is -1.')
+parser.add_argument('--epoch_to_save_model'            , type = int  , default = -1             , help = 'Save model every n epochs. If a negative value (or zero or no value) is provided, it will be set to epochs + 1, i.e. only the model at the end of training will be saved. Default is -1.')
 parser.add_argument('--path_to_save_model'             , type = str  , default = 'model_weights', help = 'Path to save the model weights. If the folder does not exist, it will be created. Default is "model_weights".')
 parser.add_argument('--seed'                           , type = int  , default = -1             , help = 'Seed for reproducibility. It is used to split the dataset. If a negative value (or no value) is provided, the seed will be set to a random value. Default is -1.')
 # Boolean arguments
@@ -39,7 +38,7 @@ parser.add_argument('--print_var'                      , default = True , action
 parser.add_argument('--wandb_training'                 , default = False, action = "store_true", help = 'If True, use Weights & Biases (wandb) for tracking the training. Default is False.')
 parser.add_argument('--fl_training'                    , default = False, action = "store_true", help = "If True, the training is done in Federated Learning mode. Default is False.")
 parser.add_argument('--vgg_training'                   , default = False, action = "store_true", help = "If True, the training is done using a VGG network. Default is False.")
-# Boolen negate
+# Boolean negate
 parser.add_argument('--no-use_scheduler'                  , dest ='use_scheduler'                  , action = 'store_false')
 parser.add_argument('--no-measure_metrics_during_training', dest ='measure_metrics_during_training', action = 'store_false')
 parser.add_argument('--no-print_var'                      , dest ='print_var'                      , action = 'store_false')
@@ -92,8 +91,11 @@ else :
 
 # Set the optimizer config in the training config
 # The check for the optimizer config are done directly before the training.
-optimizer_config = toml.load(args.path_optimizer_config)
-training_config['optimizer_config'] = optimizer_config
+try :
+    optimizer_config = toml.load(args.path_optimizer_config)
+    training_config['optimizer_config'] = optimizer_config
+except :
+    raise ValueError(f"Problem with the config file of the optimizer. The file {args.path_optimizer_config} does not exist")
 
 # Number of epochs
 if args.epochs is not None and args.epochs > 0 :

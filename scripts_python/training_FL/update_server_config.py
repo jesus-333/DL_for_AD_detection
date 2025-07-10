@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser(description = 'Update the server configuration 
 # Various arguments
 parser.add_argument('--path_server_config'         , type = str  , default = None, help = 'Path to the toml file with the server config. Default is ./config/serve.toml')
 parser.add_argument('--num_rounds'                 , type = int  , default = None, help = 'Number of rounds for the federated learning. It muse be a positive integer. If not provided an error will be raised.')
-parser.add_argument('--rounds_to_save_model'        , type = int  , default = -1  , help = 'Save the model every n epochs. Default is 1.')
+parser.add_argument('--rounds_to_save_model'       , type = int  , default = -1  , help = 'Save the model every n epochs. If a negative value (or no value) is provided, it will be set to epochs + 1, i.e. only the model at the end of training will be saved.  Default is -1.')
 parser.add_argument('--n_client'                   , type = int  , default = None, help = 'Number of clients for the federated learning. It must be a positive integer. If not provided an error will be raised.')
 parser.add_argument('--fraction_fit'               , type = float, default = 1   , help = 'Fraction of clients to be selected for training in each round. It must be a float between 0 and 1. Default is 1 (all clients are selected).')
 parser.add_argument('--fraction_evaluate'          , type = float, default = 1   , help = 'Fraction of clients to be selected for evaluation in each round. It must be a float between 0 and 1. Default is 1 (all clients are selected). For now this parameter does not have any effect because the evaluation is perfomed inside the training function (see the train function in src/training/train_functions.py). I keep it here as a placeholder for possible future use, where the evaluation is performed in a different function than the training one.')
@@ -59,7 +59,7 @@ args = parser.parse_args()
 server_config = dict()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Chcek and update FL parameters
+# Check and update FL parameters
 
 # Path to server config
 if args.path_server_config is not None :
