@@ -1,6 +1,6 @@
 #!/bin/sh
 
-idx=2
+idx=3
 
 # Paths to config files
 PATH_CONFIG_FOLDER="./scripts_sh/train_vgg_centralized_parallel/config/"
@@ -34,7 +34,7 @@ weight_decay=1e-5
 dampening=0
 
 # Lr scheduler settings
-T_0=2
+T_0=4
 T_mult=2
 eta_min=1e-6
 

@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=25G
-#SBATCH --time=0-02:01:00
+#SBATCH --time=0-00:20:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/output/std_output_%x_%j.txt
@@ -52,7 +52,7 @@ rescale_factor=1
 
 # Training settings
 batch_size=128
-epochs=100
+epochs=10
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
@@ -72,6 +72,7 @@ T_mult=2
 eta_min=1e-6
 
 # Wandb Settings
+project_name="vgg_ADNI"
 name_training_run="vgg_trainin_mode_${vgg_training_mode}_${name_optimizer}_cosine_warm_lr_epochs_${epochs}_batch_${batch_size}"
 name_training_run="low_lr_batch_128"
 
@@ -131,7 +132,7 @@ srun python ./scripts_python/training/update_training_config.py\
 	--vgg_training_mode=${vgg_training_mode}\
 	--no-use_vgg_normalization_values\
 	--wandb_training\
-	--project_name="vgg_ADNI"\
+	--project_name="${project_name}"\
 	--name_training_run="${name_training_run}"\
 	--model_artifact_name="${model_artifact_name}"\
 	--log_freq=1\
