@@ -111,11 +111,14 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         # In that case the key is not saved in the toml file.
         # To avoid error for this two specific keys, I check if they're present in the wandb_config dictionary.
         # If not I set them to None, since wandb allow None as value for the name and notes of the run.
-        notes = wandb_config['notes'] if 'notes' in wandb_config else 'No notes in config'
+        entity            = wandb_config['entity'] if 'entity' in wandb_config else None
         name_training_run = wandb_config['name_training_run'] if 'name_training_run' in wandb_config else None
+        notes             = wandb_config['notes'] if 'notes' in wandb_config else 'No notes in config'
+
 
         # Initialize wandb
         self.wandb_run = wandb.init(project = wandb_config['project_name'],
+                                    entity = entity,
                                     job_type = "train", config = all_config,
                                     name = name_training_run, notes = notes,
                                     )
