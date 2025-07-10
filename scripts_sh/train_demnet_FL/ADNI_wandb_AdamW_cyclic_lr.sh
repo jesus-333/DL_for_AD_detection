@@ -78,7 +78,12 @@ eps=1e-8
 weight_decay=1e-5
 
 # Lr scheduler settings
-gamma=0.94
+base_lr=1e-5
+max_lr=2e-3
+step_size_up=1
+step_size_down=4
+mode="exp_range"
+gamma=0.98
 
 # Information about data used for model_config
 input_channels=1
@@ -181,7 +186,12 @@ srun python ./scripts_python/training/update_optimizer.py\
 # Update learning rate scheduler config
 srun python ./scripts_python/training/update_lr_scheduler.py\
 	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="ExponentialLR"\
+	--name="CyclicLR"\
+	--base_lr=${base_lr}\
+	--max_lr=${max_lr}\
+	--step_size_up=${step_size_up}\
+	--step_size_down=${step_size_down}\
+	--mode=${mode}\
 	--gamma=${gamma}\
 	
 # Update training config. 

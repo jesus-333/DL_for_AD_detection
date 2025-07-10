@@ -108,16 +108,6 @@ srun python ./scripts_python/training/update_lr_scheduler.py\
 	--T_max=${T_max}\
 	--eta_min=${eta_min}\
 
-srun python ./scripts_python/training/update_lr_scheduler.py\
-	--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
-	--name="CyclicLR"\
-	--base_lr=${base_lr}\
-	--max_lr=${max_lr}\
-	--step_size_up=${step_size_up}\
-	--step_size_down=${step_size_down}\
-	--mode=${mode}\
-	--gamma=${gamma}\
-	
 srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 	--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
