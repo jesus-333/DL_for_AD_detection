@@ -51,8 +51,8 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
                 This parameter is not used inside the class but it is used in the server_app.py file.
                 Note that this is used for FL simulation.
             - centralized_evaluation : bool
-                If True, the server will evaluate the model on the validation set after each round. You must also specify the parameter evaluation_fn during the creation of the server.
-                If False, the server will not evaluate the model on the validation set after each round.
+                If True, the server will evaluate the model on the set saved in the server after each round. You must also specify the parameter evaluation_fn during the creation of the server.
+                If False, the server will not evaluate the model on the server set after each round.
             - metrics_to_log_from_clients : list | str
                 List of metrics to log from the clients. If None, no metrics will be logged. If 'all', all the metrics will be logged.
                 If a list is provided the possible metrics are accuracy, choen_kappa, sensitivity, specificity, f1.
@@ -287,7 +287,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
                 print("End training rounds")
 
             # Store and log
-            return loss, test_metrics_dict 
+            return loss, test_metrics_dict
         else :
             if self.count_rounds == 0 :
                 print("")

@@ -7,15 +7,12 @@
 # Imports
 
 import numpy as np
-import pandas as pd
 import toml
-import torch
-import torchvision
 
 from flwr.client import ClientApp, Client
 from flwr.common import Context
 
-from addl.dataset import dataset, support_dataset, support_dataset_ADNI
+from addl.dataset import support_dataset_ADNI
 from addl.federated import client
 from addl.model import demnet
 
