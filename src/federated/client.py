@@ -35,6 +35,7 @@ class flower_client_v1(NumPyClient):
 
         # Update path to save weights with client id
         self.training_config['path_to_save_model'] += f'/client_{self.client_id}'
+        self.path_to_save_client_model = self.training_config['path_to_save_model'] + f'/client_{self.client_id}'
 
         # Print information
         if self.training_config['print_var'] :
@@ -86,7 +87,7 @@ class flower_client_v1(NumPyClient):
 
         # (OPTIONAL) Load the weights that obtain the lower validation error (I.e. early stop)
         if self.training_config['use_weights_with_lower_validation_error'] :
-            path_weights_early_stop = os.path.join(self.training_config['path_to_save_model'], 'model_BEST.pth')
+            path_weights_early_stop = os.path.join(self.path_to_save_client_model, 'model_BEST.pth')
             self.model.load_state_dict(torch.load(path_weights_early_stop, map_location = self.training_config['device']))
 
         return support_federated_generic.get_weights(self.model), len(self.train_dataset), converted_training_metrics

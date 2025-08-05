@@ -7,7 +7,7 @@ The server has its own dedicate support file. See support_federated_server.py
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
 import torch
@@ -19,7 +19,7 @@ from typing import List
 
 from ..dataset import support_dataset
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Data related functions (e.g. split data)
 
 def split_data_for_clients(data, percentage_split_per_client : list, seed : int = None, labels = None, keep_labels_proportion : int = False) :
@@ -109,7 +109,7 @@ def load_data_and_labels(file_path_list_client : str, label_list_int_client : st
 
     The data files is an array of length n, with n the number of samples. Each element of the array must be a path to an image.
     The labels file is an array of length n, with n the number of samples. Each element of the array must be an integer representing the class of the corresponding image.
-    The reason for this is that the dataset class used path to images as input during creation. 
+    The reason for this is that the dataset class used path to images as input during creation.
     The choice of loading the data directly in the memory, or keep the path and load at fly during the training, is left to the user (through the parameter load_data_in_memory in the dataset creation).
     """
 
@@ -173,7 +173,7 @@ def save_model_weights(model : torch.nn.Module, path_to_save_model : str, filena
     
     Parameters
     ----------
-    model : torch.nn.Module   
+    model : torch.nn.Module
         The model to save.
     path_to_save_model : str
         The path where to save the model. If it does not exist, it will be created through os.makedirs.
@@ -192,9 +192,9 @@ def save_model_weights(model : torch.nn.Module, path_to_save_model : str, filena
     save_path = os.path.join(path_to_save_model, filename)
     torch.save(model.state_dict(), save_path)
 
-    return save_path 
+    return save_path
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Metric related functions
 
 def weighted_average(metrics_per_client):
@@ -223,14 +223,15 @@ def weighted_average(metrics_per_client):
         for metric in metrics_current_client :
             # If the metric is not present in the dictionary add it
             if metric not in weighted_metrics :
-                # Note that in weighted_metrics dictionary for each metric, I have to save the value for each client. 
+                # Notes about data structure :
+                # Note that in weighted_metrics dictionary for each metric, I have to save the value for each client.
                 # E.g. If I have a metric called 'loss_res' and 3 clients then weighted_metrics will have the following form :
                 # weighted_metrics = dict(
                 #     ...
-                #     loss_res = numpy_array[value_loss_res_clien_1, value_loss_res_clien_2, value_loss_res_clien_3]
+                #     loss_res = numpy_array[value_loss_res_client_1, value_loss_res_client_2, value_loss_res_client_3]
                 #     ...
                 # )
-                # So each array must have the same length of the number of client. This is equivalent to the lenght of metrics_per_client.
+                # So each array must have the same length of the number of client. This is equivalent to the length of metrics_per_client.
                 # Remember that metrics_per_client is a list of length equals the number of clients where each element is a dictionary with the metric of that specific client.
                 weighted_metrics[metric] = np.zeros(len(metrics_per_client))
             

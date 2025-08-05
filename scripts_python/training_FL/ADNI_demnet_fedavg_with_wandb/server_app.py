@@ -42,7 +42,9 @@ def gen_evaluate_fn(model, idx_data_server, all_config : dict) :
         support_federated_generic.set_weights(model, parameters_ndarrays)
         
         # Transform data and label in the dataset
-        test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = dataset_config['percentage_train'], idx_to_use = idx_data_server, seed = training_config['seed'])
+        # TODO Check why I use the code with the percentage_train instead of current one
+        # test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = dataset_config['percentage_train'], idx_to_use = idx_data_server, seed = training_config['seed'])
+        test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'])
 
         # Evaluate the model on test data
         test_loss, test_metrics_dict = test_functions.test(training_config, model, test_dataset)
@@ -69,7 +71,7 @@ def prepare_data_for_FL_training(all_config : dict) :
     dataset_info = pd.read_csv(f'{path_to_data}dataset_info.csv')
     labels_int = dataset_info['labels_int'].to_numpy()
 
-    # Set the number of clients .
+    # Set the number of clients.
     # If I use the centralized_evaluation, I add an extra client for the server. In this way the data will be split in n + 1 parts.
     # n parts will be used for the clients and the last one will be used for the server.
     n_client = all_config['server_config']['n_client'] if not all_config['server_config']['centralized_evaluation'] else all_config['server_config']['n_client'] + 1
@@ -104,6 +106,10 @@ def prepare_data_for_FL_training(all_config : dict) :
     return idx_per_client
 
 def server_fn(context : Context) :
+    """
+    Create and return the ServerAppComponents required by Flower
+    """
+
     # In this you want to check the working directory
     # cwd = os.getcwd()
     # print(cwd)
