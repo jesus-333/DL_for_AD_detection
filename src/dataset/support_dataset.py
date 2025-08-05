@@ -39,22 +39,30 @@ def get_idx_to_split_data_V1(n_elements : int, percentage_split : float, seed : 
     
     return idx[0:size_1], idx[size_1:]
 
-def random_split_array(input_aray,  percentage_split : float, seed : None) :
+def random_split_array(input_aray, percentage_split : float, seed : None) :
     """
     Given an input array, split it in two arrays with a specific percentage.
     The seed parameter can be used to make the split deterministic.
+    If percentage_split is 0 or 1 the same array will be returned together with an empty list.
+    If percentage_split is 0 the return value will be empty list, original array
+    If percentage_split is 1 the return value will be original array, empty list
     """
 
     # Check input parameter
-    if percentage_split <= 0 or percentage_split >= 1 : raise ValueError("percentage_split must be between 0 and 1. Current value is {}".format(percentage_split))
+    if percentage_split < 0 or percentage_split > 1 : raise ValueError("percentage_split must be between 0 and 1 (included). Current value is {}".format(percentage_split))
 
-    # Use of the seed for reproducibility
-    if seed is not None : np.random.seed(seed)
+    if percentage_split == 0 :
+        return [], input_aray[:]
+    elif percentage_split == 1 : 
+        return input_aray[:], [] 
+    else :
+        # Use of the seed for reproducibility
+        if seed is not None : np.random.seed(seed)
 
-    # Split the array
-    idx_1, idx_2 = get_idx_to_split_data_V1(len(input_aray), percentage_split)
+        # Split the array
+        idx_1, idx_2 = get_idx_to_split_data_V1(len(input_aray), percentage_split)
 
-    return input_aray[idx_1], input_aray[idx_2]
+        return input_aray[idx_1], input_aray[idx_2]
 
 def get_idx_to_split_data_V2(n_elements : int, percentage_split_list : list, seed : int = None):
     """
@@ -75,8 +83,8 @@ def get_idx_to_split_data_V2(n_elements : int, percentage_split_list : list, see
     """
     
     # Check input parameter
-    # Note that check for 0.9999999999999999 and 0.9999999999999998 is due to the float precision
-    possible_sum = [1, 0.9999999999999999, 0.9999999999999998]
+    # Note that check for 0.9999999999999999 and 0.9999999999999998, 1.0000000000000001, 1.0000000000000002 is due to the float precision
+    possible_sum = [1, 0.9999999999999999, 0.9999999999999998, 1.0000000000000001, 1.0000000000000002]
     if n_elements <= 1 : raise ValueError("n_elements must be greater than 1. Current value is {}".format(n_elements))
     if np.sum(percentage_split_list) not in possible_sum : raise ValueError("The sum of the elements in percentage_split_list must be equal to 1. Current sum is {}".format(np.sum(percentage_split_list)))
 

@@ -75,7 +75,8 @@ if args.percentage_train > 1.0 or args.percentage_validation > 1.0 or args.perce
 
 # Check if the sum of the percentages is 1.0
 sum_percentages = args.percentage_train + args.percentage_validation + args.percentage_test
-if sum_percentages == 1.0 or sum_percentages == 0.9999999999999999 or sum_percentages == 0.9999999999999998 :
+possible_sum = [1, 0.9999999999999999, 0.9999999999999998, 1.0000000000000001, 1.0000000000000002]
+if sum_percentages in possible_sum :
     # The check with 0.9999999999999999 is to avoid floating point precision issues
 
     # Save the percentages in the dataset config

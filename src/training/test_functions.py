@@ -16,7 +16,12 @@ from . import metrics
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def test(training_config : dict, model, test_dataset) :
+def test(training_config : dict, model, test_dataset, label : str = 'test') :
+    """
+    TODO Complete docstring
+    
+    label is used if you want to save the loss and the metrics with a specific name (e.g. you could use server if this function is used in for the evaluation in the central server of a FL setting)
+    """
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Setup for test
@@ -39,7 +44,7 @@ def test(training_config : dict, model, test_dataset) :
     # Save the test loss with the correct key.
     # Note that the function validation_epoch_function() save the loss inside the dictionary with the key validation_loss
     del log_dict['validation_loss']
-    log_dict['test_loss'] = test_loss
+    log_dict[f'{label}_loss'] = test_loss
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # (OPTIONAL) Optional steps during the training
@@ -50,6 +55,6 @@ def test(training_config : dict, model, test_dataset) :
         test_metrics_dict = metrics.compute_metrics(model, test_loader, training_config['device'])
 
         # Save metrics
-        update_log_dict_metrics(test_metrics_dict, log_dict, label = 'test')
+        update_log_dict_metrics(test_metrics_dict, log_dict, label = label)
 
     return test_loss, log_dict

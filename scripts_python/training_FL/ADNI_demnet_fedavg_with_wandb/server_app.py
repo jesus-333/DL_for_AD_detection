@@ -34,6 +34,9 @@ def gen_evaluate_fn(model, idx_data_server, all_config : dict) :
     dataset_config  = all_config['dataset_config']
     training_config = all_config['training_config']
 
+    # Transform data and label in the dataset
+    test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'])
+
     def evaluate(server_round, parameters_ndarrays, config):
         """
         Evaluate global model on centralized test set.
@@ -42,12 +45,10 @@ def gen_evaluate_fn(model, idx_data_server, all_config : dict) :
         support_federated_generic.set_weights(model, parameters_ndarrays)
         
         # Transform data and label in the dataset
-        # TODO Check why I use the code with the percentage_train instead of current one
-        # test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = dataset_config['percentage_train'], idx_to_use = idx_data_server, seed = training_config['seed'])
         test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'])
 
         # Evaluate the model on test data
-        test_loss, test_metrics_dict = test_functions.test(training_config, model, test_dataset)
+        test_loss, test_metrics_dict = test_functions.test(training_config, model, test_dataset, label = 'server')
 
         return test_loss, test_metrics_dict
 
