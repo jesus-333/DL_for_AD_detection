@@ -17,7 +17,7 @@ license = "Apache-2.0"
 authors = [
   { name = "Alberto (Jesus) Zancanaro", email = "alberto.zancanaro.1@gmail.com" },
 ]
-description = "A project focused on the analysis of Alzheimer's disease (AD) detection through Deep Learning"
+description = "A project focused on the analysis of Alzheimer's disease (AD) detection through Deep Learning (DL)"
 dependencies = [
     "flwr[simulation]",
 	"numpy",

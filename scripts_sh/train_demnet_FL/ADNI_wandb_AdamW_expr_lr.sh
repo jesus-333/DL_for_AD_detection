@@ -7,8 +7,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=12
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=5G
-#SBATCH --time=0-00:05:00
+#SBATCH --mem=10G
+#SBATCH --time=0-02:00:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_FL/output/std_output_%x_%j.txt
@@ -55,18 +55,18 @@ PATH_DATA="data/ADNI_axial_middle_slice/"
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
 
 # Dataset settings for each client
-merge_AD_class=0
+merge_AD_class=1
 percentage_train=0.9
 percentage_validation=0.1
 percentage_test=0
 rescale_factor=1
 
-# Training settings
+# Training settings (Client)
 batch_size=128
-epochs=3
+epochs=5
 device="cuda"
 epoch_to_save_model=-1
-path_to_save_model="model_weights_ADNI"
+path_to_save_model="model_weights/demnet_ADNI_FL/exp_lr_%j"
 seed=-1
 
 # Optimizer config
@@ -78,20 +78,20 @@ eps=1e-8
 weight_decay=1e-5
 
 # Lr scheduler settings
-gamma=0.94
+gamma=0.9
 
 # Information about data used for model_config
 input_channels=1
 input_size=176
 
 # FL settings
-num_cpus=4 # Default is 2
-max_cpu_allowed=12
-num_gpus=0.2
-max_gpu_allowed=1
-num_clients=4
-num_rounds=100
+num_clients=20
+num_rounds=60
 fraction_fit=1
+num_cpus=4 # Default is 2
+max_cpu_allowed=4
+num_gpus=1
+max_gpu_allowed=1
 
 # Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
 # Remember also to check the wandb config inside the server config (e.g. the log_model_artifact parameter)
@@ -151,7 +151,7 @@ srun python ./scripts_python/training_FL/update_server_config.py\
 	--fraction_fit=${fraction_fit}\
 	--fraction_evaluate=1.0\
 	--keep_labels_proportion\
-	--no-centralized_evaluation\
+	--centralized_evaluation\
 	--project_name="demnet_training_ADNI_FL"\
 	--entity="alberto_zancanaro_academic"\
 	--model_artifact_name="demnet_z_${input_channels}"\

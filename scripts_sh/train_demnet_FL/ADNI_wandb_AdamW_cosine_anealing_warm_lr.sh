@@ -5,10 +5,10 @@
 #SBATCH --partition=hopper
 #SBATCH --qos=iris-hopper
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=12
+#SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=5G
-#SBATCH --time=0-00:05:00
+#SBATCH --mem=10G
+#SBATCH --time=0-01:30:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_FL/output/std_output_%x_%j.txt
@@ -63,10 +63,10 @@ rescale_factor=1
 
 # Training settings
 batch_size=128
-epochs=3
+epochs=30
 device="cuda"
 epoch_to_save_model=-1
-path_to_save_model="model_weights_ADNI"
+path_to_save_model="model_weights/demnet_ADNI_FL/cos_warm_%j"
 seed=-1
 
 # Optimizer config
@@ -78,7 +78,7 @@ eps=1e-8
 weight_decay=1e-5
 
 # Lr scheduler settings
-T_0=4
+T_0=3
 T_mult=2
 eta_min=1e-6
 
@@ -87,13 +87,13 @@ input_channels=1
 input_size=176
 
 # FL settings
-num_cpus=4 # Default is 2
-max_cpu_allowed=12
-num_gpus=0.23
-max_gpu_allowed=1
-num_clients=4
-num_rounds=100
+num_clients=20
+num_rounds=20
 fraction_fit=1
+num_cpus=4 # Default is 2
+max_cpu_allowed=4
+num_gpus=1
+max_gpu_allowed=1
 
 # Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
 # Remember also to check the wandb config inside the server config (e.g. the log_model_artifact parameter)
@@ -153,7 +153,7 @@ srun python ./scripts_python/training_FL/update_server_config.py\
 	--fraction_fit=${fraction_fit}\
 	--fraction_evaluate=1.0\
 	--keep_labels_proportion\
-	--no-centralized_evaluation\
+	--centralized_evaluation\
 	--project_name="demnet_training_ADNI_FL"\
 	--entity="alberto_zancanaro_academic"\
 	--model_artifact_name="demnet_z_${input_channels}"\
