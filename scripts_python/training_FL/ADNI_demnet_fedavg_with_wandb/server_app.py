@@ -122,6 +122,7 @@ def server_fn(context : Context) :
     model_config    = toml.load(context.run_config["path_model_config"])
     server_config   = toml.load(context.run_config["path_server_config"])
     training_config = toml.load(context.run_config["path_training_config"])
+    if 'print_var' not in training_config : training_config['print_var'] = False
 
     # Get seed 
     if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 2**32 - 1)
@@ -184,6 +185,12 @@ def server_fn(context : Context) :
         # on_fit_config_fn = on_fit_config, # TODO in future iteration
     )
     config = ServerConfig(num_rounds = num_rounds)
+
+    if training_config['print_var'] :
+        print("#######################################")
+        print("SERVER APP")
+        print(model_config)
+        print("#######################################")
 
     return ServerAppComponents(strategy = strategy, config = config)
 

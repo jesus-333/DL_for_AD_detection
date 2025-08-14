@@ -28,9 +28,7 @@ def client_fn_demnet(context : Context) -> Client :
     dataset_config  = toml.load(context.run_config["path_dataset_config"])
     model_config    = toml.load(context.run_config["path_model_config"])
     training_config = toml.load(context.run_config["path_training_config"])
-    # dataset_config  = toml.load(context.node_config['dataset_config_path'])
-    # model_config    = toml.load(context.node_config["path_model_config"])
-    # training_config = toml.load(context.node_config['training_config_path'])
+    if 'print_var' not in training_config : training_config['print_var'] = False
     
     # Set the seed
     # NOT USED NOW. Since I launch all the training from the sh script, before the flwr command I called the update_trainig.py script that already set the seed in the toml file
@@ -44,6 +42,12 @@ def client_fn_demnet(context : Context) -> Client :
     idx_client = np.load(dataset_config['path_data'] + f'{client_id}_idx.npy')
 
     MRI_train_dataset, MRI_validation_dataset, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = dataset_config['percentage_train'], idx_to_use = idx_client, seed = training_config['seed'])
+    
+    if training_config['print_var'] :
+        print("#######################################")
+        print("CLIENT")
+        print("dataset_config['merge_AD_class'] ", dataset_config['merge_AD_class'])
+        print("#######################################")
 
     # Select training device
     # if torch.cuda.is_available() :
