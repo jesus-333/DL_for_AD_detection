@@ -167,9 +167,9 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
                 torch.save(model.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], 'model_BEST.pth'))
 
             if epoch == 0 : # If it is the first epoch create the list for the specific metric
-                computed_metrics_during_training["validation_loss"] = [train_loss]
+                computed_metrics_during_training["validation_loss"] = [validation_loss]
             else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
-                computed_metrics_during_training["validation_loss"].append(train_loss)
+                computed_metrics_during_training["validation_loss"].append(validation_loss)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # (OPTIONAL) Optional steps during the training

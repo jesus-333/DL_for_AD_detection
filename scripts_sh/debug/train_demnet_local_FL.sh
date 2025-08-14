@@ -33,7 +33,7 @@ batch_size=128
 epochs=3
 device="mps"
 epoch_to_save_model=-1
-path_to_save_model="model_weights_ADNI"
+path_to_save_model="model_weights_ADNI/debug_FL/"
 seed=-1
 
 # Optimizer config
