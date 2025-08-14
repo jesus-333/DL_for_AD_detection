@@ -2,8 +2,8 @@
 
 #SBATCH --job-name="train_demnet_ADNI_wandb_exp_lr"
 #SBATCH --nodes=1
-#SBATCH --partition=hopper
-#SBATCH --qos=iris-hopper
+#SBATCH --partition=gpu
+#SBATCH --qos=normal
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=12
 #SBATCH --gpus-per-task=1
@@ -66,7 +66,7 @@ batch_size=128
 epochs=5
 device="cuda"
 epoch_to_save_model=-1
-path_to_save_model="model_weights/demnet_ADNI_FL/exp_lr_%j"
+path_to_save_model="model_weights/demnet_ADNI_FL/exp_lr_${SLURM_JOB_ID}"
 seed=-1
 
 # Optimizer config
@@ -85,7 +85,7 @@ input_channels=1
 input_size=176
 
 # FL settings
-num_clients=20
+num_clients=10
 num_rounds=60
 fraction_fit=1
 num_cpus=4 # Default is 2

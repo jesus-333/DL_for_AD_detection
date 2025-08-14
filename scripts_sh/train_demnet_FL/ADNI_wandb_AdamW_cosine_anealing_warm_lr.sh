@@ -66,7 +66,7 @@ batch_size=128
 epochs=30
 device="cuda"
 epoch_to_save_model=-1
-path_to_save_model="model_weights/demnet_ADNI_FL/cos_warm_%j"
+path_to_save_model="model_weights/demnet_ADNI_FL/cos_aneal_warm_${SLURM_JOB_ID}"
 seed=-1
 
 # Optimizer config
