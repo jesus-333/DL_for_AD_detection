@@ -54,6 +54,22 @@ def gen_evaluate_fn(model, idx_data_server, all_config : dict) :
 
     return evaluate
 
+def gen_on_fit_config_fn(all_config : dict) :
+    """
+    Generate the function to update the config when the fit method is called by the client
+    """
+
+    def on_fit_config(server_round : int) :
+        """
+        Construct `config` that clients receive when running `fit()`
+        """
+
+        lr = all_config['server_config']['starting_lr_per_round'][server_round]
+
+        return {"lr" : lr}
+
+    return on_fit_config
+
 def prepare_data_for_FL_training(all_config : dict) :
     """
     Read the data and get the path to all of them, split uniformly between clients and save them in npy files.
@@ -182,7 +198,7 @@ def server_fn(context : Context) :
         evaluate_fn        = gen_evaluate_fn(model, idx_data_server, all_config) if all_config['server_config']['centralized_evaluation'] else None,
         fit_metrics_aggregation_fn      = support_federated_generic.weighted_average,
         evaluate_metrics_aggregation_fn = support_federated_generic.weighted_average,
-        # on_fit_config_fn = on_fit_config, # TODO in future iteration
+        on_fit_config_fn = gen_on_fit_config_fn(all_config) if all_config['server_config']['use_on_fit_config_function'] else None
     )
     config = ServerConfig(num_rounds = num_rounds)
 
