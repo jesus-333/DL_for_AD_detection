@@ -142,7 +142,7 @@ def set_weights(model, weights: List[np.ndarray]):
     # state_dict = OrderedDict({k : torch.Tensor(v) for k, v in params_dict})
     
     # New method
-    # With the old method
+    # With the old method ...
     state_dict = dict()
     for k, v in zip(model.state_dict().keys(), weights) :
         if 'num_batches' in k :

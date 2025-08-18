@@ -389,7 +389,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             
             # Note on the / symbol inside the name of the object logged.
             # If I had the / symbol in the name all the log will be grouped together in a new section with that symbol.
-            # E.g. if I log client_1/train_loss and client_1/test_loss I will create to plot called train_loss and test_loss in a specific NEW section called client_1
+            # E.g. if I log client_1/train_loss and client_1/test_loss I will create two plots called train_loss and test_loss in a specific NEW section called client_1
 
     def create_and_log_wandb_metric_plot_together(self, metrics_to_plot_list, training_epochs, metrics_name_list, client_id) :
         """

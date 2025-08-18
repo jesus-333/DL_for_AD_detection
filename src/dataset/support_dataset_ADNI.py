@@ -86,7 +86,7 @@ def get_dataset(list_of_path_to_data : list, n_samples : int = -1, merge_AD_clas
         if n_samples >= len(np.unique(label_list_int)) :
             return create_ADNI_partition(file_path_list, label_list_int, label_list_str, n_samples, seed)
         else :
-            raise ValueError(f"The number of samples is less than the number of classes. Please increase the number of samples. The number of samples is {n_samples} and the number of classes is {len(np.unique(label_list_int))}.") 
+            raise ValueError(f"The number of samples is less than the number of classes. Please increase the number of samples. The number of samples is {n_samples} and the number of classes is {len(np.unique(label_list_int))}.")
     else :
         return file_path_list, label_list_int, label_list_str
 
