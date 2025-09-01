@@ -99,34 +99,8 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Wandb attributes
-        
-        # Check if wandb is installed
-        if not wandb_installed : raise ImportError('wandb is not installed. Please it using "pip install wandb"')
-        
-        # Get wandb info configuration
-        # The extra check here is to avoid KeyError if the wandb_config is not present in the server_config
-        # The toml format file does not allow a key with None value. Some of the scripts used to update the config files could set the value in the dictionary to None if the corresponding argument is not provided to the script.
-        # In that case the key is not saved in the toml file.
-        # To avoid error for this two specific keys, I check if they're present in the wandb_config dictionary.
-        # If not I set them to None, since wandb allow None as value for the name and notes of the run.
-        entity            = wandb_config['entity'] if 'entity' in wandb_config else None
-        name_training_run = wandb_config['name_training_run'] if 'name_training_run' in wandb_config else None
-        notes             = wandb_config['notes'] if 'notes' in wandb_config else 'No notes in config'
-
-        # Initialize wandb
-        self.wandb_run = wandb.init(project = wandb_config['project_name'],
-                                    entity = entity,
-                                    job_type = "train", config = all_config,
-                                    name = name_training_run, notes = notes,
-                                    )
-
-        # Wandb artifact to save model weights
-        if wandb_config['log_model_artifact'] :
-            self.model_artifact = wandb.Artifact(wandb_config['model_artifact_name'], type = "model",
-                                                 description = wandb_config['description'] if 'description' in wandb_config else None,
-                                                 metadata = all_config)
-        else :
-            self.model_artifact = None
+            
+        self.wandb_run, self.model_artifact = support_federated_server.setup_wand(wandb_config, all_config)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Other attributes
@@ -138,11 +112,6 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
 
         self.model = model
 
-        # TODO test this features.
-        # Apparently this is not working as expected. I need to investigate more.
-        # The gradients and weights info are not logged into wandb
-        # Probably the bug is due to the wandb.log() with a specified step
-        # Another possibility is that the weights are not "updated", i.e. I not use backpropagation to update the model so no change is registered.
         wandb.watch(self.model, log = "all", log_freq = 1, log_graph = True)
 
     # def __del__(self):
@@ -160,111 +129,16 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         # IF executed here it throw an error
         # wandb.watch(self.model, log = "all", log_freq = 1, log_graph = True)
 
-        # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
+        # Call aggregate_fit from base class to aggregate parameters and metrics
         aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
         
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # Parameters logging, clients metrics logging
-
-        if aggregated_parameters is not None:
-            # Convert `Parameters` to `List[np.ndarray]`
-            model_weights = flwr.common.parameters_to_ndarrays(aggregated_parameters)
-            self.model_weights = model_weights
-
-            # Load updated weights into the model
-            support_federated_generic.set_weights(self.model, model_weights)
-
-            # Save weights every rounds_to_save_model
-            if self.count_rounds % self.rounds_to_save_model == 0 and self.rounds_to_save_model > 0:
-                save_path = support_federated_generic.save_model_weights(self.model, path_to_save_model = self.all_config['training_config']['path_to_save_model'], filename = f"model_round_{self.count_rounds}.pth")
-                
-                # Upload the model in wandb
-                # N.B. The self.model_artifact is None only if the parameter log_model_artifact in wandb config is False
-                if self.model_artifact is not None :
-                    self.model_artifact.add_file(save_path)
-                    wandb.save(save_path)
-
-            if self.metrics_to_log_from_clients is not None :
-            
-                # Iterate over clients
-                for i in range(len(results)) :
-                    # Get metrics log dict for current client
-                    log_dict = results[i][1].metrics
-                    
-                    # Get id and number of training epoch
-                    client_id = log_dict['client_id']
-
-                    # Create epoch arrays
-                    training_epochs = np.arange(log_dict['epochs']) + 1
-
-                    # Extract losses
-                    metrics_values_list, metrics_name_list = support_federated_server.extract_metric_from_log_dict(log_dict)
-
-                    # Plot(s) creation and log
-                    if self.metrics_to_log_from_clients == 'all' :
-                        self.create_and_log_wandb_metric_plot_separately(metrics_values_list, training_epochs, metrics_name_list, client_id)
-                    else :
-                        # Get the metrics to plot
-                        idx_of_metrics_to_plot = [i for i in range(len(metrics_values_list)) if metrics_name_list[i] in self.metrics_to_log_from_clients]
-                        metrics_values_to_plot_list = [metrics_values_list[idx] for idx in idx_of_metrics_to_plot]
-                        metrics_name_to_plot_list   = [metrics_name_list[idx] for idx in idx_of_metrics_to_plot]
-                        
-                        # TODO add option to decide if upload also the plot with the metrics merged
-                        self.create_and_log_wandb_metric_plot_separately(metrics_values_to_plot_list, training_epochs, metrics_name_to_plot_list, client_id)
-
-                        # For now this not produce the plot I want
-                        # self.create_and_log_wandb_metric_plot_together(metrics_values_to_plot_list, training_epochs, metrics_name_to_plot_list, client_id)
-
-                    # for metric_values, metric_name in zip(metrics_values_list, metrics_name_list) :
-                    #     self.create_and_log_matplotlib_metric_plot([metric_values], training_epochs, [metric_name], client_id)
-                    #     self.create_and_log_wandb_metric_plot_separately([metric_values], training_epochs, [metric_name], client_id)
-        else :
-            model_weights = None
-
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # Server metrics logging
-
-        if aggregated_metrics is not None :
-            # Dictionary to upload
-            wandb_log_dict = dict()
-            
-            # Extract the metric that I want to upload
-            for metric_name in aggregated_metrics :
-                # Check if it is the metric at the last iteration.
-                # See the function convert_training_metrics_for_upload in the client.py file for more information.
-                if 'END' in metric_name :
-                    # Save the value of the metric
-                    wandb_log_dict[metric_name.split(":")[0]] = aggregated_metrics[metric_name]
-            
-            # Upload metric
-            print("FIT ", self.count_rounds)
-            self.wandb_run.log(wandb_log_dict, step = self.count_rounds)
-        else :
-            print("Warning. No aggregated metrics obtained during aggregation phase. fit_metrics_aggregation_fn must is None or there are error with the function code.")
-            # print("Only the aggregated weights and the metrics of the clients will be uploaded ")
-
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # Final operations of the round
-        
-        # Increase the number of executed rounds
-        self.count_rounds += 1
-    
-        # Check If I finished the FL training
-        if self.count_rounds == self.num_rounds :
-            
-            # Save model at the end of the training
-            save_path = support_federated_generic.save_model_weights(self.model, path_to_save_model = self.all_config['training_config']['path_to_save_model'], filename = "model_round_END.pth")
-            
-            # (OPTIONAL) Upload the model in wandb
-            if self.model_artifact is not None :
-                self.model_artifact.add_file(save_path)
-                wandb.save(save_path)
-            
-            # If I did not have any evaluation function conclude the run
-            # Otherwise, if there is a central evaluation function the run is concluded inside evaluate()
-            if not self.all_config['server_config']['centralized_evaluation'] :
-                self.end_wandb_run_and_log_artifact()
-                print("End training rounds")
+        # Log the data from client and servers
+        aggregated_parameters, aggregated_metrics, self.model_weights, self.count_rounds = support_federated_server.aggregate_fit_log(aggregated_parameters, aggregated_metrics, server_round, results,
+                                                                                                                                      self.model, self.wandb_run,
+                                                                                                                                      self.count_rounds, self.rounds_to_save_model, self.num_rounds,
+                                                                                                                                      self.all_config,
+                                                                                                                                      self.model_artifact, self.metrics_to_log_from_clients
+                                                                                                                                      )
         
         return aggregated_parameters, aggregated_metrics
 
@@ -276,146 +150,13 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         if self.all_config['server_config']['centralized_evaluation'] :
             # Compute metrics
             loss, test_metrics_dict = super().evaluate(server_round, parameters)
-        
-            # Upload metrics
-            self.wandb_run.log(test_metrics_dict, step = self.count_rounds)
+            
+            # Log the metrics and the model
+            support_federated_server.evaluate_log(test_metrics_dict, self.wandb_run, self.count_rounds, self.num_rounds, self.model_artifact)
 
-            # Close wandb run if I'm at the last round
-            if self.count_rounds == self.num_rounds and self.all_config['server_config']['centralized_evaluation'] :
-                self.end_wandb_run_and_log_artifact()
-                print("End training rounds")
-
-            # Store and log
             return loss, test_metrics_dict
         else :
             if self.count_rounds == 0 :
                 print("")
-                print("NO centralized evaluation funciton provided.")
+                print("NO centralized evaluation function provided.")
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # New function (i.e. all this function are not inherited from FedAvg)
-    # TODO : consider if move them to support_federated_server
-
-    def end_wandb_run_and_log_artifact(self) :
-        """
-        Load the artifacts in wandb and finish the run.
-        """
-
-        # (OPTIONAL) Log model artifact
-        if self.model_artifact is not None : self.wandb_run.log_artifact(self.model_artifact)
-
-        # Conclude run
-        self.wandb_run.finish()
-
-    def create_matplotlib_metric_plot(self, metrics_to_plot_list : list, training_epochs, metrics_name_list : list, client_id : str) :
-        """
-        Create a plot with matplotlib for the metrics in metrics_to_plot_list. Each element of the list must be an array/list with the value of the metric for each epoch.
-        """
-        
-        # Apparently matplotlib is not thread safe.
-        # The creation of fig and ax with the command plt.subplots() without using the default backend will cause the following warning and the crash of python.
-        # UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
-        # A possible solution suggested online was the use of a non-interactive backend
-        matplotlib.use('agg')
-
-        # Create figure
-        fig, ax = plt.subplots(1, 1, figsize = (16, 10))
-        fontsize = 16
-
-        for i in range(len(metrics_name_list)) :
-            # Plot the metric
-            ax.plot(training_epochs, metrics_to_plot_list[i], label = metrics_name_list[i])
-            
-            # Add details
-            ax.legend(fontsize = fontsize)
-            ax.set_xlabel('Epoch', fontsize = fontsize)
-            ax.set_ylabel('Loss', fontsize = fontsize)
-            ax.grid(True)
-
-        fig.tight_layout()
-
-        return fig, ax
-
-    def create_and_log_matplotlib_metric_plot(self, metrics_to_plot_list, training_epochs, metrics_name_list, client_id) :
-        """
-        Create a plot with matplotlib for the metric(s) inside metrics_to_plot_list and log it to wandb.
-        """
-        fig, _ = self.create_matplotlib_metric_plot(metrics_to_plot_list, training_epochs, metrics_name_list, client_id)
-        
-        # Name for the plot to log
-        if len(metrics_name_list) == 1 :
-            # Only 1 metric
-            metric_name = metrics_name_list[0]
-        else :
-            # More than 1 metric
-            metric_name = 'all'
-        
-        # Log the plot in wandb
-        self.wandb_run.log({
-            f"client_{client_id}/{metric_name}_round_{self.count_rounds}_plt" : fig
-        }, commit = False)
-
-        plt.close()
-
-    def create_and_log_wandb_metric_plot_separately(self, metrics_to_plot_list, training_epochs, metrics_name_list, client_id) :
-        """
-        Similar to create_and_log_matplotlib_metric_plot but the plot is created through wandb functions.
-        Note that this function create a single plot for every metric you want to log. If you want to log more metrics in a single plot use create_and_log_wandb_metric_plot_together
-        Here more info https://docs.wandb.ai/guides/track/log/plots/ and https://wandb.ai/wandb/plots/reports/Custom-Line-Plots--VmlldzoyNjk5NTA
-        """
-        
-        for i in range(len(metrics_to_plot_list)) :
-            metric = metrics_to_plot_list[i]
-            metric_name = metrics_name_list[i]
-
-            # Convert the metric for wandb upload
-            data = [[current_epoch, metric_value_current_epoch] for (current_epoch, metric_value_current_epoch) in zip(range(len(metric)), metric)]
-
-            # Create the table
-            table = wandb.Table(data = data, columns=["epochs", metric_name])
-
-            # Log the plot in wandb
-            self.wandb_run.log({
-                f"client_{client_id}/{metric_name}_round_{self.count_rounds}" : wandb.plot.line(
-                    table, "epochs", metric_name, title = f"{metric_name}_round_{self.count_rounds}"
-                )
-            }, commit = False)
-            
-            # Note on commit parameter
-            # Description of commit parameter (from https://docs.wandb.ai/ref/python/log/)
-            #   commit : If true, finalize and upload the step. If false, then accumulate data for the step. See the notes in the description. If step is None, then the default is commit=True; otherwise, the default is commit=False.
-            # By default also step is None. So by default commit is True
-            
-            # Note on the / symbol inside the name of the object logged.
-            # If I had the / symbol in the name all the log will be grouped together in a new section with that symbol.
-            # E.g. if I log client_1/train_loss and client_1/test_loss I will create to plot called train_loss and test_loss in a specific NEW section called client_1
-
-    def create_and_log_wandb_metric_plot_together(self, metrics_to_plot_list, training_epochs, metrics_name_list, client_id) :
-        """
-        Similar to create_and_log_matplotlib_metric_plot_separately but the metrics are plotted in the same figure.
-        """
-        
-        # Create the first columns with epochs
-        data = [[epoch] for epoch in training_epochs]
-
-        # Add the other metrics as columns
-        plot_log_name = f"client_{client_id}/"
-        for i in range(len(metrics_to_plot_list)) :
-            metric_array = metrics_to_plot_list[i]
-            metric_name = metrics_name_list[i]
-            plot_log_name += f"{metric_name}_"
-            
-            # Iterate over epoch (i.e. get the value of the current metric for every epoch)
-            for j in range(len(metric_array)) : data[j].append(metric_array[j])
-        
-        plot_log_name += f"round_{self.count_rounds}"
-
-        # Create the table 
-        table = wandb.Table(data = data, columns = ["epochs", *metrics_name_list])
-
-        # Log the plot in wandb
-        self.wandb_run.log({
-            plot_log_name : wandb.plot.line(
-                table, "epochs", "Metrics value", title = f"{[metrics_name_list]}_round_{self.count_rounds}"
-            )
-        }, commit = False)

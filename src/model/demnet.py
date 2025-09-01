@@ -6,7 +6,7 @@ For more information about the model see https://ieeexplore.ieee.org/abstract/do
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import torch
 import matplotlib.pyplot as plt
@@ -15,10 +15,11 @@ import os
 try :
     import pytorch_grad_cam
     gradcam_available = True
-except : 
+except :
     print("Warning: pytorch-grad-cam not found. The XAI functions will not work. You can install the package with 'pip install grad-cam'")
     print('See here for more details : https://github.com/jacobgil/pytorch-grad-cam')
     gradcam_available = False
+
 try :
     import wandb
     wandb_available = True
@@ -28,7 +29,7 @@ except :
 
 from . import support_model
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class demnet(torch.nn.Module) :
     """
@@ -108,7 +109,7 @@ class demnet(torch.nn.Module) :
         activation = support_model.get_activation(config['activation'])
         self.use_as_features_extractor = False
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Convolutional layers (feature extraction)
 
         self.conv_1 = torch.nn.Sequential(
@@ -133,7 +134,7 @@ class demnet(torch.nn.Module) :
         self.dropout_1 = torch.nn.Dropout2d(config['dropout_rate_1'])
         self.dropout_2 = torch.nn.Dropout2d(config['dropout_rate_2'])
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Fully connected layers (classification)
 
         self.flatten = torch.nn.Flatten()
@@ -250,7 +251,7 @@ class demnet(torch.nn.Module) :
         ----------
         x : torch.tensor
             Input tensor. Shape must be B x C x H x W
-        target_layer : str 
+        target_layer : str
             Layer to use to compute the Grad-CAM. The possible values are : conv_1, conv_2, demnet_block_1, demnet_block_2, demnet_block_3, demnet_block_4
         target_class : int
             Class to use to compute the Grad-CAM.

@@ -65,8 +65,30 @@ class flower_client_v1(NumPyClient):
         return support_federated_generic.get_weights(self.model)
 
     def fit(self, parameters, config):
+        """
+        Fit function for the clients
+
+        Parameters
+        ----------
+        parameters : list
+            List of model parameters received from the server.
+        config : dict
+            Dictionary with the training configuration received from the server.
+            Note that this dictionary is the one created by the function on_fit_config_fn, if passed. Otherwise the dictionary will be empty.
+
+        Returns
+        -------
+        tuple
+            A tuple with the following elements:
+            - The model parameters after training.
+            - The number of samples used for training (it is used by the server to compute the weighted average).
+            - A dictionary with the training metrics (e.g. loss, accuracy, etc.) to be uploaded to the server.
+        """
         # Set the parameters (received from the server)
         support_federated_generic.set_weights(self.model, parameters)
+
+        # Check config
+        if 'lr' in config : self.training_config['optimizer_config']['lr'] = config['lr']
 
         # Update training config
         for key in config :
