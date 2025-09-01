@@ -35,7 +35,7 @@ class flower_client_v1(NumPyClient):
 
         # Update path to save weights with client id
         self.training_config['path_to_save_model'] += f'/client_{self.client_id}'
-        self.path_to_save_client_model = self.training_config['path_to_save_model'] + f'/client_{self.client_id}'
+        self.path_to_save_client_model = self.training_config['path_to_save_model']
 
         # Print information
         if self.training_config['print_var'] :
@@ -77,6 +77,11 @@ class flower_client_v1(NumPyClient):
         if self.training_config['print_var'] : print(f"START TRAINING Client {self.client_id}")
         self.model, training_metrics = train_functions.train(self.training_config, self.model, self.train_dataset, self.validation_dataset)
         if self.training_config['print_var'] : print(f"END TRAINING Client {self.client_id}")
+    
+        # print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        # print("Training metrics for client ", self.client_id)
+        # import pprint
+        # pprint.pprint(training_metrics)
 
         # Convert metrics (see notes in the function description)
         converted_training_metrics = self.convert_training_metrics_for_upload(training_metrics)

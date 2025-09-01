@@ -239,13 +239,12 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             # Upload metric
             print("FIT ", self.count_rounds)
             self.wandb_run.log(wandb_log_dict, step = self.count_rounds)
-            # self.wandb_run.log(wandb_log_dict)
         else :
             print("Warning. No aggregated metrics obtained during aggregation phase. fit_metrics_aggregation_fn must is None or there are error with the function code.")
             # print("Only the aggregated weights and the metrics of the clients will be uploaded ")
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # Final operation of the round
+        # Final operations of the round
         
         # Increase the number of executed rounds
         self.count_rounds += 1
