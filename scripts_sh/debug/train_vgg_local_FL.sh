@@ -40,7 +40,7 @@ rescale_factor=4095
 # Training settings
 batch_size=128
 epochs=2
-device="cuda"
+device="mps"
 epoch_to_save_model=-1
 path_to_save_model="model_weights/debug_FL"
 seed=-1
@@ -132,9 +132,10 @@ python ./scripts_python/training_FL/update_server_config.py\
 	--fraction_fit=${fraction_fit}\
 	--fraction_evaluate=1.0\
 	--keep_labels_proportion\
-	--no-centralized_evaluation\
-	--project_name="demnet_training_ADNI_FL"\
-	--model_artifact_name="demnet_z_${input_channels}"\
+	--centralized_evaluation\
+	--no-use_on_fit_config_function\
+	--project_name="vgg_training_ADNI_FL"\
+	--model_artifact_name="vgg_z_${input_channels}"\
 	--log_freq=1\
 	--no-log_model_artifact\
 	--metrics_to_log_from_clients="accuracy_train accuracy_validation"\
@@ -188,7 +189,7 @@ python ./scripts_python/training/update_training_config.py\
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Launch FL Training
 
-flwr run ./scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb/\
+flwr run ./scripts_python/training_FL/ADNI_vgg_fedavg_with_wandb/\
 	--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
 	--run-config "num-server-rounds=5 local-epochs=2 path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
 
