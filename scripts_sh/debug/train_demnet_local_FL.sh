@@ -33,7 +33,7 @@ batch_size=128
 epochs=3
 device="mps"
 epoch_to_save_model=-1
-path_to_save_model="model_weights_ADNI/debug_FL/"
+path_to_save_model="model_weights_ADNI/debug_FL"
 seed=-1
 
 # Optimizer config
@@ -124,6 +124,7 @@ python ./scripts_python/training_FL/update_server_config.py\
 	--fraction_evaluate=1.0\
 	--keep_labels_proportion\
 	--centralized_evaluation\
+	--use_on_fit_config_function\
 	--project_name="test_code"\
 	--entity="alberto_zancanaro_academic"\
 	--model_artifact_name="test_artifact"\

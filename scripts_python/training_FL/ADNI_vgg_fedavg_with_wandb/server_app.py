@@ -25,7 +25,7 @@ os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def gen_evaluate_fn(model, idx_data_server, all_config : dict) :
+def gen_evaluate_fn(model, idx_data_server, all_config : dict, preprocess_functions) :
     """
     Generate the function for centralized evaluation.
     """
@@ -33,9 +33,9 @@ def gen_evaluate_fn(model, idx_data_server, all_config : dict) :
     # Get dataset and training config
     dataset_config  = all_config['dataset_config']
     training_config = all_config['training_config']
-
+    
     # Transform data and label in the dataset
-    test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'])
+    # test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'], preprocess_functions = preprocess_functions)
 
     def evaluate(server_round, parameters_ndarrays, config):
         """
@@ -45,7 +45,7 @@ def gen_evaluate_fn(model, idx_data_server, all_config : dict) :
         support_federated_generic.set_weights(model, parameters_ndarrays)
         
         # Transform data and label in the dataset
-        test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'])
+        test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'], preprocess_functions = preprocess_functions)
 
         # Evaluate the model on test data
         test_loss, test_metrics_dict = test_functions.test(training_config, model, test_dataset, label = 'server')
@@ -184,6 +184,26 @@ def server_fn(context : Context) :
     # Create model
     model = vgg_nets.get_vgg(model_config, return_preprocess_functions = False)
 
+    # Get Customize Preprocess Functions
+    if dataset_config['use_normalization'] :
+        # Get mean and std for normalization
+        if training_config['use_vgg_normalization_values'] :
+            preprocess_functions = download_published_model.get_preprocess_functions('vgg')
+
+            # Save them in the config (In this way I save them also on wandb)
+            dataset_config['mean_dataset'] = torch.tensor([0.485, 0.456, 0.406])
+            dataset_config['std_dataset']  = torch.tensor([0.229, 0.224, 0.225])
+        else :
+            mean_dataset = torch.load(f'{dataset_config['path_data']}dataset_mean.pt')
+            std_dataset  = torch.load(f'{dataset_config['path_data']}dataset_std.pt')
+            preprocess_functions = download_published_model.get_preprocess_functions('vgg', mean = mean_dataset, std = std_dataset)
+
+            # Save them in the config (In this way I save them also on wandb)
+            dataset_config['mean_dataset'] = mean_dataset
+            dataset_config['std_dataset']  = std_dataset
+    else :
+        preprocess_functions = None
+
     # Initialize model parameters
     ndarrays = support_federated_generic.get_weights(model)
     parameters = ndarrays_to_parameters(ndarrays)
@@ -195,7 +215,7 @@ def server_fn(context : Context) :
         fraction_fit       = fraction_fit,
         fraction_evaluate  = fraction_eval,
         initial_parameters = parameters,
-        evaluate_fn        = gen_evaluate_fn(model, idx_data_server, all_config) if all_config['server_config']['centralized_evaluation'] else None,
+        evaluate_fn        = gen_evaluate_fn(model, idx_data_server, all_config, preprocess_functions) if all_config['server_config']['centralized_evaluation'] else None,
         fit_metrics_aggregation_fn      = support_federated_generic.weighted_average,
         evaluate_metrics_aggregation_fn = support_federated_generic.weighted_average,
         on_fit_config_fn = gen_on_fit_config_fn(all_config) if all_config['server_config']['use_on_fit_config_function'] else None

@@ -99,7 +99,6 @@ echo "NUM CLASSES ${num_classes}"
 python ./scripts_python/training/update_model_config_vgg.py\
 	--path_model_config=${PATH_MODEL_CONFIG}\
 	--input_channels=${input_channels}\
-	--input_size=${input_size}\
 	--num_classes=${num_classes}\
 	--version=${vgg_version}\
 	--batch_norm\

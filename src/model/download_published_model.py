@@ -29,7 +29,7 @@ def download_resnet50(pretrained = True) :
 
     return model
 
-def download_vgg_nets(version : int, batch_normalization : bool, pretrained = True) :
+def download_vgg_nets(version : int, batch_norm : bool, pretrained = True) :
     """
     Download a version of the VGG network
     https://pytorch.org/hub/pytorch_vision_vgg/
@@ -39,7 +39,7 @@ def download_vgg_nets(version : int, batch_normalization : bool, pretrained = Tr
         raise ValueError(f"Version is not valid. Possible version are 11, 13, 16 or 19. Current value is {version}")
 
     version_name = f'vgg{version}'
-    if batch_normalization : version_name += '_bn'
+    if batch_norm : version_name += '_bn'
 
     model = torch.hub.load('pytorch/vision:v0.10.0', version_name, pretrained = pretrained)
     preprocess_functions = get_preprocess_functions('vgg')

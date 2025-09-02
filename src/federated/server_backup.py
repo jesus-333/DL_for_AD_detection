@@ -1,0 +1,309 @@
+"""
+@author: Alberto Zancanaro (Jesus)
+@organization: Luxembourg Centre for Systems Biomedicine (LCSB)
+"""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+import flwr
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+
+try :
+    import wandb
+    wandb_installed = True
+except ImportError :
+    print('Warning: wandb is not installed. The class fed_avg_with_wandb_tracking will not works. If you want to use it, please install it using "pip install wandb" ')
+    wandb_installed = False
+
+from . import support_federated_generic
+from . import support_federated_server
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
+    """
+    A class that behaves like FedAvg but with the possibility to log the results through wandb.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        The model to use for the training.
+    all_config : dict
+        Dictionayy with all the configuration parameters. It must contain the following keys:
+        - server_config : dict
+            Dictionary with the server configuration. Note that not all the keys are used inside this class. Some of them are used in the server_app creation (see for example the file server_app.py in scripts/training_FL/fedavg_with_wandb).
+            The possible keys are:
+            - num_rounds : int
+                Number of rounds to run.
+            - n_client : int
+                Number of clients to use. It must be equal to the number of supernodes specified in pyproject.toml.
+                This parameter is not used inside the class but it is used in the server_app.py file.
+            - fraction_fit : float
+                Fraction of clients to use for training. It must be between 0 and 1.
+                This parameter is not used inside the class but it is used in the server_app.py file.
+            - fraction_evaluate : float
+                Fraction of clients to use for evaluation. It must be between 0 and 1.
+                This parameter is not used inside the class but it is used in the server_app.py file.
+            - keep_labels_proportion : bool
+                If True when the data are divided among the clients, the labels proportions are kept (e.g. if the original data has 10% of class A and 90% of class B, the data for each client will have the same proportion).
+                If False, the data are divided uniformly among the clients without considering the labels proportions.
+                This parameter is not used inside the class but it is used in the server_app.py file.
+                Note that this is used for FL simulation.
+            - centralized_evaluation : bool
+                If True, the server will evaluate the model on the set saved in the server after each round. You must also specify the parameter evaluation_fn during the creation of the server.
+                If False, the server will not evaluate the model on the server set after each round.
+            - metrics_to_log_from_clients : list | str
+                List of metrics to log from the clients. If None, no metrics will be logged. If 'all', all the metrics will be logged.
+                If a list is provided the possible metrics are accuracy, choen_kappa, sensitivity, specificity, f1.
+            - metrics_plot_backend : str
+                The backend to use to create the clients metrics plot. This parameter is used only if the parameter metrics_to_log_from_clients is not None. It can be 'matplotlib' or 'wandb'.
+        - dataset_config : dict
+            Dictionary with the dataset configuration. The possible keys are the input parameters of the class inside src/dataset/dataset.py
+        - model_config : dict
+            Dictionary with the model configuration. The possible keys depends on the model used. See the files inside src/model for more information.
+        - training_config : dict
+            Dictionary with the training configuration. See the documentation of train() function inside src/train_functions.py for more information about possible keys.
+    *args, **kwargs : other parameters inherited from FedAvg
+
+    Attributes
+    ----------
+    all_config : dict
+        Dictionary with all the configuration parameters. See above for more information. This dictionary will be logged on wandb as run config and as artifact metadata.
+    wandb_run : wandb.run
+        Wandb run object. It is used to log the results on wandb. See https://docs.wandb.ai/ref/python/init and https://docs.wandb.ai/ref/python/run/ for more information.
+    model_artifact : wandb.Artifact
+        Wandb artifact object. It is used to save the model weights on wandb. See https://docs.wandb.ai/ref/python/artifact for more information.
+    count_rounds : int
+        Counter for the number of rounds. It is used as step for wandb logging.
+    num_rounds : int
+        Number of rounds to run. It is used to stop the wandb run after the last round. The value is taken from the server_config dictionary.
+    metrics_to_log_from_clients : list | str
+        List of metrics to log from the clients. If None, no metrics will be logged. If 'all', all the metrics will be logged.
+        If a list is provided the possible metrics are accuracy, choen_kappa, sensitivity, specificity, f1.
+        It is taken from the server_config dictionary.
+    model : torch.nn.Module
+        The model to use for the training. Its weights will be saved in wandb as pth file.
+    """
+
+    def __init__(self, model, all_config : dict, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Get config dictionaries
+        server_config   = all_config['server_config']
+        wandb_config    = server_config['wandb_config']
+        # training_config = all_config['training_config']
+
+        self.all_config = all_config
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Wandb attributes
+        
+        # Check if wandb is installed
+        if not wandb_installed : raise ImportError('wandb is not installed. Please it using "pip install wandb"')
+        
+        # Get wandb info configuration
+        # The extra check here is to avoid KeyError if the wandb_config is not present in the server_config
+        # The toml format file does not allow a key with None value. Some of the scripts used to update the config files could set the value in the dictionary to None if the corresponding argument is not provided to the script.
+        # In that case the key is not saved in the toml file.
+        # To avoid error for this two specific keys, I check if they're present in the wandb_config dictionary.
+        # If not I set them to None, since wandb allow None as value for the name and notes of the run.
+        entity            = wandb_config['entity'] if 'entity' in wandb_config else None
+        name_training_run = wandb_config['name_training_run'] if 'name_training_run' in wandb_config else None
+        notes             = wandb_config['notes'] if 'notes' in wandb_config else 'No notes in config'
+
+        # Initialize wandb
+        self.wandb_run = wandb.init(project = wandb_config['project_name'],
+                                    entity = entity,
+                                    job_type = "train", config = all_config,
+                                    name = name_training_run, notes = notes,
+                                    )
+
+        # Wandb artifact to save model weights
+        if wandb_config['log_model_artifact'] :
+            self.model_artifact = wandb.Artifact(wandb_config['model_artifact_name'], type = "model",
+                                                 description = wandb_config['description'] if 'description' in wandb_config else None,
+                                                 metadata = all_config)
+        else :
+            self.model_artifact = None
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Other attributes
+
+        self.count_rounds = 0                                             # Track the current number of round executed
+        self.num_rounds           = server_config['num_rounds']           # Total number of federated round
+        self.rounds_to_save_model = server_config['rounds_to_save_model'] # Save the model every n rounds
+        self.metrics_to_log_from_clients = server_config['metrics_to_log_from_clients'] if 'metrics_to_log_from_clients' in server_config else None
+
+        self.model = model
+
+        # TODO test this features.
+        # Apparently this is not working as expected. I need to investigate more.
+        # The gradients and weights info are not logged into wandb
+        # Probably the bug is due to the wandb.log() with a specified step
+        # Another possibility is that the weights are not "updated", i.e. I not use backpropagation to update the model so no change is registered.
+        wandb.watch(self.model, log = "all", log_freq = 1, log_graph = True)
+
+    # def __del__(self):
+    #     print("END SERVER AND WANDB LOG")
+    #     self.wandb_run.finish()
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Override methods from FedAvg
+
+    def aggregate_fit(self, server_round: int, results, failures) :
+        """
+        Aggregate the results from the clients and upload the results in wandb
+        """
+
+        # IF executed here it throw an error
+        # wandb.watch(self.model, log = "all", log_freq = 1, log_graph = True)
+
+        # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
+        aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
+        
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Parameters logging, clients metrics logging
+
+        if aggregated_parameters is not None:
+            # Convert `Parameters` to `List[np.ndarray]`
+            model_weights = flwr.common.parameters_to_ndarrays(aggregated_parameters)
+            self.model_weights = model_weights
+
+            # Load updated weights into the model
+            support_federated_generic.set_weights(self.model, model_weights)
+
+            # Save weights every rounds_to_save_model
+            if self.count_rounds % self.rounds_to_save_model == 0 and self.rounds_to_save_model > 0:
+                save_path = support_federated_generic.save_model_weights(self.model, path_to_save_model = self.all_config['training_config']['path_to_save_model'], filename = f"model_round_{self.count_rounds}.pth")
+                
+                # Upload the model in wandb
+                # N.B. The self.model_artifact is None only if the parameter log_model_artifact in wandb config is False
+                if self.model_artifact is not None :
+                    self.model_artifact.add_file(save_path)
+                    wandb.save(save_path)
+
+            if self.metrics_to_log_from_clients is not None :
+            
+                # Iterate over clients
+                for i in range(len(results)) :
+                    # Get metrics log dict for current client
+                    log_dict = results[i][1].metrics
+                    
+                    # Get id and number of training epoch
+                    client_id = log_dict['client_id']
+
+                    # Create epoch arrays
+                    training_epochs = np.arange(log_dict['epochs']) + 1
+
+                    # Extract losses
+                    metrics_values_list, metrics_name_list = support_federated_server.extract_metric_from_log_dict(log_dict)
+
+                    # Plot(s) creation and log
+                    if self.metrics_to_log_from_clients == 'all' :
+                        support_federated_server.create_and_log_wandb_metric_plot_separately(metrics_values_list, training_epochs, metrics_name_list, client_id, self.count_rounds, self.wandb_run)
+                    else :
+                        # Get the metrics to plot
+                        idx_of_metrics_to_plot = [i for i in range(len(metrics_values_list)) if metrics_name_list[i] in self.metrics_to_log_from_clients]
+                        metrics_values_to_plot_list = [metrics_values_list[idx] for idx in idx_of_metrics_to_plot]
+                        metrics_name_to_plot_list   = [metrics_name_list[idx] for idx in idx_of_metrics_to_plot]
+                        
+                        # TODO add option to decide if upload also the plot with the metrics merged
+                        support_federated_server.create_and_log_wandb_metric_plot_separately(metrics_values_to_plot_list, training_epochs, metrics_name_to_plot_list, client_id, self.count_rounds, self.wandb_run)
+
+                        # For now this not produce the plot I want
+                        # self.create_and_log_wandb_metric_plot_together(metrics_values_to_plot_list, training_epochs, metrics_name_to_plot_list, client_id)
+
+                    # for metric_values, metric_name in zip(metrics_values_list, metrics_name_list) :
+                    #     self.create_and_log_matplotlib_metric_plot([metric_values], training_epochs, [metric_name], client_id)
+                    #     self.create_and_log_wandb_metric_plot_separately([metric_values], training_epochs, [metric_name], client_id)
+        else :
+            model_weights = None
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Server metrics logging
+
+        if aggregated_metrics is not None :
+            # Dictionary to upload
+            wandb_log_dict = dict()
+            
+            # Extract the metric that I want to upload
+            for metric_name in aggregated_metrics :
+                # Check if it is the metric at the last iteration.
+                # See the function convert_training_metrics_for_upload in the client.py file for more information.
+                if 'END' in metric_name :
+                    # Save the value of the metric
+                    wandb_log_dict[metric_name.split(":")[0]] = aggregated_metrics[metric_name]
+            
+            # Upload metric
+            print("FIT ", self.count_rounds)
+            self.wandb_run.log(wandb_log_dict, step = self.count_rounds)
+            # self.wandb_run.log(wandb_log_dict)
+        else :
+            print("Warning. No aggregated metrics obtained during aggregation phase. fit_metrics_aggregation_fn must is None or there are error with the function code.")
+            # print("Only the aggregated weights and the metrics of the clients will be uploaded ")
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Final operation of the round
+        
+        # Increase the number of executed rounds
+        self.count_rounds += 1
+    
+        # Check If I finished the FL training
+        if self.count_rounds == self.num_rounds :
+            
+            # Save model at the end of the training
+            save_path = support_federated_generic.save_model_weights(self.model, path_to_save_model = self.all_config['training_config']['path_to_save_model'], filename = "model_round_END.pth")
+            
+            # (OPTIONAL) Upload the model in wandb
+            if self.model_artifact is not None :
+                self.model_artifact.add_file(save_path)
+                wandb.save(save_path)
+            
+            # If I did not have any evaluation function conclude the run
+            # Otherwise, if there is a central evaluation function the run is concluded inside evaluate()
+            if not self.all_config['server_config']['centralized_evaluation'] :
+                self.end_wandb_run_and_log_artifact()
+                print("End training rounds")
+        
+        return aggregated_parameters, aggregated_metrics
+
+    def evaluate(self, server_round, parameters):
+        """
+        Run centralized evaluation if callback was passed to strategy init.
+        """
+
+        if self.all_config['server_config']['centralized_evaluation'] :
+            # Compute metrics
+            loss, test_metrics_dict = super().evaluate(server_round, parameters)
+        
+            # Upload metrics
+            self.wandb_run.log(test_metrics_dict, step = self.count_rounds)
+
+            # Close wandb run if I'm at the last round
+            if self.count_rounds == self.num_rounds and self.all_config['server_config']['centralized_evaluation'] :
+                self.end_wandb_run_and_log_artifact()
+                print("End training rounds")
+
+            # Store and log
+            return loss, test_metrics_dict
+        else :
+            if self.count_rounds == 0 :
+                print("")
+                print("NO centralized evaluation funciton provided.")
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # New function (i.e. all this function are not inherited from FedAvg)
+    # TODO : consider if move them to support_federated_server
+
+    def end_wandb_run_and_log_artifact(self) :
+        """
+        Load the artifacts in wandb and finish the run.
+        """
+
+        # (OPTIONAL) Log model artifact
+        if self.model_artifact is not None : self.wandb_run.log_artifact(self.model_artifact)
+
+        # Conclude run
+        self.wandb_run.finish()

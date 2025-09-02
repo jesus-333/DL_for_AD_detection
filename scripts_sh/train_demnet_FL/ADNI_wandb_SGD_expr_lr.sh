@@ -66,7 +66,7 @@ batch_size=128
 epochs=10
 device="cuda"
 epoch_to_save_model=-1
-path_to_save_model="model_weights/demnet_ADNI_FL/exp_lr_SGD${SLURM_JOB_ID}"
+path_to_save_model="model_weights/demnet_ADNI_FL/exp_lr_SGD_${SLURM_JOB_ID}"
 seed=-1
 
 # Optimizer config
