@@ -60,7 +60,7 @@ parser.add_argument('--use_weights_with_lower_validation_error'   , default = Fa
 parser.add_argument('--no-use_weights_with_lower_validation_error', dest ='use_weights_with_lower_validation_error', action = 'store_false')
 # *******************************
 # VGG training arguments
-parser.add_argument('--vgg_training_mode'              , type = int, default = 0, help = "Training mode for the VGG network. Possible values are 0, 1, 2 or 3. See set_training_model method in the VGG class for more details on the training modes. Note that this argument is used only if the VGG network is trained, i.e. if the model is a VGG network.")
+parser.add_argument('--vgg_training_mode'              , type = int, default = 0, help = "Training mode for the VGG network. Possible values are 0, 1, 2 or 3. See set_training_mode method in the VGG class for more details on the training modes (vgg_nets.py file). Note that this argument is used only if the VGG network is trained, i.e. if the model is a VGG network.")
 parser.add_argument('--use_pretrained_vgg'             , default = True , action = "store_true", help = "If True, the VGG network is pretrained on ImageNet. Default is True.")
 parser.add_argument('--use_vgg_normalization_values'   , default = True , action = "store_true", help = "If True, when vgg is trained, the data are normalized using the values used in the original VGG paper. Default is None")
 parser.add_argument('--no-use_pretrained_vgg'          , dest = 'use_pretrained_vgg'          , action = 'store_false')

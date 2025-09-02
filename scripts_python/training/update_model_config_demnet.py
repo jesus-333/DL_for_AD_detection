@@ -9,6 +9,7 @@ As the update_training_config.py script, this script does not overwrite the file
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import argparse
+import os
 import toml
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,19 +30,27 @@ parser.add_argument('--dropout_rate_2'    , type = float, default = None, help =
 # List to dement block config files
 parser.add_argument('--demnet_blocks_path_list'     , nargs = '+', default = [], help = 'List of paths to the toml files with the dement block model config. If not provided, an error will be raised. Default is an empty list. Example: --demnet_blocks ./config/demnet_block_1.toml ./config/demnet_block_2.toml')
 # Boolean arguments
-parser.add_argument('--batch_norm'                  , default = None, action = 'store_true', help = 'If set, batch normalization will be used. Default is True.')
-parser.add_argument('--use_activation_in_classifier', default = None, action = 'store_true', help = 'If set, the classifier will use an activation function. Default is True.')
-parser.add_argument('--use_as_features_extractor'   , default = None, action = 'store_true', help = 'If set, the model will be used as a feature extractor. Default is False.')
+parser.add_argument('--batch_norm'                  , default = None, action = 'store_true', help = 'If passed, batch normalization will be used. Default is True.')
+parser.add_argument('--use_activation_in_classifier', default = None, action = 'store_true', help = 'If passed, the classifier will use an activation function. Default is True.')
+parser.add_argument('--use_as_features_extractor'   , default = None, action = 'store_true', help = 'If passed, the model will be used as a feature extractor. Default is False.')
 # Negative boolean arguments
-parser.add_argument('--no_batch_norm'                  , action = 'store_false', dest = 'batch_norm'                  , help = 'If set, batch normalization will not be used. Default is False.')
-parser.add_argument('--no_use_activation_in_classifier', action = 'store_false', dest = 'use_activation_in_classifier', help = 'If set, the classifier will not use an activation function. Default is False.')
-parser.add_argument('--no_use_as_features_extractor'   , action = 'store_false', dest = 'use_as_features_extractor'   , help = 'If set, the model will not be used as a feature extractor. Default is False.')
+parser.add_argument('--no-batch_norm'                  , action = 'store_false', dest = 'batch_norm'                  , help = 'If passed, batch normalization will not be used.')
+parser.add_argument('--no-use_activation_in_classifier', action = 'store_false', dest = 'use_activation_in_classifier', help = 'If passed, the classifier will not use an activation function.')
+parser.add_argument('--no-use_as_features_extractor'   , action = 'store_false', dest = 'use_as_features_extractor'   , help = 'If passed, the model will not be used as a feature extractor.')
 
 args = parser.parse_args()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-model_config = toml.load(args.path_model_config)
+# Check if the file exists
+if not os.path.exists(args.path_model_config) :
+    print(f'The file {args.path_model_config} does not exist. A new file will be created.')
+    model_config = {}
+else :
+    model_config = toml.load(args.path_model_config)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Save NON boolean arguments
 
 if args.input_size is not None:
     if args.input_size <= 0:
@@ -102,10 +111,12 @@ if len(args.demnet_blocks_path_list) > 0 :
 # else :
 #     raise ValueError('At least one path to the dement block config file must be specified. Use --demnet_blocks_path_list to set it.')
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save boolean arguments
 if args.batch_norm is not None : model_config['batch_norm'] = args.batch_norm
 if args.use_activation_in_classifier is not None : model_config['use_activation_in_classifier'] = args.use_activation_in_classifier
 if args.use_as_features_extractor is not None : model_config['use_as_features_extractor'] = args.use_as_features_extractor
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 with open(args.path_model_config, 'w') as f :
     toml.dump(model_config, f)

@@ -1,0 +1,29 @@
+batch_size = 128
+lr = 0.001
+epochs = 3
+use_scheduler = true
+device = "mps"
+epoch_to_save_model = 4
+path_to_save_model = "model_weights_ADNI/debug_FL/"
+measure_metrics_during_training = true
+print_var = true
+seed = 1213315507
+wandb_training = false
+notes = ""
+log_freq = 1
+debug = false
+use_weights_with_lower_validation_error = true
+fl_training = true
+
+[lr_scheduler_config]
+name = "ExponentialLR"
+gamma = 0.9
+
+[optimizer_config]
+lr = 0.0001
+name = "SGD"
+momentum = 0.9
+dampening = 0.0
+nesterov = false
+weight_decay = 1e-5
+maximize = false
