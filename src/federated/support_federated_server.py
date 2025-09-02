@@ -100,7 +100,7 @@ def setup_wand(wandb_config : dict, config_to_backup : dict) :
     -------
     wandb_run (wandb.sdk.wandb_run.Run) :
         The initialized wandb run.
-    model_artifact (wandb.sdk.artifacts.Artifact) :
+    model_artifact (wandb.sdk.artifacts.artifact) :
         The wandb artifact for the model weights, if logging is enabled. Otherwise, it will be None.
     """
 
@@ -134,7 +134,7 @@ def setup_wand(wandb_config : dict, config_to_backup : dict) :
     return wandb_run, model_artifact
 
 
-def aggregate_fit_log(aggregated_parameters, aggregated_metrics, server_round: int, results, model, wandb_run : wandb.sdk.wandb_run.Run, count_rounds : int, rounds_to_save_model : int, num_rounds : int, all_config : dict, model_artifact : wandb.sdk.artifacts.Artifact = None, metrics_to_log_from_clients = None) :
+def aggregate_fit_log(aggregated_parameters, aggregated_metrics, server_round: int, results, model, wandb_run : wandb.sdk.wandb_run.Run, count_rounds : int, rounds_to_save_model : int, num_rounds : int, all_config : dict, model_artifact : wandb.sdk.artifacts.artifact = None, metrics_to_log_from_clients = None) :
     """
     Aggregate the results from the clients and upload the results in wandb.
 
@@ -162,7 +162,7 @@ def aggregate_fit_log(aggregated_parameters, aggregated_metrics, server_round: i
             The entire configuration dictionary. It is used to get the path to save the model and other configuration parameters.
             Note that only 2 values inside the dictionary are used in this function. But since this function was originally created inside the server class I extract the data that I need from the all_config dictionary (that is a parameter of the server class).
             To avoid a further increse of the nubmer of parameters of this function, I keep the all_config parameter. Note also the in the end this function is still called by the server class, so it is not a problem to get the entire configuration dictionary.
-        model_artifact (wandb.sdk.artifacts.Artifact, optional) :
+        model_artifact (wandb.sdk.artifacts.artifact, optional) :
             The wandb artifact for the model weights, if logging is enabled. Otherwise, it will be None.
             If provided, it will be logged in the wandb run.
         metrics_to_log_from_clients (list/str, optional) :
@@ -228,7 +228,7 @@ def aggregate_fit_log(aggregated_parameters, aggregated_metrics, server_round: i
     
     return aggregated_parameters, aggregated_metrics, model_weights, count_rounds
 
-def aggregate_fit_log_clients_data(aggregated_parameters, model, count_rounds : int, rounds_to_save_model : int, all_config : dict, results : list, wandb_run : wandb.sdk.wandb_run.Run, model_artifact : wandb.sdk.artifacts.Artifact = None, metrics_to_log_from_clients = None) -> (flwr.common.Parameters, list):
+def aggregate_fit_log_clients_data(aggregated_parameters, model, count_rounds : int, rounds_to_save_model : int, all_config : dict, results : list, wandb_run : wandb.sdk.wandb_run.Run, model_artifact : wandb.sdk.artifacts.artifact = None, metrics_to_log_from_clients = None) -> (flwr.common.Parameters, list):
     """
     Aggregate the parameters from the clients and log the clients metrics in wandb.
     For clients metrics, I mean the metrics computed at each epoch for each clients (e.g. the training loss at each epoch for each client).
@@ -308,7 +308,7 @@ def aggregate_fit_log_server_metrics(aggregated_metrics : dict, wandb_run : wand
     wandb_run.log(wandb_log_dict, step = count_rounds)
     # self.wandb_run.log(wandb_log_dict)
 
-def evaluate_log(test_metrics_dict : dict, wandb_run : wandb.sdk.wandb_run.Run, count_rounds : int, num_rounds : int, model_artifact : wandb.sdk.artifacts.Artifact = None) -> (float, dict):
+def evaluate_log(test_metrics_dict : dict, wandb_run : wandb.sdk.wandb_run.Run, count_rounds : int, num_rounds : int, model_artifact : wandb.sdk.artifacts.artifact = None) -> (float, dict):
     """
     After the centralized evaluation of the model, log the metrics in wandb and close the run if it is the last round.
     """
@@ -321,7 +321,7 @@ def evaluate_log(test_metrics_dict : dict, wandb_run : wandb.sdk.wandb_run.Run, 
         end_wandb_run_and_log_artifact()
         print("End training rounds")
 
-def end_wandb_run_and_log_artifact(wandb_run : wandb.sdk.wandb_run.Run, model_artifact : wandb.sdk.artifacts.Artifact = None) :
+def end_wandb_run_and_log_artifact(wandb_run : wandb.sdk.wandb_run.Run, model_artifact : wandb.sdk.artifacts.artifact = None) :
     """
     Load the artifacts in wandb and finish the run.
 
@@ -329,7 +329,7 @@ def end_wandb_run_and_log_artifact(wandb_run : wandb.sdk.wandb_run.Run, model_ar
     ----------
         wandb_run (wandb.sdk.wandb_run.Run) :
             The wandb run object to finish. It is created by the function setup_wand.
-        model_artifact (wandb.sdk.artifacts.Artifact, optional) :
+        model_artifact (wandb.sdk.artifacts.artifact, optional) :
             The wandb artifact for the model weights, if logging is enabled. Otherwise, it will be None.
             If provided, it will be logged in the wandb run.
     """

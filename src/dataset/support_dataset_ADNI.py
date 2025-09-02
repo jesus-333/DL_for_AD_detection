@@ -152,12 +152,12 @@ def create_ADNI_partition(file_path_list : list, label_list_int : list, label_li
 
     return file_path_list_sampled, label_list_int_sampled, label_list_str_sampled
 
-def get_dataset_V2(dataset_config : dict, percentage_split_train_val : float = 1, idx_to_use = None, seed : int = -1) :
+def get_dataset_V2(dataset_config : dict, percentage_split_train_val : float = 1, idx_to_use = None, seed : int = -1, preprocess_functions = None) :
     """
     This function is used to create the dataset when the data is stored in a single tensor file.
     The function creates two datasets: one for training and one for validation, with the data split according to the percentage_split_train_val parameter.
 
-    TODO (?) : add the possibility to pass specific preprocessing functions to the dataset.
+    TODO : Move the declaration of the proprocess functions completely outside this function. I.e. remove the option to create the normalization function inside this function.
 
     Parameters
     ----------
@@ -180,6 +180,10 @@ def get_dataset_V2(dataset_config : dict, percentage_split_train_val : float = 1
         Seed for the random number generator. The default is -1, which means that a random seed is sampled from the range [0, 2**32 - 1].
         If you want to use a specific seed, you can set this value to a positive integer. If you set it to 0 or a negative integer, a new random seed will be sampled.
         The seed is used to split the data in train/validation sets through the function get_idx_to_split_data_V3.
+    preprocess_functions : torchvision.transforms.Compose, optional
+        If you want to apply specific preprocessing functions to the data, you can pass them through this parameter. By default, it is None.
+        If it is None and the dataset_config['use_normalization'] is True, the function will create a normalization function using the mean and std of the dataset (loaded from path_data/dataset_mean.pt and path_data/dataset_std.pt).
+        Note that this function is constructed to work with my folder structure in mind. 
     """
     
     # Check seed and sample a new one if the value is not valid
@@ -215,7 +219,7 @@ def get_dataset_V2(dataset_config : dict, percentage_split_train_val : float = 1
     idx_train, idx_validation = idx_list
     
     # (OPTIONAL) Create function to normalize the data
-    if dataset_config['use_normalization'] :
+    if dataset_config['use_normalization'] and preprocess_functions is None:
         # Load precomputed dataset mean and std
         # Note that to normalize the data I still used the global mean/std
         # TODO add an option to use local mean/std
@@ -224,8 +228,6 @@ def get_dataset_V2(dataset_config : dict, percentage_split_train_val : float = 1
 
         # Create normalization function
         preprocess_functions  = torchvision.transforms.Compose([torchvision.transforms.Normalize(mean = mean_dataset, std = std_dataset)])
-    else :
-        preprocess_functions = None
 
     # Split data in train/validation/test
     if dataset_config['apply_rescale'] :

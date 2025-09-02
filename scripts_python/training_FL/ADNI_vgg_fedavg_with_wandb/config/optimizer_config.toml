@@ -1,4 +1,4 @@
-lr = 0.0001
+lr = 0.001
 name = "SGD"
 momentum = 0.9
 dampening = 0.0

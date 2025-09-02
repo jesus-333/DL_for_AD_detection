@@ -1,43 +1,5 @@
-input_size = 176
 input_channels = 1
-num_classes = 6
-activation = "elu"
-kernel_size_conv_1 = 7
-kernel_size_conv_2 = 5
+num_classes = 2
+version = 16
 batch_norm = true
-dropout_rate_1 = 0.4
-dropout_rate_2 = 0.4
-use_activation_in_classifier = true
-use_as_features_extractor = false
-
-[config_demnet_block_1]
-input_channels_block = 16
-output_channels_block = 32
-kernel_size_conv_1 = 3
-kernel_size_conv_2 = 3
-batch_norm = true
-activation = "elu"
-
-[config_demnet_block_2]
-input_channels_block = 32
-output_channels_block = 64
-kernel_size_conv_1 = 3
-kernel_size_conv_2 = 3
-batch_norm = true
-activation = "elu"
-
-[config_demnet_block_3]
-input_channels_block = 64
-output_channels_block = 128
-kernel_size_conv_1 = 3
-kernel_size_conv_2 = 3
-batch_norm = true
-activation = "elu"
-
-[config_demnet_block_4]
-input_channels_block = 128
-output_channels_block = 256
-kernel_size_conv_1 = 3
-kernel_size_conv_2 = 3
-batch_norm = true
-activation = "elu"
+use_pretrained_vgg = true

@@ -84,7 +84,7 @@ if args.rounds_to_save_model is not None and args.rounds_to_save_model > 0 :
     print(f"Model will be saved every {server_config['rounds_to_save_model']} epochs.")
 else :
     server_config['rounds_to_save_model'] = server_config['num_rounds'] + 1
-    print("Model will ba saved on the end of training.")
+    print("Model will be saved on the end of training.")
 
 # Number of clients
 if args.n_client is not None :
@@ -118,8 +118,9 @@ if args.clients_seed is not None :
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Boolean arguments
-server_config['keep_labels_proportion'] = args.keep_labels_proportion
-server_config['centralized_evaluation'] = args.centralized_evaluation
+server_config['keep_labels_proportion']     = args.keep_labels_proportion
+server_config['centralized_evaluation']     = args.centralized_evaluation
+server_config['use_on_fit_config_function'] = args.use_on_fit_config_function
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check and update Wandb settings

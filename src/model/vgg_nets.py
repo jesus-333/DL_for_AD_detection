@@ -44,7 +44,10 @@ class VGG(torch.nn.Module):
         print("Nota that the input must be in the rescaled between 0 and 1")
 
     def forward(self, x) :
+        print(self)
+        print(x.shape)
         x = self.features(x)
+        print(x.shape)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.classifier(x)
@@ -141,7 +144,7 @@ def get_vgg(config : dict, return_preprocess_functions : bool = True) :
         Configuration of the model. The configuration must contain the following keys:
         - version : int
             Version of the VGG network. Possible values are 11, 13, 16 or 19
-        - batch_normalization : bool
+        - batch_norm : bool
             If True, the model will have batch normalization
         - pretrained : bool
             If True, the model will be pretrained
@@ -166,7 +169,7 @@ def get_vgg(config : dict, return_preprocess_functions : bool = True) :
     check_model_config(config)
 
     # Get the model
-    model, preprocess_functions = download_published_model.download_vgg_nets(config['version'], config['batch_normalization'], pretrained = config['use_pretrained_vgg'])
+    model, preprocess_functions = download_published_model.download_vgg_nets(config['version'], config['batch_norm'], pretrained = config['use_pretrained_vgg'])
 
     # Create the model
     model = VGG(model, config['num_classes'], config['input_channels'])
@@ -193,8 +196,8 @@ def check_model_config(config : dict) :
     if config['version'] not in [11, 13, 16, 19] :
         raise ValueError(f"The version key must be 11, 13, 16 or 19. The current value is {config['version']}")
 
-    if 'batch_normalization' not in config :
-        raise ValueError('The batch_normalization key is missing in the configuration')
+    if 'batch_norm' not in config :
+        raise ValueError('The batch_norm key is missing in the configuration')
 
     # if 'pretrained' not in config :
     #     raise ValueError('The pretrained key is missing in the configuration')

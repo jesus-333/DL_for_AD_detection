@@ -162,7 +162,7 @@ def get_idx_to_split_data_V3(labels_list : list, percentage_split_list : list, s
     
     return idx_list
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_all_files_from_path(path_to_explore : str, filetype_filter : str = None) :
     """

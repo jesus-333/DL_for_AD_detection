@@ -15,7 +15,7 @@ from flwr.common import Context
 
 from addl.dataset import support_dataset_ADNI
 from addl.federated import client
-from src.model import download_published_model, vgg_nets
+from addl.model import download_published_model, vgg_nets
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
