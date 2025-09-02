@@ -25,7 +25,7 @@ class VGG(torch.nn.Module):
         num_classes : int
             Number of classes of the dataset
         input_channels : int
-            Number of input channels of the model. Default is 3 (i.e. RGB image). If set to 1, the first layer of the model will be modified to accept single channel input (i.e. grayscale image). Could be set to number higher than 3 if you use a different type of input (e.g. MRI scans where each channel is a different slice of the scan). Default is 3.
+            Number of input channels of the model. Default is 3 (i.e. RGB image). If set to 1, the first layer of the model will be modified to accept single channel input (i.e. grayscale image). Could be set to number higher than 3 if you use a different type of input (e.g. MRI scans where each channel is a different slice of the scan).
         """
 
         super(VGG, self).__init__()
@@ -33,7 +33,7 @@ class VGG(torch.nn.Module):
         # Modify the last layer to have the correct number of classes
         model.classifier[-1] = torch.nn.Linear(4096, num_classes)
 
-        # (OPTIONAL) Modify the first layer to accept single channel input
+        # (OPTIONAL) Modify the first layer to accept non-RGB input
         if input_channels != 3 :
             model.features[0] = torch.nn.Conv2d(input_channels, 64, kernel_size = (3, 3), stride = (1, 1), padding = (1, 1))
 
