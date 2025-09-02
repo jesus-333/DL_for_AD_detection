@@ -1,11 +1,12 @@
-path_dataset_config = "scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb/config/dataset.toml"
+path_dataset_config = "scripts_python/training_FL/ADNI_vgg_fedavg_with_wandb/config/dataset.toml"
 path_data = "data/ADNI_axial_middle_slice/"
 name_tensor_file = "dataset_tensor___176_resize.pt"
 filter_AD_data = false
-merge_AD_class = 0
+merge_AD_class = 1
 percentage_train = 0.9
 percentage_test = 0.0
 percentage_validation = 0.1
 apply_rescale = false
 load_data_in_memory = true
 use_normalization = true
+use_rgb_input = true

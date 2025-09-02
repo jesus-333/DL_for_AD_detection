@@ -115,7 +115,7 @@ if args.epoch_to_save_model is not None and args.epoch_to_save_model > 0 :
     print(f"Model will be saved every {training_config['epoch_to_save_model']} epochs.")
 else :
     training_config['epoch_to_save_model'] = training_config['epochs'] + 1
-    print("Model will ba saved on the end of training.")
+    print("Model will be saved on the end of training.")
 
 # Path to save model
 training_config['path_to_save_model'] = args.path_to_save_model

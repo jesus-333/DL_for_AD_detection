@@ -17,7 +17,7 @@ from flwr.common import Context, ndarrays_to_parameters
 
 from addl.dataset import support_dataset_ADNI
 from addl.federated import server, support_federated_generic
-from src.model import download_published_model, vgg_nets
+from addl.model import download_published_model, vgg_nets
 from addl.training import test_functions
 
 # (TMP) Added for debugging
