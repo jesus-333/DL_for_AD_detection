@@ -70,7 +70,8 @@ def client_fn_demnet(context : Context) -> Client :
 
     MRI_train_dataset, MRI_validation_dataset, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = dataset_config['percentage_train'],
                                                                                        idx_to_use = idx_client,
-                                                                                       seed = training_config['seed']
+                                                                                       seed = training_config['seed'],
+                                                                                       preprocess_functions = preprocess_functions
                                                                                        )
     
     if training_config['print_var'] :

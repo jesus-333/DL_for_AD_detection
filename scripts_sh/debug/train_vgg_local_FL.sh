@@ -59,7 +59,6 @@ gamma=0.94
 
 # Information about data used for model_config
 input_channels=1
-input_size=176
 
 # FL settings
 num_cpus=4 # Default is 2
@@ -182,7 +181,7 @@ python ./scripts_python/training/update_training_config.py\
 	--vgg_training\
 	--use_pretrained_vgg\
 	--vgg_training_mode=${vgg_training_mode}\
-	--use_vgg_normalization_values\
+	--no-use_vgg_normalization_values\
 	--no-wandb_training\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

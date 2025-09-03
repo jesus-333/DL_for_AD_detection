@@ -34,8 +34,8 @@ class flower_client_v1(NumPyClient):
         if self.client_id == -1 : print('WARNING: client id not found in training_config. Set to -1')
 
         # Update path to save weights with client id
-        self.training_config['path_to_save_model'] += f'/client_{self.client_id}'
-        self.path_to_save_client_model = self.training_config['path_to_save_model']
+        # self.training_config['path_to_save_model'] += f'/client_{self.client_id}'
+        self.path_to_save_client_model = self.training_config['path_to_save_model'] + f'/client_{self.client_id}'
 
         # Print information
         if self.training_config['print_var'] :
