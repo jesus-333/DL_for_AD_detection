@@ -15,7 +15,7 @@ from flwr.common import Context
 
 from addl.dataset import support_dataset_ADNI
 from addl.federated import client
-from addl.model import download_published_model, vgg_nets
+from addl.model import download_published_model, support_model, vgg_nets
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -39,24 +39,34 @@ def client_fn_demnet(context : Context) -> Client :
     client_id = context.node_config["partition-id"]
     idx_client = np.load(dataset_config['path_data'] + f'{client_id}_idx.npy')
 
-    # (OPTIONAL) Get proprocess functions.
+    # Get the preprocess functions config for the VGG model
+    preprocess_functions_config = download_published_model.get_preprocess_functions_config_for_specific_model('vgg')
+
+    # Get mean and std for normalization
     if dataset_config['use_normalization'] :
-        if training_config['use_vgg_normalization_values'] :
-            preprocess_functions = download_published_model.get_preprocess_functions('vgg')
-
-            # Save them in the config (In this way I save them also on wandb)
-            dataset_config['mean_dataset'] = torch.tensor([0.485, 0.456, 0.406])
-            dataset_config['std_dataset']  = torch.tensor([0.229, 0.224, 0.225])
+        # Check if the user want to use the precomputed mean and std values from the ImageNet dataset or its own values
+        if 'use_vgg_normalization_values' in training_config : # Check if the parameter use_vgg_normalization_values is inside the training_config
+            if not training_config['use_vgg_normalization_values'] :
+                # If the parameter is False, it is assumed that the user want to use its own mean and std values
+                load_user_value_for_mean_and_std = True
+            else :
+                # If the parameter is True the precomputed values from the ImageNet Dataset are already inside the preprocess_functions_config
+                load_user_value_for_mean_and_std = False
         else :
-            mean_dataset = torch.load(f'{dataset_config['path_data']}dataset_mean.pt')
-            std_dataset  = torch.load(f'{dataset_config['path_data']}dataset_std.pt')
-            preprocess_functions = download_published_model.get_preprocess_functions('vgg', mean = mean_dataset, std = std_dataset)
+            # If use_vgg_normalization_values is not present in the training_config but use_normalization is True, it is assumed that the user want to use its own mean and std values
+            load_user_value_for_mean_and_std = True
 
-            # Save them in the config (In this way I save them also on wandb)
-            dataset_config['mean_dataset'] = mean_dataset
-            dataset_config['std_dataset']  = std_dataset
+        if load_user_value_for_mean_and_std:
+            # The mean and std values for normalization must be saved inside two tensor files, in the same location of the data
+            preprocess_functions_config['mean'] = torch.load(f'{dataset_config['path_data']}dataset_mean.pt')
+            preprocess_functions_config['std'] = torch.load(f'{dataset_config['path_data']}dataset_std.pt')
     else :
-        preprocess_functions = None
+        # If use_normalization is False then mean and std will be removed by the config
+        del preprocess_functions_config['mean']
+        del preprocess_functions_config['std']
+
+    # Get the preprocess functions for VGG model
+    preprocess_functions = support_model.get_preprocess_functions(preprocess_functions_config)
 
     MRI_train_dataset, MRI_validation_dataset, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = dataset_config['percentage_train'],
                                                                                        idx_to_use = idx_client,

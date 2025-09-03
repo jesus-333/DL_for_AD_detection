@@ -5,7 +5,8 @@ This files contains the functions used to download models published on the PyTor
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import torch
-from torchvision import transforms
+
+from . import support_model
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -16,7 +17,8 @@ def download_Inception_v3(pretrained = True) :
     """
 
     model = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', pretrained = pretrained)
-    preprocess_functions = get_preprocess_functions('inception')
+    preprocess_functions_config = get_preprocess_functions_config_for_specific_model('inception')
+    preprocess_functions = support_model.get_preprocess_functions(preprocess_functions_config)
 
     return model, preprocess_functions
 
@@ -42,7 +44,8 @@ def download_vgg_nets(version : int, batch_norm : bool, pretrained = True) :
     if batch_norm : version_name += '_bn'
 
     model = torch.hub.load('pytorch/vision:v0.10.0', version_name, pretrained = pretrained)
-    preprocess_functions = get_preprocess_functions('vgg')
+    preprocess_functions_config = get_preprocess_functions_config_for_specific_model('vgg')
+    preprocess_functions = support_model.get_preprocess_functions(preprocess_functions_config)
     print("Note that the the input images for this model have to be loaded in to a range of [0, 1]")
 
     return model, preprocess_functions
@@ -73,39 +76,62 @@ def download_UNet(pretrained = True) :
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def get_preprocess_functions(model_name : str, mean = None, std = None) :
+def get_preprocess_functions_config_for_specific_model(model_name : str, add_ToTensor_transformation : bool = False) -> dict :
     """
-    Given the name of the model return the functions requires to preprocess the input.
-    All the functions are inside a torchvision.transforms.Compose() object from torchvision and are functions of the torchvision.transforms package
-    Note that the values for normalization (mean and std) are computed on the ImageNet dataset, used originally to train the models.
-    If your domain is different, you may need to compute again those values based on your dataset.
+    Given the name of the model return the config required by the function get_preprocess_functions() (inside support_model.py) for that specific model.
+    The values are the ones specified in the pytorch hub webpage for the model.
+
+    Parameters
+    ----------
+    model_name : str
+        The name of the model. Current possible values are 'inception', 'vgg'
+    add_ToTensor_transformation : bool
+        If True the ToTensor transformation is added at the beginning of the preprocessing functions.
+        Default value is False.
+
+    Returns
+    -------
+    config : dict
+        A dictionary with the following keys:
+            - mean : list of float
+                The mean values used for normalization
+            - std : list of float
+                The std values used for normalization
+            - resize_size : int
+                The size used for the Resize function
+            - center_crop_size : int
+                The size used for the CenterCrop function
+            - add_ToTensor_transformation : bool
+                If this key is present inside the config the functions get_preprocess_functions() will add the ToTensor transformation at the beginning of the preprocessing functions.
+                This key is added only if the parameter add_ToTensor_transformation is True.
     """
 
     model_name = model_name.lower()
 
     if model_name == 'inception' :
-        if mean is None : mean = [0.485, 0.456, 0.406]
-        if std is None  : std  = [0.229, 0.224, 0.225]
+        mean = [0.485, 0.456, 0.406]
+        std  = [0.229, 0.224, 0.225]
+        resize_size = 299
+        center_crop_size = 299
 
-        preprocess_functions = transforms.Compose([
-            transforms.Resize(299),
-            transforms.CenterCrop(299),
-            transforms.Normalize(mean = mean, std = std),
-            # transforms.ToTensor(),
-        ])
     elif model_name == 'vgg' :
-        if mean is None : mean = [0.485, 0.456, 0.406]
-        if std is None  : std  = [0.229, 0.224, 0.225]
-
-        preprocess_functions  = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.Normalize(mean = mean, std = std),
-            # transforms.ToTensor(),
-        ])
+        mean = [0.485, 0.456, 0.406]
+        std  = [0.229, 0.224, 0.225]
+        resize_size = 256
+        center_crop_size = 224
     else :
-        raise ValueError(f'model_name not valid. Valid values are inception, vgg. Current value is {model_name}')
+        implemented_model = ['incpetion', 'vgg']
+        raise ValueError(f'model_name not valid. Valid values are {implemented_model}. Current value is {model_name}')
 
-    return preprocess_functions
+    config = dict(
+        mean = mean,
+        std = std,
+        resize_size = resize_size,
+        center_crop_size = center_crop_size,
+    )
+
+    if add_ToTensor_transformation : config['add_ToTensor_transformation'] = True
+
+    return config
 
 

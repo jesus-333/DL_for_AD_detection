@@ -38,7 +38,7 @@ import toml
 import torch
 
 from src.dataset import dataset, support_dataset, support_dataset_ADNI
-from src.model import download_published_model, vgg_nets
+from src.model import download_published_model, support_model, vgg_nets
 from src.training import train_functions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -89,39 +89,48 @@ print("Config loaded")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get all the files divided per folder
 
+# Get the preprocess functions config for the VGG model
+preprocess_functions_config = download_published_model.get_preprocess_functions_config_for_specific_model('vgg')
+
 # Get mean and std for normalization
 if dataset_config['use_normalization'] :
-    if training_config['use_vgg_normalization_values'] :
-        preprocess_functions = download_published_model.get_preprocess_functions('vgg')
-
-        # Save them in the config (In this way I save them also on wandb)
-        dataset_config['mean_dataset'] = torch.tensor([0.485, 0.456, 0.406])
-        dataset_config['std_dataset']  = torch.tensor([0.229, 0.224, 0.225])
+    # Check if the user want to use the precomputed mean and std values from the ImageNet dataset or its own values
+    if 'use_vgg_normalization_values' in training_config : # Check if the parameter use_vgg_normalization_values is inside the training_config
+        if not training_config['use_vgg_normalization_values'] :
+            # If the parameter is False the mean and std value used for normalization are load from a saved tensor file
+            load_user_value_for_mean_and_std = True
+        else :
+            # If the parameter is True the precomputed values from the ImageNet Dataset are already inside the preprocess_functions_config
+            load_user_value_for_mean_and_std = False
     else :
-        mean_dataset = torch.load(f'{path_to_data}dataset_mean.pt')
-        std_dataset  = torch.load(f'{path_to_data}dataset_std.pt')
-        preprocess_functions = download_published_model.get_preprocess_functions('vgg', mean = mean_dataset, std = std_dataset)
+        # If use_vgg_normalization_values is not present in the training_config but use_normalization is True, it is assumed that the user want to use its own mean and std values
+        load_user_value_for_mean_and_std = True
 
-        # Save them in the config (In this way I save them also on wandb)
-        dataset_config['mean_dataset'] = mean_dataset
-        dataset_config['std_dataset']  = std_dataset
+    if load_user_value_for_mean_and_std:
+        preprocess_functions_config['mean'] = torch.load(f'{dataset_config['path_data']}dataset_mean.pt')
+        preprocess_functions_config['std'] = torch.load(f'{dataset_config['path_data']}dataset_std.pt')
 else :
-    preprocess_functions = None
+    # If use_normalization is False then mean and std will be removed by the config
+    del preprocess_functions_config['mean']
+    del preprocess_functions_config['std']
+
+# Get the preprocess functions for VGG model
+preprocess_functions = support_model.get_preprocess_functions(preprocess_functions_config)
 
 # Get data
 data = torch.load(f'{path_to_data}{dataset_tensor_file_name}', mmap = True)
 print("Data loaded")
 
 # Get the number of channels
-model_config['input_channels'] = data.shape[1]
+# model_config['input_channels'] = data.shape[1]
 
 # Check the number of channels. If it is 1, modify the data to have 3 channels.
 # Works only if the data are grayscale (i.e. 1 channel). The single channel is repeated 3 times to create a 3 channels image.
-if model_config['input_channels'] == 3 and data.shape[1] == 1 :
-    print("VGG created with 3 input cahnnels, but the data have only 1 channel. Therefore, I will repeat the single channel 3 times.")
-    data = data.repeat(1, 3, 1, 1)  # Repeat the single channel 3 times
-elif model_config['input_channels'] == 3 and data.shape[1] not in [1, 3] :
-    raise ValueError(f"If model_config['input_channels'] is 3, the data must have 1 or 3 channels. Current number of channels in the data: {data.shape[1]}")
+# if model_config['input_channels'] == 3 and data.shape[1] == 1 :
+#     print("VGG created with 3 input cahnnels, but the data have only 1 channel. The single channel will be repeated 3 times.")
+#     data = data.repeat(1, 3, 1, 1)  # Repeat the single channel 3 times
+# elif model_config['input_channels'] == 3 and data.shape[1] not in [1, 3] :
+#     raise ValueError(f"If model_config['input_channels'] is 3, the data must have 1 or 3 channels. Current number of channels in the data: {data.shape[1]}")
 
 # Get labels
 dataset_info = pd.read_csv(f'{path_to_data}dataset_info.csv')
@@ -139,7 +148,7 @@ if dataset_config['filter_AD_data'] :
 # Check input channels
 if dataset_config['use_rgb_input'] and data.shape[1] == 1 :
     # Convert to 3 channels if greyscale images are used and use_rgb_input is set to True
-    print("Data have only 1 channel, but use_rgb_input is set to True. Therefore, I will repeat the single channel 3 times.")
+    print("VGG created with 3 input cahnnels, but the data have only 1 channel. The single channel will be repeated 3 times. model_config['input_channels'] will be overwritten to 3.")
 
     # Repeat the single channel 3 times
     data = data.repeat(1, 3, 1, 1)
