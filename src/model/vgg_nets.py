@@ -44,10 +44,7 @@ class VGG(torch.nn.Module):
         print("Nota that the input must be in the rescaled between 0 and 1")
 
     def forward(self, x) :
-        print(self)
-        print(x.shape)
         x = self.features(x)
-        print(x.shape)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.classifier(x)

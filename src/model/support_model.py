@@ -56,9 +56,9 @@ def get_preprocess_functions(config : dict = None) -> transforms.Compose :
     config : dict
         The config dictionary can contain the following keys:
             - mean : list of float
-                The mean values used for normalization. The length of the list must be the same as std.
+                The mean values used for normalization.
             - std : list of float
-                The std values used for normalization. The length of the list must be the same as mean.
+                The std values used for normalization.
             - resize_size : int
                 The size used for the Resize function. It must be a positive integer.
             - center_crop_size : int
@@ -88,10 +88,7 @@ def get_preprocess_functions(config : dict = None) -> transforms.Compose :
             raise ValueError(f'The value of center_crop_size must be > 0. Current value is {config["center_crop_size"]}')
 
     if 'mean' in config and 'std' in config :
-        if len(config['mean']) == len(config['std']) :
-            preprocess_functions_list.append(transforms.Normalize(mean = config['mean'], std = config['std']))
-        else :
-            raise ValueError(f'The length of mean and std must be the same. Current length are {len(config["mean"])} and {len(config["std"])}')
+        preprocess_functions_list.append(transforms.Normalize(mean = config['mean'], std = config['std']))
 
     if 'add_ToTensor_transformation' in config :
         if config['add_ToTensor_transformation'] is True :
