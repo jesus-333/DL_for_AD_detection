@@ -37,6 +37,10 @@ class flower_client_v1(NumPyClient):
         # self.training_config['path_to_save_model'] += f'/client_{self.client_id}'
         self.path_to_save_client_model = self.training_config['path_to_save_model'] + f'/client_{self.client_id}'
 
+        # Create folder to save model if it does not exist
+        if not os.path.exists(self.path_to_save_client_model) :
+            os.makedirs(self.path_to_save_client_model)
+
         # Print information
         if self.training_config['print_var'] :
             print(f"Client n. {self.client_id}")
