@@ -84,7 +84,6 @@ gamma=0.94
 
 # Information about data used for model_config
 input_channels=1
-input_size=176
 
 # FL settings
 num_cpus=4 # Default is 2
@@ -124,7 +123,6 @@ echo "NUM CLASSES ${num_classes}"
 python ./scripts_python/training/update_model_config_vgg.py\
 	--path_model_config=${PATH_MODEL_CONFIG}\
 	--input_channels=${input_channels}\
-	--input_size=${input_size}\
 	--num_classes=${num_classes}\
 	--version=${vgg_version}\
 	--batch_norm\
@@ -157,8 +155,10 @@ srun python ./scripts_python/training_FL/update_server_config.py\
 	--fraction_fit=${fraction_fit}\
 	--fraction_evaluate=1.0\
 	--keep_labels_proportion\
-	--no-centralized_evaluation\
+	--centralized_evaluation\
+	--no-use_on_fit_config_function\
 	--project_name="vgg_training_ADNI_FL"\
+	--entity="alberto_zancanaro_academic"\
 	--model_artifact_name="vgg_z_${input_channels}"\
 	--log_freq=1\
 	--no-log_model_artifact\
@@ -207,7 +207,7 @@ srun python ./scripts_python/training/update_training_config.py\
 	--vgg_training\
 	--use_pretrained_vgg\
 	--vgg_training_mode=${vgg_training_mode}\
-	--use_vgg_normalization_values\
+	--no-use_vgg_normalization_values\
 	--no-wandb_training\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

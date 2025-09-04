@@ -99,11 +99,6 @@ class flower_client_v1(NumPyClient):
         if self.training_config['print_var'] : print(f"START TRAINING Client {self.client_id}")
         self.model, training_metrics = train_functions.train(self.training_config, self.model, self.train_dataset, self.validation_dataset)
         if self.training_config['print_var'] : print(f"END TRAINING Client {self.client_id}")
-    
-        # print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-        # print("Training metrics for client ", self.client_id)
-        # import pprint
-        # pprint.pprint(training_metrics)
 
         # Convert metrics (see notes in the function description)
         converted_training_metrics = self.convert_training_metrics_for_upload(training_metrics)
