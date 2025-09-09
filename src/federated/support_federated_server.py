@@ -221,7 +221,7 @@ def aggregate_fit_log(aggregated_parameters, aggregated_metrics, server_round: i
         # If I did not have any evaluation function conclude the run
         # Otherwise, if there is a central evaluation function the run is concluded inside evaluate()
         if not all_config['server_config']['centralized_evaluation'] :
-            end_wandb_run_and_log_artifact()
+            end_wandb_run_and_log_artifact(wandb_run, model_artifact)
             print("End training rounds")
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -318,7 +318,7 @@ def evaluate_log(test_metrics_dict : dict, wandb_run : wandb.sdk.wandb_run.Run, 
 
     # Close wandb run if I'm at the last round
     if count_rounds == num_rounds :
-        end_wandb_run_and_log_artifact()
+        end_wandb_run_and_log_artifact(wandb_run, model_artifact)
         print("End training rounds")
 
 def end_wandb_run_and_log_artifact(wandb_run : wandb.sdk.wandb_run.Run, model_artifact : wandb.sdk.artifacts.artifact = None) :

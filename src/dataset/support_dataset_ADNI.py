@@ -208,6 +208,17 @@ def get_dataset_V2(dataset_config : dict, percentage_split_train_val : float = 1
     # Get data and labels for the specific clients
     data = torch.load(f'{path_to_data}{dataset_tensor_file_name}', mmap = True)
 
+    # (OPTIONAL) Check input channels
+    # If you want to use rgb input but your data has only 1 channel (greyscale image), then that channel will be repeated 3 times
+    if dataset_config['use_rgb_input'] and data.shape[1] == 1 :
+        # Convert to 3 channels if greyscale images are used and use_rgb_input is set to True
+        print("VGG created with 3 input cahnnels, but the data have only 1 channel. The single channel will be repeated 3 times.")
+
+        # Repeat the single channel 3 times
+        data = data.repeat(1, 3, 1, 1)
+    elif dataset_config['use_rgb_input'] and data.shape[1] not in [1, 3] :
+        raise ValueError(f"If dataset_config['use_rgb_input'] is True, the data must have 1 or 3 channels. Current number of channels in the data: {data.shape[1]}")
+
     if idx_to_use is not None :
         data_to_use = data[idx_to_use]
         labels_int_to_use = labels_int[idx_to_use]
