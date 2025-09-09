@@ -18,7 +18,6 @@ parser = argparse.ArgumentParser(description = 'Update the training configuratio
 
 # Add arguments
 
-
 # *******************************
 # General arguments (i.e. arguments valid for all models and training type)
 # Various arguments

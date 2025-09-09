@@ -11,8 +11,8 @@
 #SBATCH --time=0-02:00:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
-#SBATCH --output=./scripts_sh/output/std_output_%x_%j.txt
-#SBATCH --error=./scripts_sh/output/other_output_%x_%j.txt
+#SBATCH --output=./scripts_sh/train_vgg_FL/output/std_output_%x_%j.txt
+#SBATCH --error=./scripts_sh/train_vgg_FL/output/other_output_%x_%j.txt
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
@@ -54,6 +54,7 @@ epochs=60
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights_ADNI"
+path_to_save_model="model_weights/vgg_ADNI/cyclic_lr_SGD_${SLURM_JOB_ID}"
 seed=-1
 vgg_training_mode=0
 

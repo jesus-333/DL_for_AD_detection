@@ -40,7 +40,7 @@ def client_fn_demnet(context : Context) -> Client :
     client_id = context.node_config["partition-id"]
 
     # Idx path
-    path_to_load_idx = os.join.path(dataset_config['path_data'], training_config['seed'])
+    path_to_load_idx = os.path.join(dataset_config['path_data'], training_config['seed'])
 
     # Load idx
     idx_client = np.load(path_to_load_idx + f'{client_id}_idx.npy')
@@ -99,6 +99,7 @@ def client_fn_demnet(context : Context) -> Client :
     model_config['input_channels'] = MRI_train_dataset.data.shape[1]
     # model_config['num_classes'] = len(np.unique(labels_int)) # Move to the sh file
     model = vgg_nets.get_vgg(model_config, return_preprocess_functions = False)
+    model.set_training_mode(training_config['vgg_training_mode'])
 
     return client.flower_client_v1(model, MRI_train_dataset, MRI_validation_dataset, training_config).to_client()
 

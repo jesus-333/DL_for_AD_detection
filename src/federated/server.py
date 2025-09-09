@@ -159,3 +159,4 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             if self.count_rounds == 0 :
                 print("")
                 print("NO centralized evaluation function provided.")
+
