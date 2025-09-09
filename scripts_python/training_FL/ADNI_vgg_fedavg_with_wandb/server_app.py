@@ -130,12 +130,6 @@ def server_fn(context : Context) :
     Create and return the ServerAppComponents required by Flower
     """
 
-    # In this you want to check the working directory
-    # cwd = os.getcwd()
-    # print(cwd)
-    # print(context)
-    # Apparently, even if it print as working directory the one where you launch the flwr run command, it search for other files to the folder where pyproject.toml is located
-
     # Get all the config dictionaries
     dataset_config  = toml.load(context.run_config["path_dataset_config"])
     model_config    = toml.load(context.run_config["path_model_config"])
