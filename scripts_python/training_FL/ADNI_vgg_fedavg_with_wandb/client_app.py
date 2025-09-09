@@ -40,7 +40,7 @@ def client_fn_demnet(context : Context) -> Client :
     client_id = context.node_config["partition-id"]
 
     # Idx path
-    path_to_load_idx = os.path.join(dataset_config['path_data'], training_config['seed'])
+    path_to_load_idx = os.path.join(dataset_config['path_data'], str(training_config['seed']) + '/')
 
     # Load idx
     idx_client = np.load(path_to_load_idx + f'{client_id}_idx.npy')
