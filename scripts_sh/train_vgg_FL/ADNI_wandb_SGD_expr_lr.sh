@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=25G
-#SBATCH --time=0-00:30:00
+#SBATCH --time=0-01:30:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_vgg_FL/output/std_output_%x_%j.txt
@@ -55,8 +55,8 @@ PATH_DATA="data/ADNI_axial_middle_slice/"
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
 # Remember to change apply_rescale to no-apply_rescale if you do not used data saved in interger (like the middle_slice)
 
-# Dataset settings for each client
-merge_AD_class=1
+# Dataset settings for each CLIENT
+merge_AD_class=0
 percentage_train=0.9
 percentage_validation=0.1
 percentage_test=0
@@ -64,12 +64,12 @@ rescale_factor=4095
 
 # Training settings
 batch_size=128
-epochs=10
+epochs=2
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights/vgg_ADNI_FL/exp_lr_SGD_${SLURM_JOB_ID}"
 seed=-1
-vgg_training_mode=1 # See set_training_mode method in the VGG class for more details on the training modes (vgg_nets.py file)
+vgg_training_mode=0 # See set_training_mode method in the VGG class for more details on the training modes (vgg_nets.py file)
 vgg_version=16
 
 # Optimizer config
@@ -90,8 +90,8 @@ num_cpus=4 # Default is 2
 max_cpu_allowed=4
 num_gpus=1
 max_gpu_allowed=1
-num_clients=4
-num_rounds=20
+num_clients=5
+num_rounds=50
 fraction_fit=1
 
 # Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
