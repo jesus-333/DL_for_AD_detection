@@ -105,7 +105,7 @@ def prepare_data_for_FL_training(all_config : dict) :
                                                                                    )
     
     # Create path to save idx
-    path_to_save_idx = os.join.path(all_config['dataset_config']['path_data'], all_config['training_config']['seed'])
+    path_to_save_idx = os.path.join(all_config['dataset_config']['path_data'], all_config['training_config']['seed'])
 
     # Create the folder to save the data
     os.makedirs(path_to_save_idx, exist_ok = True)
