@@ -68,7 +68,7 @@ epochs=10
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights/vgg_ADNI_FL/exp_lr_SGD_${SLURM_JOB_ID}"
-seed=-1
+seed=$SLURM_JOB_ID
 vgg_training_mode=1 # See set_training_mode method in the VGG class for more details on the training modes (vgg_nets.py file)
 vgg_version=16
 
