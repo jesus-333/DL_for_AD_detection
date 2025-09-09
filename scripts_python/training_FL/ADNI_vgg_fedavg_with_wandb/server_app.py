@@ -104,20 +104,23 @@ def prepare_data_for_FL_training(all_config : dict) :
                                                                                    labels = labels_int, keep_labels_proportion = all_config['server_config']['keep_labels_proportion']
                                                                                    )
     
+    # Create path to save idx
+    path_to_save_idx = os.join.path(all_config['dataset_config']['path_data'], all_config['training_config']['seed'])
+
     # Create the folder to save the data
-    os.makedirs(all_config['dataset_config']['path_data'], exist_ok = True)
+    os.makedirs(path_to_save_idx, exist_ok = True)
 
     # Save data and labels in npy files
     for i in range(all_config['server_config']['n_client']) :
         # Path to save indices
-        dataset_path = all_config['dataset_config']['path_data'] + f'{i}_idx.npy'
+        dataset_path = path_to_save_idx + f'{i}_idx.npy'
 
         # Save indices
         np.save(dataset_path, idx_per_client[i])
     
     # If centralized_evaluation is True, save the indices for the server
     if all_config['server_config']['centralized_evaluation'] :
-        dataset_path = all_config['dataset_config']['path_data'] + 'server_idx.npy'
+        dataset_path = path_to_save_idx + 'server_idx.npy'
         np.save(dataset_path, idx_per_client[-1])
 
     return idx_per_client

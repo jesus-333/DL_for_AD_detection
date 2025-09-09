@@ -7,6 +7,7 @@
 # Imports
 
 import numpy as np
+import os
 import toml
 import torch
 
@@ -37,7 +38,12 @@ def client_fn_demnet(context : Context) -> Client :
 
     # Get client ID (it is a number from 0 to n_client - 1) and load indices for the client
     client_id = context.node_config["partition-id"]
-    idx_client = np.load(dataset_config['path_data'] + f'{client_id}_idx.npy')
+
+    # Idx path
+    path_to_load_idx = os.join.path(dataset_config['path_data'], training_config['seed'])
+
+    # Load idx
+    idx_client = np.load(path_to_load_idx + f'{client_id}_idx.npy')
 
     # Get the preprocess functions config for the VGG model
     preprocess_functions_config = download_published_model.get_preprocess_functions_config_for_specific_model('vgg')
