@@ -1,7 +1,7 @@
 """
 Given the path of the folder with the dicom files convert in npy files, this script take all the different scan and create a single dataset.
 The conversion from dicom to npy file was done through the script convert/all_subjects_ADNI_2D_MRI_V5_unpack.py
-The data area saved as torch tensors (1 sample --> 1 tensor, conversion_type = 0), as a single tensor (all samples --> 1 tensor, conversion_type = 1) or both (conversion_type = 2)
+The data are saved as torch tensors (1 sample --> 1 tensor, conversion_type = 0), as a single tensor (all samples --> 1 tensor, conversion_type = 1) or both (conversion_type = 2)
 
 The arguments can be passed through the command line or set inside the script. If used, the argument from the command line will overwrite the ones set inside the script.
 
@@ -12,12 +12,12 @@ Note that the argument save_as_integer serves only to reduce the size of the sav
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 
-P.s. I check the correspondance between the order of sample inside the dataset_info.csv file and the order of the tensors inside the dataset_tensor.pt file.
+P.S. I check the correspondence between the order of sample inside the dataset_info.csv file and the order of the tensors inside the dataset_tensor.pt file.
      The order is the same, so the first sample in the csv file corresponds to the first tensor in the dataset_tensor.pt file.
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# (OPTIONAL) CLI Arguments and check
+# (OPTIONAL) CLI Arguments
 
 import argparse
 
