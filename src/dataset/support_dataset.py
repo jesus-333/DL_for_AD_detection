@@ -6,18 +6,17 @@ Note that some of the functions are specific for my folder structure.
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
-import os 
+import os
 import numpy as np
 import cv2 as cv
-import shutil
 
 import torch
 from torchvision import transforms
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_idx_to_split_data_V1(n_elements : int, percentage_split : float, seed : int = None):
     """
@@ -35,7 +34,7 @@ def get_idx_to_split_data_V1(n_elements : int, percentage_split : float, seed : 
 
     # Create idx vector
     idx = np.random.permutation(n_elements)
-    size_1 = int(n_elements * percentage_split) 
+    size_1 = int(n_elements * percentage_split)
     
     return idx[0:size_1], idx[size_1:]
 
@@ -53,8 +52,8 @@ def random_split_array(input_aray, percentage_split : float, seed : None) :
 
     if percentage_split == 0 :
         return [], input_aray[:]
-    elif percentage_split == 1 : 
-        return input_aray[:], [] 
+    elif percentage_split == 1 :
+        return input_aray[:], []
     else :
         # Use of the seed for reproducibility
         if seed is not None : np.random.seed(seed)
@@ -223,7 +222,7 @@ def get_all_files_from_path_divided_per_folder(path_to_explore : str, filetype_f
 
     return folders_paths_dict
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Function specific for me code repository
 
 def convert_3D_matrix_to_image(data, path_to_save : str, file_name : str, axis_to_save : int, min_idx_to_save : int = 0, max_idx_to_save : int = -1) :
@@ -243,18 +242,18 @@ def convert_3D_matrix_to_image(data, path_to_save : str, file_name : str, axis_t
             data_to_save = data[i, :, :]
         elif axis_to_save == 1 :
             data_to_save = data[:, i, :]
-        elif axis_to_save == 2 : 
+        elif axis_to_save == 2 :
             data_to_save = data[:, :, i]
-        else : 
+        else :
             raise ValueError("Axis to save not valid. Must be 0, 1 or 2. Current value : {}".format(axis_to_save))
         
-        final_path = path_to_save + '{}_{}.png'.format(file_name, i) 
-        cv.imwrite(final_path, data_to_save) 
+        final_path = path_to_save + '{}_{}.png'.format(file_name, i)
+        cv.imwrite(final_path, data_to_save)
 
 
 def get_labels_from_path_list(file_paths_list : str) :
     """
-    This function is specific for me, due to how I saved the data. Each class of the dataset I used has its own subfolder. 
+    This function is specific for me, due to how I saved the data. Each class of the dataset I used has its own subfolder.
     So from the list with all the paths, for each path, I can extract the subfolder and use it as a label for the corresponding path.
     Note that this function is specific for my folder structure.
     E.g. the paths for the files of the kaggle AD dataset are something similar ./data/kaggle_AD_dataset/class_1/...., ./data/kaggle_AD_dataset/class_2/...., and, ./data/kaggle_AD_dataset/class_3/....
@@ -271,7 +270,7 @@ def get_labels_from_path_list(file_paths_list : str) :
 def get_preprocess_function(dataset_name : str, input_size : int, grey_scale_image : bool) :
     if dataset_name == 'kaggle' :
 
-        # This values are precomputed with the script compute_avg_std_dataset.py (withoug using the CenterCrop and Resize)
+        # This values are precomputed with the script compute_avg_std_dataset.py (without using the CenterCrop and Resize)
         # dataset_mean = torch.tensor([0.2816, 0.2816, 0.2816])
         # dataset_std  = torch.tensor([0.3269, 0.3269, 0.3269])
 

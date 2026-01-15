@@ -148,7 +148,8 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
         """
 
         if self.all_config['server_config']['centralized_evaluation'] :
-            # Compute metrics
+            # Compute metrics through the evaluate function
+            # Remember that the evaluate function is passed as a parameter when the server app is created
             loss, test_metrics_dict = super().evaluate(server_round, parameters)
             
             # Log the metrics and the model
