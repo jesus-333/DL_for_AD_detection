@@ -20,3 +20,4 @@ config/test_code_FL/
 config/demnet_wandb
 config/test_code
 config/vgg_finetuning
+scripts_python/TMP_PLOT
