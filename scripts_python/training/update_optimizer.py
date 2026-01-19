@@ -15,7 +15,6 @@ import argparse
 # Create parser
 parser = argparse.ArgumentParser(description = 'Update the training configuration file with new parameters.')
 
-
 # *******************************
 # General parameters
 parser.add_argument('--path_optimizer_config', type = str  , default = './config/optimizer.toml', help = 'Path to the toml file with the optimizer scheduler config. Default is ./config/optimizer_scheduler.toml')

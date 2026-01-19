@@ -92,7 +92,7 @@ validation_file_path_list, label_validation_list_int = file_path_list[idx_valida
 test_file_path_list,       label_test_list_int       = file_path_list[idx_test],       label_list_int[idx_test]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Select training device 
+# Select training device
 
 if torch.cuda.is_available() :
     device = torch.device("cuda")
@@ -105,7 +105,7 @@ else:
     print("No backend in use. Device set to cpu")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Create model and dataset 
+# Create model and dataset
 
 # Get config
 config = toml.load(path_training_config)
@@ -127,6 +127,6 @@ MRI_validation_dataset = dataset_png.MRI_2D_dataset(validation_file_path_list, l
 MRI_test_dataset       = dataset_png.MRI_2D_dataset(test_file_path_list, label_test_list_int, load_data_in_memory = load_data_in_memory, preprocess_functions = preprocess_functions)
 print("Datasets CREATED")
 
-# Check training 
+# Check training
 model = train_functions.train(config['training_config'], vgg_model, MRI_train_dataset, MRI_validation_dataset) 
 

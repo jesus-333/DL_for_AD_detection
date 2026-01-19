@@ -20,7 +20,7 @@ from addl.model import download_published_model, support_model, vgg_nets
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def client_fn_demnet(context : Context) -> Client :
+def client_fn_vgg(context : Context) -> Client :
     """
     Create a Flower client.
     """
@@ -103,4 +103,4 @@ def client_fn_demnet(context : Context) -> Client :
 
     return client.flower_client_v1(model, MRI_train_dataset, MRI_validation_dataset, training_config).to_client()
 
-app = ClientApp(client_fn_demnet)
+app = ClientApp(client_fn_vgg)

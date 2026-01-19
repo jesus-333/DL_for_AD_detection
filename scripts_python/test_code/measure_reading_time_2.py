@@ -11,7 +11,7 @@ import time
 import numpy as np
 
 from src.dataset import dataset_png, support_dataset
-from src.model import download_published_model
+from src.model import download_published_model, support_model
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 path_AD = 'data/ADNI_3_fMRI/AD'
@@ -46,8 +46,9 @@ print("File path readed")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Create model
-if model_name is not None : 
-    preprocess_functions = download_published_model.get_preprocess_functions(model_name)
+if model_name is not None :
+    preprocess_functions_config = download_published_model.get_preprocess_functions_config_for_specific_model(model_name)
+    preprocess_functions = support_model.get_preprocess_functions(preprocess_functions_config)
     print('prepocess functions loaded')
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

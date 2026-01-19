@@ -1,5 +1,6 @@
 """
-Update the server config toml file for the FL training simulation with the fed_avg_with_wandb_tracking class.
+Update the server config toml file for the FL training SIMULATION with the fed_avg_with_wandb_tracking class.
+I keep it separate from the other update scripts because this one is used specifically for federated training while the others are for "general" deep learning training
 
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
@@ -26,10 +27,11 @@ parser.add_argument('--n_client'                   , type = int  , default = Non
 parser.add_argument('--fraction_fit'               , type = float, default = 1   , help = 'Fraction of clients to be selected for training in each round. It must be a float between 0 and 1. Default is 1 (all clients are selected).')
 parser.add_argument('--fraction_evaluate'          , type = float, default = 1   , help = 'Fraction of clients to be selected for evaluation in each round. It must be a float between 0 and 1. Default is 1 (all clients are selected). For now this parameter does not have any effect because the evaluation is perfomed inside the training function (see the train function in src/training/train_functions.py). I keep it here as a placeholder for possible future use, where the evaluation is performed in a different function than the training one.')
 parser.add_argument('--clients_seed'               , nargs = '+' , default = []  , help = 'List of seeds for the clients. If not provided, the seeds will be randomly generated. If provided, the length of the list must be equal to n_client. Default is an empty list, which means that the seeds will be randomly generated.')
+parser.add_argument('--path_idx_FL_simulations'    , type = str  , default = None, help = 'Path to the folder where the data indices are stored. Used for V2 flower app. Default is None.')
 # Boolean arguments
 parser.add_argument('--keep_labels_proportion'     , action = 'store_true', default = True , help = 'If True, when data are splitted among clients, the proportion of labels of the original dataset is kept for each client. If false, the labels are randomly assigned to the clients. Default is True.')
-parser.add_argument('--centralized_evaluation'     , action = 'store_true', default = True , help = 'If True, the server will perform a centralized evaluation on the whole dataset. If False, the server will not perform any evaluation. Default is True. In this the central evaluation is performed the data will be divided in n_client + 1 parts, where the last part is used for the central evaluation. If False, the data will be divided in n_client parts only, and no central evaluation will be performed.')
-parser.add_argument('--use_on_fit_config_function' , action = 'store_true', default = False, help = 'If True, the server will receive in input the on_fit_config_fn. Note that at the moment the function is written inside the client_app.py file.')
+parser.add_argument('--centralized_evaluation'     , action = 'store_true', default = False, help = 'If True, the server will perform a centralized evaluation on the whole dataset. If False, the server will not perform any evaluation. Default is True. In this the central evaluation is performed the data will be divided in n_client + 1 parts, where the last part is used for the central evaluation. If False, the data will be divided in n_client parts only, and no central evaluation will be performed.')
+parser.add_argument('--use_on_fit_config_function' , action = 'store_true', default = False, help = 'If True, the server will receive in input the on_fit_config_fn. Note that at the moment the function is written inside the server_app.py file.')
 # Negate boolean arguments
 parser.add_argument('--no-keep_labels_proportion'    , action = 'store_false', dest = 'keep_labels_proportion'    , help = 'If passed as an argument, the labels split will be done randomly among clients')
 parser.add_argument('--no-centralized_evaluation'    , action = 'store_false', dest = 'centralized_evaluation'    , help = 'If passed as an argument, the server will not perform any centralized evaluation. The data will be divided in n_client parts only, and no central evaluation will be performed.')
@@ -115,6 +117,10 @@ if args.clients_seed is not None :
         raise ValueError(f'The length of the clients_seed list must be equal to n_client ({args.n_client}). Provided length: {len(args.clients_seed)}')
     else :
         server_config['clients_seed'] = [int(seed) for seed in args.clients_seed]
+
+# Path to folder where data indices are stored (for V2 flower app)
+if args.path_idx_FL_simulations is not None :
+    server_config['path_idx_FL_simulations'] = args.path_idx_FL_simulations
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Boolean arguments
