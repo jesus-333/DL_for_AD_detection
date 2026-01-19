@@ -1,0 +1,40 @@
+[project]
+name = "ADNI_FL_fedAvg"
+version = "0.0.1"
+license = "Apache-2.0"
+authors = [
+  { name = "Alberto (Jesus) Zancanaro", email = "alberto.zancanaro.1@gmail.com" },
+]
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Flower settings
+
+[tool.flwr.app]
+publisher = "Alberto (Jesus) Zancanaro"
+
+[tool.flwr.app.components]
+# Remember that the path to client and server app is relative to the location of this file
+serverapp = "server_app:app"
+clientapp = "client_app:app"
+
+# Note that the value here are not used but flower require them to be defined also in the pyproject.toml
+# The values used are passed through the command line, as arguments of the flwr run command. See, for example, the script train_local__FL.sh
+# Directly from the flower documentation : "Ensure that the keys (key1, key2, key3 in this example) exist in the federation configuration under the [tool.flwr.federations.<YOUR_FEDERATION>] table of the pyproject.toml for proper overriding."
+# See https://flower.ai/docs/framework/ref-api-cli.html#flwr-run
+[tool.flwr.app.config]
+path_dataset_config  = ''
+path_model_config    = ''
+path_server_config   = ''
+path_training_config = ''
+num-server-rounds	 = 0
+local-epochs		 = 0
+
+[tool.flwr.federations]
+default = "local-simulation"
+
+[tool.flwr.federations.local-simulation]
+options.num-supernodes = 0
+options.backend.client-resources.num-gpus = 0
+options.backend.client-resources.num-cpus = 0
+options.backend.init_args.num_cpus = 0
+options.backend.init_args.num_gpus = 0
