@@ -14,11 +14,11 @@ The folder will contain the following files:
 - train_idx_client_0.npy : indices of the training data for client 0
 - train_idx_client_1.npy : indices of the training data for client 1
 - ...
-- train_idx_client_{n_client - 1}.npy : indices of the training data for last client
+- train_idx_client_{num_clients - 1}.npy : indices of the training data for last client
 - val_idx.npy : indices of the validation data
 - train_idx_all.npy : indices of the training data (all clients) (basically the concatenation of all train_idx_client_{i}.npy files)
 
-E.g. if n_client is 3 and percentage_data_used_for_training is 0.8, the folder will contain the following files:
+E.g. if num_clients is 3 and percentage_data_used_for_training is 0.8, the folder will contain the following files:
 - path_to_save/
     - train_idx_client_0.npy    (data for client 0, roughly 26.67% of the data)
     - train_idx_client_1.npy    (data for client 1, roughly 26.67% of the data)
@@ -35,7 +35,7 @@ E.g. if percentage_data_used_for_training is 0.8, the number of folds will be 5 
 In case of cross fold validation, the data will be saved in subfolders named fold_0, fold_1, ..., fold_{n_folds - 1}.
 Inside each folder, the files will be named as described before.
 
-E.g. if n_client is 3, percentage_data_used_for_training is 0.75 and use_cross_fold_validation is True and you have not provide n_folds as argument, the final output of this script will be the following structure:
+E.g. if num_clients is 3, percentage_data_used_for_training is 0.75 and use_cross_fold_validation is True and you have not provide n_folds as argument, the final output of this script will be the following structure:
 - path_to_save/
     - fold_0/
         - train_idx_client_0.npy    (data for client 0, roughly 26.67% of the data)
@@ -79,7 +79,7 @@ parser.add_argument('--path_data'                        , type = str  , default
 parser.add_argument('--name_tensor_file'                 , type = str  , default = None, help = 'Name of the tensor file with the dataset. If not provided, it will use the value defined in this script.')
 parser.add_argument('--path_to_save'                     , type = str  , default = None, help = 'Path to the folder where the dataset will be saved. If not specified it will use the value defined in this script. If the folder does not exist it will be created.')
 parser.add_argument('--percentage_data_used_for_training', type = float, default = None, help = 'Percentage of data to use for training (the rest will be used for validation). If not specified it will use the value defined in this script.')
-parser.add_argument('--n_client'                         , type = int  , default = None, help = 'Number of clients to simulate. If not specified it will use the value defined in this script.')
+parser.add_argument('--num_clients'                         , type = int  , default = None, help = 'Number of clients to simulate. If not specified it will use the value defined in this script.')
 parser.add_argument('--seed'                             , type = int  , default = None, help = 'Random seed for reproducibility. It must be a positive integer. If not specified it will use the value defined in this script.')
 parser.add_argument('--n_folds'                          , type = int  , default = None, help = 'Number of folds for cross fold validation. If not specified it will use the value defined in this script.')
 
@@ -110,7 +110,7 @@ name_tensor_file = "dataset_tensor___176_resize.pt"
 path_to_save = "data/ADNI_axial_middle_slice/FL_idx/"
 
 percentage_data_used_for_training = 0.8
-n_client = 5
+num_clients = 5
 seed = -1
 n_folds = None # If None, it will be computed from percentage_data_used_for_training
 
@@ -126,7 +126,7 @@ if args.path_data is not None                         : path_data = args.path_da
 if args.name_tensor_file is not None                  : name_tensor_file = args.name_tensor_file
 if args.path_to_save is not None                      : path_to_save = args.path_to_save
 if args.percentage_data_used_for_training is not None : percentage_data_used_for_training = args.percentage_data_used_for_training
-if args.n_client is not None                          : n_client = args.n_client
+if args.num_clients is not None                          : num_clients = args.num_clients
 if args.seed is not None                              : seed = args.seed
 if args.n_folds is not None                           : n_folds = args.n_folds
 if args.use_cross_fold_validation is not None         : use_cross_fold_validation = args.use_cross_fold_validation
@@ -137,12 +137,16 @@ if seed <= 0 :
     seed = np.random.randint(0, 2**32 - 1)
     print(f"Invalid seed value. Sample new random seed {seed}")
 
-if not (0.0 < percentage_data_used_for_training < 1.0) :
-    raise ValueError(f"percentage_data_used_for_training must be between 0 and 1. Current value: {percentage_data_used_for_training}")
+
+if n_folds is None :
+    if not (0.0 < percentage_data_used_for_training < 1.0) :
+        if use_cross_fold_validation : print("If use_cross_fold_validation is True and n_folds is not specified, the number of folds will be computed from percentage_data_used_for_training.")
+        raise ValueError(f"percentage_data_used_for_training must be between 0 and 1. Current value: {percentage_data_used_for_training}")
 
 possible_values_percentage_data_used_for_training = [0.5, 0.75, 0.8, 0.9, 0.95, 0.98]
-if percentage_data_used_for_training not in possible_values_percentage_data_used_for_training and use_cross_fold_validation :
-    print(f"Warning: percentage_data_used_for_training is set to {percentage_data_used_for_training}. If you enable cross fold validation, it is recommended to use one of the standard values: {possible_values_percentage_data_used_for_training}")
+if percentage_data_used_for_training not in possible_values_percentage_data_used_for_training and use_cross_fold_validation and n_folds is None :
+    print(f"Warning: percentage_data_used_for_training is set to {percentage_data_used_for_training} while use_cross_fold_validation is True and n_folds is not specified")
+    print(f"In this case, it is recommended to use one of the standard values: {possible_values_percentage_data_used_for_training}")
     print("percentage_data_used_for_training will be rounded to the closest standard value.")
     percentage_data_used_for_training = min(possible_values_percentage_data_used_for_training, key = lambda x : abs(x - percentage_data_used_for_training))
     print(f"New value for percentage_data_used_for_training: {percentage_data_used_for_training}")
@@ -168,21 +172,21 @@ def split_and_save_indices(idx_train, idx_val, labels_train, path_to_save : str,
         print(f"Number of validation samples: {len(idx_val)}")
         print(f"Total number of samples     : {len(idx_train) + len(idx_val)}\n")
 
-    idx_clients_train, _ = support_federated_generic.split_data_for_clients_uniformly(idx_train, n_client = n_client,
+    idx_clients_train, _ = support_federated_generic.split_data_for_clients_uniformly(idx_train, num_clients = num_clients,
                                                                                       seed = seed,
                                                                                       labels = labels_train, keep_labels_proportion = keep_labels_proportion
                                                                                       )
 
     # Print info (check if the total number of samples is correct)
     if print_info :
-        print(f"Split training data between {n_client} clients:")
-        for i in range(n_client) : print(f"\tNumber of training samples for client {i}: {len(set(idx_clients_train[i]))}")
-        print(f"Total number of training samples: {sum([len(idx_clients_train[i]) for i in range(n_client)])}")
+        print(f"Split training data between {num_clients} clients:")
+        for i in range(num_clients) : print(f"\tNumber of training samples for client {i}: {len(set(idx_clients_train[i]))}")
+        print(f"Total number of training samples: {sum([len(idx_clients_train[i]) for i in range(num_clients)])}")
 
     # Save the indices files
     np.save(f'{path_to_save}val_idx.npy', idx_val)
     np.save(f'{path_to_save}train_idx_all.npy', idx_train)
-    for i in range(n_client) : np.save(f'{path_to_save}train_idx_client_{i}.npy', idx_clients_train[i])
+    for i in range(num_clients) : np.save(f'{path_to_save}train_idx_client_{i}.npy', idx_clients_train[i])
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -196,11 +200,11 @@ all_labels_int = dataset_info['labels_int'].to_numpy()
 if use_cross_fold_validation :
     # (OPTIONAL) Compute the number of folds.
     # The int function is used to avoid problems with floating point precision (e.g. 1 / (1 - 0.98) = 49.99999999999996 on my machine)
-    if n_folds is None : n_folds = int(1 / (1 - percentage_data_used_for_training))
+    if n_folds is None : n_folds = int(1 / (1 - percentage_data_used_for_training)) if n_folds is None else n_folds
 
     # Split the data uniformly between folds
     # Note that this function was originally designed to split data (uniformly) between clients, but here we can exploit it to split data uniformly between folds
-    idx_per_fold, _ = support_federated_generic.split_data_for_clients_uniformly(all_idx, n_client = n_folds,
+    idx_per_fold, _ = support_federated_generic.split_data_for_clients_uniformly(all_idx, num_clients = n_folds,
                                                                                  seed = seed,
                                                                                  labels = all_labels_int, keep_labels_proportion = keep_labels_proportion
                                                                                  )
@@ -234,11 +238,4 @@ else :
     split_and_save_indices(idx_train, idx_val, all_labels_int[idx_train], path_to_save, print_info = True)
     
 
-
-
-
-
-
-
-
-
+print("Data splitting and saving of indices files completed.")

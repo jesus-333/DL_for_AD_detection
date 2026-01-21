@@ -1,4 +1,6 @@
 """
+Client app for demnet training through FL simulation.
+
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
@@ -38,8 +40,9 @@ def client_fn_demnet(context : Context) -> Client :
     # pprint.pprint(training_config)
 
     # Get client ID (it is a number from 0 to n_client - 1) and load indices for the client
+    # Note that at the moment (21/01/26) it is not possible to set node-config during simulation (at the best of my knowledge).
     client_id = context.node_config["partition-id"]
-    idx_client = np.load(dataset_config['path_idx_clients'] + f'train_idx_client_{client_id}_idx.npy')
+    idx_client = np.load(dataset_config['path_idx_folder'] + f'train_idx_client_{client_id}.npy')
 
     MRI_train_dataset, MRI_validation_dataset, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = dataset_config['percentage_train'], idx_to_use = idx_client, seed = training_config['seed'])
     

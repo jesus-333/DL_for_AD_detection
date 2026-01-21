@@ -1,0 +1,29 @@
+batch_size = 128
+lr = 0.001
+epochs = 10
+use_scheduler = true
+device = "cuda"
+epoch_to_save_model = 11
+path_to_save_model = "model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_"
+measure_metrics_during_training = true
+print_var = true
+seed = 42
+wandb_training = false
+notes = ""
+log_freq = 1
+debug = false
+use_weights_with_lower_validation_error = true
+fl_training = true
+
+[lr_scheduler_config]
+name = "ExponentialLR"
+gamma = 0.94
+
+[optimizer_config]
+lr = 0.001
+name = "SGD"
+momentum = 0.9
+dampening = 0.0
+nesterov = false
+weight_decay = 1e-5
+maximize = false

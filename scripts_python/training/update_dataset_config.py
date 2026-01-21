@@ -19,6 +19,7 @@ parser = argparse.ArgumentParser(description = 'Update the training configuratio
 parser.add_argument('--path_dataset_config'  , type = str  , default = './config/dataset.toml', help = 'Path to the toml file with the learning rate scheduler config. Default is ./config/dataset.toml')
 parser.add_argument('--path_data'            , type = str  , default = './data/'              , help = 'Path to the folder with the data. Note that this is not the path to a file (as in the case of the training config), but the path to the folder where the data is stored. Default is ./data/.')
 parser.add_argument('--name_tensor_file'     , type = str  , default = 'dataset_tensor.pt'    , help = 'Name of the tensor file with the dataset. This is usefull only if the data are stored in a single tensor file. Default is dataset_tensor.pt.')
+parser.add_argument('--path_idx_folder'      , type = str  , default = None                   , help = 'Path to the folder where the indices are stored. Used only in FL. Default is None.')
 parser.add_argument('--merge_AD_class'       , type = int  , default = 0                      , help = 'Merge the AD class with the CN class. Default is 0 (do not merge). For the other options see the training script.')
 parser.add_argument('--percentage_train'     , type = float, default = 0.7                    , help = 'Percentage of the dataset to use for training. Default is 0.7.')
 parser.add_argument('--percentage_validation', type = float, default = 0.15                   , help = 'Percentage of the dataset to use for validation. Default is 0.15.')
@@ -51,6 +52,10 @@ dataset_config['path_dataset_config'] = args.path_dataset_config
 # Save path to data folder and name of the tensor file
 dataset_config['path_data'] = args.path_data
 dataset_config['name_tensor_file'] = args.name_tensor_file
+
+# Path to index folder (used only in FL)
+if args.path_idx_folder is not None :
+    dataset_config['path_idx_folder'] = args.path_idx_folder
 
 # Filter AD data
 # Note that no check is done on the class_to_keep values. The check are done later, inside the function filter_AD_data (inside support_dataset_ADNI.py)
@@ -102,3 +107,6 @@ if args.use_rgb_input is not None : dataset_config['use_rgb_input'] = args.use_r
 # Save the updated dataset config
 with open(args.path_dataset_config, 'w') as f:
     toml.dump(dataset_config, f)
+
+
+print("Update DATASET config - OK")
