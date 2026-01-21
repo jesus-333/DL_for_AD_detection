@@ -157,6 +157,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--path_dataset_config="${PATH_DATASET_CONFIG}"\
 		--path_data=${PATH_DATA}\
 		--name_tensor_file=${NAME_TENSOR_FILE}\
+		--path_idx_folder="${PATH_DATA}FL_idx/"\
 		--merge_AD_class=${merge_AD_class}\
 		--percentage_train=${percentage_train}\
 		--percentage_validation=${percentage_validation}\
@@ -164,6 +165,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--apply_rescale\
 		--rescale_factor=${rescale_factor}\
 		--use_normalization\
+		--no-use_rgb_input\
 		--load_data_in_memory\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -177,6 +179,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--fraction_evaluate=1.0\
 		--path_idx_server_data="${PATH_DATA}FL_idx/"\
 		--centralized_evaluation\
+		--simulation\
 		--project_name="demnet_training_ADNI_FL_V2"\
 		--entity="alberto_zancanaro_academic"\
 		--model_artifact_name="demnet_z_${input_channels}"\
@@ -184,7 +187,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--log_freq=1\
 		--metrics_to_log_from_clients="accuracy_train accuracy_validation"\
 		--metrics_plot_backend="wandb"\
-		--no-debug\
+		--debug\
 		--num_cpus=${num_cpus}\
 		--max_cpu_allowed=${max_cpu_allowed}\
 		--num_gpus=${num_gpus}\
@@ -233,8 +236,6 @@ for repetition in $(seq 1 $n_repetitions); do
 	srun flwr run ./scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/\
 		--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
 		--run-config "path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
-
-		# --run-config "num-server-rounds=5 local-epochs=2 path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
 
 done # End of the for loop for repetitions
 

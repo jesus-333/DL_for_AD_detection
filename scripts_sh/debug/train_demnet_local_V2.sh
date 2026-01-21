@@ -29,7 +29,7 @@ NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
 # Data preparation settings
 percentage_data_used_for_training=0.8
 seed=42
-n_repetitions=1
+n_repetitions=2
 
 # Dataset settings for each client
 merge_AD_class=1
@@ -42,10 +42,10 @@ rescale_factor=4095
 
 # Training settings
 batch_size=128
-epochs=10
-device="cuda"
+epochs=15
+device="mps"
 epoch_to_save_model=-1
-path_to_save_model="model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_${SLURM_JOB_ID}"
+path_to_save_model="model_weights/demnet_ADNI_FL_V2/debug/"
 
 # Optimizer config
 lr=1e-3
@@ -66,8 +66,8 @@ num_cpus=4 # Default is 2
 max_cpu_allowed=4
 num_gpus=1
 max_gpu_allowed=1
-num_clients=4
-num_rounds=20
+num_clients=3
+num_rounds=3
 fraction_fit=1
 
 # Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
@@ -209,8 +209,6 @@ for repetition in $(seq 1 $n_repetitions); do
 	flwr run ./scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/\
 		--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
 		--run-config "path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
-
-		# --run-config "num-server-rounds=5 local-epochs=2 path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
 
 done # End of the for loop for repetitions
 
