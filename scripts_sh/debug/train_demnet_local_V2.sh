@@ -1,37 +1,10 @@
 #!/bin/sh
 
-#SBATCH --job-name="train_demnet_ADNI_wandb_exp_lr"
-#SBATCH --nodes=1
-#SBATCH --partition=hopper
-#SBATCH --qos=iris-hopper
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=4
-#SBATCH --gpus-per-task=1
-#SBATCH --mem=10G
-#SBATCH --time=0-00:30:00
-#SBATCH --mail-user=alberto.zancanaro@uni.lu
-#SBATCH --mail-type=end,fail 
-#SBATCH --output=./scripts_sh/train_demnet_FL_V2/output/std_output_%x_%j.txt
-#SBATCH --error=./scripts_sh/train_demnet_FL_V2/output/other_output_%x_%j.txt
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
 
-echo "---------------------------------------------------"
-echo $CONDA_DEFAULT_ENV
-echo "---------------------------------------------------"
-conda init
-conda activate jesus-hpc
-conda init
-echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo $CONDA_DEFAULT_ENV
-echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
-
 hatchling build
 pip install .
-
-#conda list
-pip list
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
@@ -112,7 +85,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Prepare data
 
-	srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations.py\
+	python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations.py\
 		--path_data=${PATH_DATA}\
 		--name_tensor_file=${NAME_TENSOR_FILE}\
 		--path_to_save="${PATH_DATA}FL_indices/"\
@@ -125,7 +98,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Reset config files (Note that this reset only the config for the client side)
 
-	srun python ./scripts_python/training/reset_config_files.py\
+	python ./scripts_python/training/reset_config_files.py\
 		--path_dataset_config="${PATH_DATASET_CONFIG}"\
 		--path_training_config="${PATH_TRAINING_CONFIG}"\
 
@@ -144,7 +117,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	fi
 	echo "NUM CLASSES ${num_classes}"
 
-	srun python ./scripts_python/training/update_model_config_demnet.py\
+	python ./scripts_python/training/update_model_config_demnet.py\
 		--path_model_config=${PATH_MODEL_CONFIG}\
 		--input_channels=${input_channels}\
 		--input_size=${input_size}\
@@ -153,10 +126,11 @@ for repetition in $(seq 1 $n_repetitions); do
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Update dataset config. Note that this settings will be applied to each client
 
-	srun python ./scripts_python/training/update_dataset_config.py\
+	python ./scripts_python/training/update_dataset_config.py\
 		--path_dataset_config="${PATH_DATASET_CONFIG}"\
 		--path_data=${PATH_DATA}\
 		--name_tensor_file=${NAME_TENSOR_FILE}\
+		--path_idx_folder="${PATH_DATA}FL_idx/"\
 		--merge_AD_class=${merge_AD_class}\
 		--percentage_train=${percentage_train}\
 		--percentage_validation=${percentage_validation}\
@@ -164,12 +138,13 @@ for repetition in $(seq 1 $n_repetitions); do
 		--apply_rescale\
 		--rescale_factor=${rescale_factor}\
 		--use_normalization\
+		--no-use_rgb_input\
 		--load_data_in_memory\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Update server config
 
-	srun python ./scripts_python/training_FL/update_server_config.py\
+	python ./scripts_python/training_FL/update_server_config.py\
 		--path_server_config="${PATH_SERVER_CONFIG}"\
 		--num_rounds=${num_rounds}\
 		--num_clients=${num_clients}\
@@ -177,6 +152,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--fraction_evaluate=1.0\
 		--path_idx_server_data="${PATH_DATA}FL_idx/"\
 		--centralized_evaluation\
+		--simulation\
 		--project_name="demnet_training_ADNI_FL_V2"\
 		--entity="alberto_zancanaro_academic"\
 		--model_artifact_name="demnet_z_${input_channels}"\
@@ -184,7 +160,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--log_freq=1\
 		--metrics_to_log_from_clients="accuracy_train accuracy_validation"\
 		--metrics_plot_backend="wandb"\
-		--no-debug\
+		--debug\
 		--num_cpus=${num_cpus}\
 		--max_cpu_allowed=${max_cpu_allowed}\
 		--num_gpus=${num_gpus}\
@@ -194,7 +170,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	# Update training config (CLIENT) 
 	
 	# Update optimizer config
-	srun python ./scripts_python/training/update_optimizer.py\
+	python ./scripts_python/training/update_optimizer.py\
 		--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 		--name="${name_optimizer}"\
 		--lr=${lr}\
@@ -204,13 +180,13 @@ for repetition in $(seq 1 $n_repetitions); do
 		# --nestorov\
 
 	# Update learning rate scheduler config
-	srun python ./scripts_python/training/update_lr_scheduler.py\
+	python ./scripts_python/training/update_lr_scheduler.py\
 		--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
 		--name="ExponentialLR"\
 		--gamma=${gamma}\
 		
 	# Update training config. 
-	srun python ./scripts_python/training/update_training_config.py\
+	python ./scripts_python/training/update_training_config.py\
 		--path_training_config="${PATH_TRAINING_CONFIG}"\
 		--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 		--path_lr_scheduler_config="${PATH_LR_SCHEDULER_CONFIG}"\
@@ -230,7 +206,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Launch FL Training
 
-	srun flwr run ./scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/\
+	flwr run ./scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/\
 		--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
 		--run-config "path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
 

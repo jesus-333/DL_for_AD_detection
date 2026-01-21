@@ -122,7 +122,7 @@ for repetition in $(seq 1 $n_repetitions); do
 			--name_tensor_file=${NAME_TENSOR_FILE}\
 			--path_to_save="${PATH_DATA}FL_indices/"\
 			--percentage_data_used_for_training=${percentage_data_used_for_training}\
-			--n_client=${num_clients}\
+			--num_clients=${num_clients}\
 			--seed=${seed}\
 			--n_folds=${n_folds}\
 			--use_cross_fold_validation\
@@ -178,7 +178,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		srun python ./scripts_python/training_FL/update_server_config.py\
 			--path_server_config="${PATH_SERVER_CONFIG}"\
 			--num_rounds=${num_rounds}\
-			--n_client=${num_clients}\
+			--num_clients=${num_clients}\
 			--fraction_fit=${fraction_fit}\
 			--fraction_evaluate=1.0\
 			--path_idx_FL_simulations="${PATH_DATA}FL_idx/fold_${current_fold}"\
@@ -236,7 +236,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		# Launch FL Training
 
-		srun flwr run ./scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb/\
+		srun flwr run ./scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/\
 			--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
 			--run-config "num-server-rounds=5 local-epochs=2 path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
 

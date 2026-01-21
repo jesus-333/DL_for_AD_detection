@@ -146,7 +146,7 @@ srun python ./scripts_python/training/update_dataset_config.py\
 srun python ./scripts_python/training_FL/update_server_config.py\
 	--path_server_config="${PATH_SERVER_CONFIG}"\
 	--num_rounds=${num_rounds}\
-	--n_client=${num_clients}\
+	--num_clients=${num_clients}\
 	--fraction_fit=${fraction_fit}\
 	--fraction_evaluate=1.0\
 	--keep_labels_proportion\
