@@ -36,7 +36,7 @@ class fed_avg_with_wandb_tracking(flwr.server.strategy.FedAvg):
             The possible keys are:
             - num_rounds : int
                 Number of rounds to run.
-            - n_client : int
+            - num_clients : int
                 Number of clients to use. It must be equal to the number of supernodes specified in pyproject.toml.
                 This parameter is not used inside the class but it is used in the server_app.py file.
             - fraction_fit : float

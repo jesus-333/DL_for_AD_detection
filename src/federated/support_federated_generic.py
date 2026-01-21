@@ -58,17 +58,17 @@ def split_data_for_clients(data, percentage_split_per_client : list, seed : int 
     else :
         return data_per_client
 
-def split_data_for_clients_uniformly(data, n_client : int, seed : int = None, labels = None, keep_labels_proportion : int = False) :
+def split_data_for_clients_uniformly(data, num_clients : int, seed : int = None, labels = None, keep_labels_proportion : int = False) :
     """
     Split the data (and labels if provided) uniformly among the clients.
     If keep_labels_proportion is True, the original proportion of labels is kept for each client. E.g. if the original data has 10% of label 1 and 90% of label 0, each client will have 10% of label 1 and 90% of label 0.
-    Note that keep_labels_proportion works only if there are enough samples for each label for each client. Also if class are highly unbalanced, and/or the number of sample for specific class is not divisible by n_client, the split is not perfectly uniform.
+    Note that keep_labels_proportion works only if there are enough samples for each label for each client. Also if class are highly unbalanced, and/or the number of sample for specific class is not divisible by num_clients, the split is not perfectly uniform.
     """
 
     data_per_client = []
     labels_per_client = [] if labels is not None else None
 
-    percentage_split_per_client = [1 / n_client] * n_client
+    percentage_split_per_client = [1 / num_clients] * num_clients
 
     if labels is not None :
         data_per_client, labels_per_client = split_data_for_clients(data, percentage_split_per_client, seed, labels, keep_labels_proportion)
