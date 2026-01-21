@@ -64,10 +64,10 @@ def prepare_data_for_FL_training(all_config : dict) :
     # Set the number of clients. 
     # If I use the centralized_evaluation, I add an extra client for the server. In this way the data will be split in n + 1 parts.
     # n parts will be used for the clients and the last one will be used for the server.
-    n_client = all_config['server_config']['n_client'] if not all_config['server_config']['centralized_evaluation'] else all_config['server_config']['n_client'] + 1
+    num_clients = all_config['server_config']['num_clients'] if not all_config['server_config']['centralized_evaluation'] else all_config['server_config']['num_clients'] + 1
 
     # Split the data uniformly between clients
-    data_per_client, labels_per_client = support_federated_generic.split_data_for_clients_uniformly(file_path_list, n_client = all_config['server_config']['n_client'], 
+    data_per_client, labels_per_client = support_federated_generic.split_data_for_clients_uniformly(file_path_list, num_clients = all_config['server_config']['num_clients'], 
                                                                                                     seed = all_config['training_config']['seed'], labels = label_list_int, 
                                                                                                     keep_labels_proportion = all_config['server_config']['keep_labels_proportion'] 
                                                                                                     )
@@ -76,7 +76,7 @@ def prepare_data_for_FL_training(all_config : dict) :
     os.makedirs(all_config['dataset_config']['path_data'], exist_ok = True)
 
     # Save data and labels in npy files
-    for i in range(all_config['server_config']['n_client']) :
+    for i in range(all_config['server_config']['num_clients']) :
         # Path to save data and labels
         dataset_path = all_config['dataset_config']['path_data'] + f'{i}_data.npy'
         labels_path  = all_config['dataset_config']['path_data'] + f'{i}_labels.npy'

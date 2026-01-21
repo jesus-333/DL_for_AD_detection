@@ -1,4 +1,6 @@
 """
+Note that addl is the name of the package built through hatch from the file in the src folder.
+
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """
@@ -91,7 +93,7 @@ def prepare_data_for_FL_training(all_config : dict) :
     # Set the number of clients.
     # If I use the centralized_evaluation, I add an extra client for the server. In this way the data will be split in n + 1 parts.
     # n parts will be used for the clients and the last one will be used for the server.
-    n_client = all_config['server_config']['n_client'] if not all_config['server_config']['centralized_evaluation'] else all_config['server_config']['n_client'] + 1
+    num_clients = all_config['server_config']['num_clients'] if not all_config['server_config']['centralized_evaluation'] else all_config['server_config']['num_clients'] + 1
 
     data = torch.load(f'{path_to_data}{dataset_tensor_file_name}', mmap = True)
     idx = np.arange(len(data))
@@ -99,7 +101,7 @@ def prepare_data_for_FL_training(all_config : dict) :
     # Split the data uniformly between clients
     # In this case, I only interested in the split of the indices, not the data/labels itself.The data/labels will be loaded later in the client.
     # Note that even if I not keep the labels here, I still pass them to the function, so I can use the keep_labels_proportion parameter.
-    idx_per_client, _ = support_federated_generic.split_data_for_clients_uniformly(idx, n_client = n_client,
+    idx_per_client, _ = support_federated_generic.split_data_for_clients_uniformly(idx, num_clients = num_clients,
                                                                                    seed = all_config['training_config']['seed'],
                                                                                    labels = labels_int, keep_labels_proportion = all_config['server_config']['keep_labels_proportion']
                                                                                    )
@@ -108,7 +110,7 @@ def prepare_data_for_FL_training(all_config : dict) :
     os.makedirs(all_config['dataset_config']['path_data'], exist_ok = True)
 
     # Save data and labels in npy files
-    for i in range(all_config['server_config']['n_client']) :
+    for i in range(all_config['server_config']['num_clients']) :
         # Path to save indices
         dataset_path = all_config['dataset_config']['path_data'] + f'{i}_idx.npy'
 

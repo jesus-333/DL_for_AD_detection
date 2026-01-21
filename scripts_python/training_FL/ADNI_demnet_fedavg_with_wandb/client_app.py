@@ -37,7 +37,7 @@ def client_fn_demnet(context : Context) -> Client :
     # print("training config for cleint", context.node_config["partition-id"])
     # pprint.pprint(training_config)
 
-    # Get client ID (it is a number from 0 to n_client - 1) and load indices for the client
+    # Get client ID (it is a number from 0 to num_clients - 1) and load indices for the client
     client_id = context.node_config["partition-id"]
     idx_client = np.load(dataset_config['path_data'] + f'{client_id}_idx.npy')
 
