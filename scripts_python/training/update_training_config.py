@@ -9,6 +9,7 @@ Update the training config toml file
 
 import argparse
 import numpy as np
+import os
 import toml
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -224,9 +225,13 @@ else :
     training_config['vgg_training_mode'] = None
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Save the config
 
-# Save the updated training config to the same file
+# Create the folder if it does not exist
+os.makedirs(os.path.dirname(args.path_training_config), exist_ok = True)
+
+# Save the updated training config
 with open(args.path_training_config, 'w') as f:
     toml.dump(training_config, f)
 
-print("Update training config - OK")
+print("Update TRAINING config - OK")

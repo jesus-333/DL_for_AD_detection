@@ -11,6 +11,7 @@ This script instead, always creates a new toml file with the new parameters. If 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import argparse
+import os
 import toml
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -121,8 +122,14 @@ elif args.name == 'ChainedScheduler' :
     # Add the list of configs to the main config
     lr_scheduler_config['list_config_schedulers'] = list_config_schedulers
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Save the config
+
+# Create the folder if it does not exist
+os.makedirs(os.path.dirname(args.path_lr_scheduler_config), exist_ok = True)
+
 # Save the config to a toml file
 with open(args.path_lr_scheduler_config, 'w') as f:
     toml.dump(lr_scheduler_config, f)
 
-print("Update lr scheduler config - OK")
+print("Update LR SCHEDULER config - OK")

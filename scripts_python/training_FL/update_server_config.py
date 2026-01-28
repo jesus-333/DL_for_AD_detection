@@ -10,6 +10,7 @@ I keep it separate from the other update scripts because this one is used specif
 
 import argparse
 import numpy as np
+import os
 import toml
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -196,5 +197,11 @@ wandb_config['max_gpu_allowed'] = args.max_gpu_allowed
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save the config
 
+# Create the folder if it does not exist
+os.makedirs(os.path.dirname(server_config['path_server_config']), exist_ok = True)
+
+# Save the server config
 with open(server_config['path_server_config'], 'w') as f:
     toml.dump(server_config, f)
+
+print("Update SERVER config - OK")

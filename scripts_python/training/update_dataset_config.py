@@ -8,6 +8,7 @@ Update the dataset config toml file
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import argparse
+import os
 import toml
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -104,9 +105,13 @@ dataset_config['use_normalization']   = args.use_normalization
 if args.use_rgb_input is not None : dataset_config['use_rgb_input'] = args.use_rgb_input
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Save the updated dataset config
+# Save the config
+
+# Create the folder if it does not exist
+os.makedirs(os.path.dirname(args.path_dataset_config), exist_ok = True)
+
+# Save the dataset config
 with open(args.path_dataset_config, 'w') as f:
     toml.dump(dataset_config, f)
-
 
 print("Update DATASET config - OK")

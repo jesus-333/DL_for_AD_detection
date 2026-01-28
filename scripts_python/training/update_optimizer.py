@@ -58,7 +58,9 @@ else : sys.path.append('./')
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+import os
 import toml
+
 from src.training.support_training import check_optimizer_config
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -105,11 +107,18 @@ elif args.name == 'SGD' :
     optimizer_config['weight_decay'] = args.weight_decay if args.weight_decay is not None else 0.0
     optimizer_config['maximize'] = args.maximize
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check config
 check_optimizer_config(optimizer_config)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Save the config
+
+# Create the folder if it does not exist
+os.makedirs(os.path.dirname(args.path_optimizer_config), exist_ok = True)
 
 # Save the config to a toml file
 with open(args.path_optimizer_config, 'w') as f:
     toml.dump(optimizer_config, f)
 
-print("Update optimizer config - OK")
+print("Update OPTIMIZER config - OK")
