@@ -50,6 +50,8 @@ def client_fn_demnet(context : Context) -> Client :
         print("#######################################")
         print("CLIENT")
         print("dataset_config['merge_AD_class'] ", dataset_config['merge_AD_class'])
+        print(f"N. training samples    : {len(MRI_train_dataset)}")
+        print(f"N. validations samples : {len(MRI_validation_dataset)}")
         print("#######################################")
 
     # (OPTIONAL) Move dataset to device

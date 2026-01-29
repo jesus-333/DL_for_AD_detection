@@ -2,12 +2,12 @@ batch_size = 128
 lr = 0.001
 epochs = 2
 use_scheduler = true
-device = "mps"
+device = "cuda"
 epoch_to_save_model = 3
-path_to_save_model = "model_weights/debug_FL"
+path_to_save_model = "model_weights/vgg_ADNI_FL/exp_lr_SGD_4600157"
 measure_metrics_during_training = true
 print_var = true
-seed = 3941394579
+seed = 4600157
 wandb_training = false
 notes = ""
 log_freq = 1
@@ -16,8 +16,8 @@ use_weights_with_lower_validation_error = true
 fl_training = true
 vgg_training = true
 use_pretrained_vgg = true
-use_vgg_normalization_values = true
-vgg_training_mode = 1
+use_vgg_normalization_values = false
+vgg_training_mode = 0
 
 [lr_scheduler_config]
 name = "ExponentialLR"

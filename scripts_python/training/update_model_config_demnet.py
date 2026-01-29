@@ -1,17 +1,6 @@
 """
 Update the dement model configuration file with new parameters.
-
-NOTES ABOUT PATH
-Originally, as the update_training_config.py script, this script did not overwrite the file, but only updated it. There was a single parameter, called path_model_config, that specified the path to the config file to update.
-Of course if no file was present at that path, a new one was created.
-
-Later I noticed that with this approach if I launched multiple training with different parameters, I risk to create conflicts between them, if the same path_model_config was used.
-Why you should use the same path for multiple training? Because when I launch the training with the sh script I not update all parameters of the model but only a few of them.
-Exploiting the fact that this script can overwrite only the parameters that I want to change, allow me to avoid to write too much settings in the sh script (like all the demnet block config that remains always the same).
-But as I said, this could create conflicts between multiple training run. To avoid this problem, I added a new parameter, called path_template and renamed path_model_config to path_save.
-In this way I use the file from path_template as a bae to create a new config file that is saved at path_save. All the parameters that are not specified in the command line remain the same as in the template file. The new parameters specified in the command line overwrite the old ones and the new config file is saved at path_save.
-
-I will probably add this feature also to the other update_xxx_config.py scripts.
+As the update_training_config.py script, this script does not overwrite the file, but only updates the parameters that are passed as arguments.
 
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
@@ -29,8 +18,7 @@ import toml
 parser = argparse.ArgumentParser(description = 'Update the demnet model configuration file with new parameters.')
 
 # Non boolean arguments
-parser.add_argument('--path_save'         , type = str  , default = './config/demnet_model.toml', help = 'Path to save the updated model config file. Default is ./config/demnet_model.toml')
-parser.add_argument('--path_template'     , type = str  , default = None, help = 'Path to the toml file with a template of the model config')
+parser.add_argument('--path_model_config' , type = str  , default = './config/demnet_model.toml', help = 'Path to the toml file with the demnet model config. Default is ./config/demnet_model.toml')
 parser.add_argument('--input_size'        , type = int  , default = None, help = 'Input size of the model. If None is passed, the value already present in the config file will be used. Default is None.')
 parser.add_argument('--input_channels'    , type = int  , default = None, help = 'Number of input channels. If None is passed, the value already present in the config file will be used. Default is None.')
 parser.add_argument('--num_classes'       , type = int  , default = None, help = 'Number of output classes. If None is passed, the value already present in the config file will be used. Default is None.')
@@ -40,7 +28,7 @@ parser.add_argument('--kernel_size_conv_2', type = int  , default = None, help =
 parser.add_argument('--dropout_rate_1'    , type = float, default = None, help = 'Dropout rate for the first dropout layer. If None is passed, the value already present in the config file will be used. Default is None.')
 parser.add_argument('--dropout_rate_2'    , type = float, default = None, help = 'Dropout rate for the second dropout layer. If None is passed, the value already present in the config file will be used. Default is None.')
 # List to dement block config files
-parser.add_argument('--demnet_blocks_path_list'     , nargs = '+', default = [], help = 'List of paths to the toml files with the dement block model config. Default is an empty list. Example: --demnet_blocks ./config/demnet_block_1.toml ./config/demnet_block_2.toml')
+parser.add_argument('--demnet_blocks_path_list'     , nargs = '+', default = [], help = 'List of paths to the toml files with the dement block model config. If not provided, an error will be raised. Default is an empty list. Example: --demnet_blocks ./config/demnet_block_1.toml ./config/demnet_block_2.toml')
 # Boolean arguments
 parser.add_argument('--batch_norm'                  , default = None, action = 'store_true', help = 'If passed, batch normalization will be used. Default is True.')
 parser.add_argument('--use_activation_in_classifier', default = None, action = 'store_true', help = 'If passed, the classifier will use an activation function. Default is True.')
@@ -54,17 +42,12 @@ args = parser.parse_args()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Check if a template file is provided
-if os.path.exists(args.path_template) :
-    print("Using the template file to create a new model config.")
-    model_config = toml.load(args.path_template)
-else :
-    if args.path_template is not None :
-        print(f'Template provided but the file {args.path_template} does not exist. A new file will be created.')
-    else :
-        print('No template file provided. A new file will be created.')
-
+# Check if the file exists
+if not os.path.exists(args.path_model_config) :
+    print(f'The file {args.path_model_config} does not exist. A new file will be created.')
     model_config = {}
+else :
+    model_config = toml.load(args.path_model_config)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save NON boolean arguments
@@ -135,13 +118,5 @@ if args.use_activation_in_classifier is not None : model_config['use_activation_
 if args.use_as_features_extractor is not None : model_config['use_as_features_extractor'] = args.use_as_features_extractor
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Save the config
-
-# Create the folder if it does not exist
-os.makedirs(os.path.dirname(args.path_save), exist_ok = True)
-
-# Save the updated config
-with open(args.path_save, 'w') as f :
+with open(args.path_model_config, 'w') as f :
     toml.dump(model_config, f)
-
-print("Update MODEL config (DEMNET) - OK")

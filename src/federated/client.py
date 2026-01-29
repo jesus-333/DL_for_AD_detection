@@ -43,9 +43,10 @@ class flower_client_v1(NumPyClient):
 
         # Print information
         if self.training_config['print_var'] :
-            print(f"Client n. {self.client_id}")
+            print(f"Client n. {self.client_id} - CONSTRUCTOR")
             print(f"N. training samples = {len(self.train_dataset)}")
             print(f"N. validation_dataset samples = {len(self.validation_dataset)}")
+            print(f"Model :\n{self.model}")
 
     def __dir__(self) :
         # If data are not on the CPU move them to the CPU
@@ -88,6 +89,12 @@ class flower_client_v1(NumPyClient):
             - The number of samples used for training (it is used by the server to compute the weighted average).
             - A dictionary with the training metrics (e.g. loss, accuracy, etc.) to be uploaded to the server.
         """
+
+        if self.training_config['print_var'] :
+            print(f"Client n. {self.client_id} - FIT")
+            print(f"N. training samples = {len(self.train_dataset)}")
+            print(f"N. validation_dataset samples = {len(self.validation_dataset)}")
+
         # Set the parameters (received from the server)
         support_federated_generic.set_weights(self.model, parameters)
 

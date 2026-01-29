@@ -1,13 +1,13 @@
-batch_size = 128
+batch_size = 192
 lr = 0.001
-epochs = 10
+epochs = 5
 use_scheduler = true
 device = "cuda"
-epoch_to_save_model = 11
-path_to_save_model = "model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_"
+epoch_to_save_model = 6
+path_to_save_model = "model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_4743706"
 measure_metrics_during_training = true
 print_var = true
-seed = 42
+seed = 2155363964
 wandb_training = false
 notes = ""
 log_freq = 1
@@ -20,10 +20,10 @@ name = "ExponentialLR"
 gamma = 0.94
 
 [optimizer_config]
-lr = 0.001
-name = "SGD"
-momentum = 0.9
-dampening = 0.0
-nesterov = false
+lr = 0.0005
+name = "AdamW"
+betas = [ 0.9, 0.999,]
+eps = 1e-8
 weight_decay = 1e-5
+amsgrad = false
 maximize = false

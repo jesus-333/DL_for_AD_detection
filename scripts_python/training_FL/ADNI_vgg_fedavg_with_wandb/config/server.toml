@@ -1,10 +1,10 @@
 path_server_config = "scripts_python/training_FL/ADNI_vgg_fedavg_with_wandb/config/server.toml"
-num_rounds = 2
-rounds_to_save_model = 3
+num_rounds = 50
+rounds_to_save_model = 51
 n_client = 5
 fraction_fit = 1.0
 fraction_evaluate = 1.0
-clients_seed = [ "np.int64(586330983)", "np.int64(362302765)", "np.int64(133157863)", "np.int64(1379502664)", "np.int64(278619863)",]
+clients_seed = [ "np.int64(1198437650)", "np.int64(950632102)", "np.int64(1854673939)", "np.int64(1565231014)", "np.int64(1640280418)",]
 keep_labels_proportion = true
 centralized_evaluation = true
 use_on_fit_config_function = false
@@ -12,6 +12,7 @@ use_on_fit_config_function = false
 [wandb_config]
 wandb_training = true
 project_name = "vgg_training_ADNI_FL"
+entity = "alberto_zancanaro_academic"
 model_artifact_name = "vgg_z_1"
 log_freq = 1
 metrics_to_log_from_clients = [ "accuracy_train accuracy_validation",]

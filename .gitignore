@@ -14,6 +14,7 @@ scripts_sh/output/
 scripts_sh/debug/output/
 scripts_sh/**/*.toml
 scripts_sh/**/*.txt
+scripts_python/**/*.toml
 dist/
 config/test_code/
 config/test_code_FL/
