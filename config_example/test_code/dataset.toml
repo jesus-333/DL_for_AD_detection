@@ -1,0 +1,13 @@
+path_dataset_config = "./config/test_code/dataset.toml"
+path_data = "./data/"
+name_tensor_file = "dataset_tensor.pt"
+filter_AD_data = false
+merge_AD_class = 1
+percentage_train = 0.8
+percentage_test = 0.1
+percentage_validation = 0.1
+rescale_factor = 4095.0
+apply_rescale = true
+load_data_in_memory = true
+use_normalization = true
+use_rgb_input = true

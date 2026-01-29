@@ -1,0 +1,5 @@
+version = 16
+batch_normalization = true
+pretrained = true
+input_channels = 3
+num_classes = 2

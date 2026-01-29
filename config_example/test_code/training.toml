@@ -1,0 +1,33 @@
+batch_size = 128
+lr = 0.001
+epochs = 1
+use_scheduler = true
+device = "mps"
+epoch_to_save_model = 2
+path_to_save_model = "model_weights_ADNI"
+measure_metrics_during_training = true
+print_var = true
+seed = 585517014
+wandb_training = true
+log_freq = 1
+debug = false
+log_model_artifact = false
+vgg_training = true
+use_pretrained_vgg = true
+use_vgg_normalization_values = true
+vgg_training_mode = 1
+project_name = "test_code"
+model_artifact_name = "test_artifact"
+
+[lr_scheduler_config]
+name = "ExponentialLR"
+gamma = 0.9
+
+[optimizer_config]
+lr = 0.001
+name = "SGD"
+momentum = 0.09
+dampening = 0.0
+nesterov = false
+weight_decay = 0.0001
+maximize = false
