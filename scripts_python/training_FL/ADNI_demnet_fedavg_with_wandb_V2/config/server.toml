@@ -1,11 +1,11 @@
 path_server_config = "scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/config/server.toml"
-num_rounds = 3
-rounds_to_save_model = 4
-num_clients = 3
+num_rounds = 100
+rounds_to_save_model = 101
+num_clients = 30
 fraction_fit = 1.0
 fraction_evaluate = 1.0
-clients_seed = [ "np.int64(1354153809)", "np.int64(885220583)", "np.int64(1896543432)",]
-path_idx_server_data = "data/ADNI_axial_middle_slice/FL_idx/"
+clients_seed = [ "np.int64(1358278655)", "np.int64(873553100)", "np.int64(1824192767)", "np.int64(1082490286)", "np.int64(723117757)", "np.int64(883722772)", "np.int64(466512455)", "np.int64(1550144557)", "np.int64(1577540614)", "np.int64(1023259802)", "np.int64(1917274689)", "np.int64(801442143)", "np.int64(2143360589)", "np.int64(684215594)", "np.int64(779681900)", "np.int64(1994550692)", "np.int64(912866646)", "np.int64(1480353080)", "np.int64(885685646)", "np.int64(683483692)", "np.int64(1209473340)", "np.int64(422085844)", "np.int64(1147840792)", "np.int64(866725126)", "np.int64(2093345204)", "np.int64(1444196055)", "np.int64(130540672)", "np.int64(959205841)", "np.int64(240200182)", "np.int64(793154361)",]
+path_idx_server_data = "data/ADNI_axial_middle_slice/FL_idx_4743706/"
 keep_labels_proportion = true
 centralized_evaluation = true
 use_on_fit_config_function = false
@@ -13,7 +13,7 @@ simulation = true
 
 [wandb_config]
 wandb_training = true
-project_name = "demnet_training_ADNI_FL_V2"
+project_name = "demnet_training_ADNI_FL_V2_all_classes"
 entity = "alberto_zancanaro_academic"
 model_artifact_name = "demnet_z_1"
 log_freq = 1

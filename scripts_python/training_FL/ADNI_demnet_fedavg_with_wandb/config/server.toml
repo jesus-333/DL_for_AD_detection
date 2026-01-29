@@ -1,23 +1,23 @@
 path_server_config = "scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb/config/server.toml"
-num_rounds = 3
-rounds_to_save_model = 4
-n_client = 4
+num_rounds = 60
+rounds_to_save_model = 61
+n_client = 10
 fraction_fit = 1.0
 fraction_evaluate = 1.0
-clients_seed = [ "np.int64(2088395166)", "np.int64(1677782978)", "np.int64(314414418)", "np.int64(1062863007)",]
+clients_seed = [ "np.int64(1364871271)", "np.int64(79009794)", "np.int64(2094696747)", "np.int64(1568138031)", "np.int64(240654095)", "np.int64(1204582306)", "np.int64(140435046)", "np.int64(1663037015)", "np.int64(852760235)", "np.int64(1438903579)",]
 keep_labels_proportion = true
 centralized_evaluation = true
 
 [wandb_config]
 wandb_training = true
-project_name = "test_code"
+project_name = "demnet_training_ADNI_FL"
 entity = "alberto_zancanaro_academic"
-model_artifact_name = "test_artifact"
+model_artifact_name = "demnet_z_1"
 log_freq = 1
 metrics_to_log_from_clients = [ "accuracy_train accuracy_validation",]
 log_model_artifact = false
-debug = true
+debug = false
 num_cpus = 4.0
-num_gpus = 0.3
-max_cpu_allowed = 12
+num_gpus = 1.0
+max_cpu_allowed = 4
 max_gpu_allowed = 1

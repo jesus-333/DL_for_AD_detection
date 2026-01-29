@@ -120,7 +120,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations.py\
 			--path_data=${PATH_DATA}\
 			--name_tensor_file=${NAME_TENSOR_FILE}\
-			--path_to_save="${PATH_DATA}FL_indices/"\
+			--path_to_save="${PATH_DATA}FL_idx/"\
 			--percentage_data_used_for_training=${percentage_data_used_for_training}\
 			--num_clients=${num_clients}\
 			--seed=${seed}\

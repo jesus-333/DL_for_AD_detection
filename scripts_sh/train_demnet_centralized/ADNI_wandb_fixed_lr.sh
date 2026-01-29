@@ -3,12 +3,12 @@
 #SBATCH --job-name="train_demnet_ADNI_wandb_chained_lr"
 #SBATCH --nodes=1
 #SBATCH --partition=gpu
+#SBATCH --qos=normal
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=57G
 #SBATCH --time=0-01:30:00
-#SBATCH --qos=normal
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/output/std_output_%x_%j.txt
