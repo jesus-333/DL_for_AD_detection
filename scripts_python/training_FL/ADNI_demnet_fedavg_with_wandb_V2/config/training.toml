@@ -1,10 +1,10 @@
 batch_size = 128
 lr = 0.001
-epochs = 10
+epochs = 15
 use_scheduler = true
-device = "cuda"
-epoch_to_save_model = 11
-path_to_save_model = "model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_"
+device = "mps"
+epoch_to_save_model = 16
+path_to_save_model = "model_weights/demnet_ADNI_FL_V2/debug/"
 measure_metrics_during_training = true
 print_var = true
 seed = 42

@@ -1,6 +1,6 @@
 input_size = 176
 input_channels = 1
-num_classes = 2
+num_classes = 6
 activation = "elu"
 kernel_size_conv_1 = 7
 kernel_size_conv_2 = 5

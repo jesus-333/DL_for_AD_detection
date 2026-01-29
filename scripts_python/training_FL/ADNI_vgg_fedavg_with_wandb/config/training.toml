@@ -7,7 +7,7 @@ epoch_to_save_model = 3
 path_to_save_model = "model_weights/debug_FL"
 measure_metrics_during_training = true
 print_var = true
-seed = 3941394579
+seed = 38272372
 wandb_training = false
 notes = ""
 log_freq = 1
@@ -16,7 +16,7 @@ use_weights_with_lower_validation_error = true
 fl_training = true
 vgg_training = true
 use_pretrained_vgg = true
-use_vgg_normalization_values = true
+use_vgg_normalization_values = false
 vgg_training_mode = 1
 
 [lr_scheduler_config]

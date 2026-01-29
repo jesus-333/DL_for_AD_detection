@@ -1,13 +1,13 @@
 batch_size = 128
 lr = 0.001
-epochs = 1
+epochs = 3
 use_scheduler = true
-device = "cpu"
-epoch_to_save_model = 2
-path_to_save_model = "model_weights_ADNI"
+device = "mps"
+epoch_to_save_model = 4
+path_to_save_model = "model_weights_ADNI/debug_FL/"
 measure_metrics_during_training = true
 print_var = true
-seed = 3025260
+seed = 1213315507
 wandb_training = false
 notes = ""
 log_freq = 1
@@ -17,7 +17,7 @@ fl_training = true
 
 [lr_scheduler_config]
 name = "ExponentialLR"
-gamma = 0.94
+gamma = 0.9
 
 [optimizer_config]
 lr = 0.0001

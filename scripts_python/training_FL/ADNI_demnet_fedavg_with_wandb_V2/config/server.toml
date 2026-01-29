@@ -1,10 +1,10 @@
 path_server_config = "scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/config/server.toml"
-num_rounds = 20
-rounds_to_save_model = 21
-num_clients = 4
+num_rounds = 3
+rounds_to_save_model = 4
+num_clients = 3
 fraction_fit = 1.0
 fraction_evaluate = 1.0
-clients_seed = [ "np.int64(1065051213)", "np.int64(2079705282)", "np.int64(695285454)", "np.int64(916745138)",]
+clients_seed = [ "np.int64(1354153809)", "np.int64(885220583)", "np.int64(1896543432)",]
 path_idx_server_data = "data/ADNI_axial_middle_slice/FL_idx/"
 keep_labels_proportion = true
 centralized_evaluation = true
