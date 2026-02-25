@@ -107,7 +107,7 @@ from addl.federated import support_federated_generic
 
 path_data = "data/ADNI_axial_middle_slice/"
 name_tensor_file = "dataset_tensor___176_resize.pt"
-path_to_save = "data/ADNI_axial_middle_slice/FL_idx/"
+path_to_save = "data/ADNI_axial_middle_slice/FL_indices/"
 
 percentage_data_used_for_training = 0.8
 num_clients = 5
@@ -126,7 +126,7 @@ if args.path_data is not None                         : path_data = args.path_da
 if args.name_tensor_file is not None                  : name_tensor_file = args.name_tensor_file
 if args.path_to_save is not None                      : path_to_save = args.path_to_save
 if args.percentage_data_used_for_training is not None : percentage_data_used_for_training = args.percentage_data_used_for_training
-if args.num_clients is not None                          : num_clients = args.num_clients
+if args.num_clients is not None                       : num_clients = args.num_clients
 if args.seed is not None                              : seed = args.seed
 if args.n_folds is not None                           : n_folds = args.n_folds
 if args.use_cross_fold_validation is not None         : use_cross_fold_validation = args.use_cross_fold_validation
@@ -136,7 +136,6 @@ if args.keep_labels_proportion is not None            : keep_labels_proportion =
 if seed <= 0 :
     seed = np.random.randint(0, 2**32 - 1)
     print(f"Invalid seed value. Sample new random seed {seed}")
-
 
 if n_folds is None :
     if not (0.0 < percentage_data_used_for_training < 1.0) :
@@ -224,6 +223,9 @@ if use_cross_fold_validation :
 
         # Split the training data between clients and save the indices files (both training and validation)
         split_and_save_indices(idx_train, idx_val, all_labels_int[idx_train], path_to_save_fold, print_info = False)
+
+        filenames = next(os.walk(path_to_save), (None, None, []))[2] 
+        for el in filenames : print(el)
 else :
     # Split the data between training and validation
     idx_list_train_val, _ = support_federated_generic.split_data_for_clients(all_idx, percentage_split_per_client = [percentage_data_used_for_training, 1 - percentage_data_used_for_training],
@@ -236,6 +238,8 @@ else :
 
     # Split the training data between clients and save the indices files (both training and validation)
     split_and_save_indices(idx_train, idx_val, all_labels_int[idx_train], path_to_save, print_info = True)
-    
+
+    filenames = next(os.walk(path_to_save), (None, None, []))[2] 
+    for el in filenames : print(el)
 
 print("Data splitting and saving of indices files completed.")
