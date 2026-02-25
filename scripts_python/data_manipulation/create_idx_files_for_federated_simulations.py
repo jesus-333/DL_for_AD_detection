@@ -107,7 +107,7 @@ from addl.federated import support_federated_generic
 
 path_data = "data/ADNI_axial_middle_slice/"
 name_tensor_file = "dataset_tensor___176_resize.pt"
-path_to_save = "data/ADNI_axial_middle_slice/FL_idx/"
+path_to_save = "data/ADNI_axial_middle_slice/FL_indices/"
 
 percentage_data_used_for_training = 0.8
 num_clients = 5
