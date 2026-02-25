@@ -2,18 +2,19 @@
 
 #SBATCH --job-name="train_demnet_FL_V2_ADNI_exp_lr"
 #SBATCH --nodes=1
-#SBATCH --partition=gpu
-#SBATCH --qos=normal
+#SBATCH --partition=hopper
+#SBATCH --qos=iris-hopper
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=13G
-#SBATCH --time=0-14:15:00
+#SBATCH --time=0-05:15:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_FL_V2/output/std_output_%x_%j.txt
 #SBATCH --error=./scripts_sh/train_demnet_FL_V2/output/other_output_%x_%j.txt
 
+# Works as script _1 but changes how data are divided between clients
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
 
@@ -59,10 +60,10 @@ NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
 percentage_data_used_for_training=0.85
 seed=-1
 # seed=2627151565
-n_repetitions=6
+n_repetitions=4
 
 # Dataset settings for each client
-merge_AD_class=1
+merge_AD_class=0
 percentage_train=0.9
 percentage_validation=0.1
 percentage_test=0
@@ -95,7 +96,7 @@ input_size=176
 
 # Wandb Setting
 project_name="demnet_training_ADNI_FL_V2_all_classes"
-project_name="demnet_training_ADNI_FL_V2_4_classes"
+# project_name="demnet_training_ADNI_FL_V2_4_classes"
 
 # FL settings (Training)
 num_clients=-1
@@ -136,7 +137,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Prepare data
 
-	srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations.py\
+	srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations_2.py\
 		--path_data=${PATH_DATA}\
 		--name_tensor_file=${NAME_TENSOR_FILE}\
 		--path_to_save="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"\
@@ -144,7 +145,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--num_clients=${num_clients}\
 		--seed=${seed}\
 		--no-use_cross_fold_validation\
-		--keep_labels_proportion\
+		--keep_sample_proportion\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Reset config files (Note that this reset only the config for the client side)
