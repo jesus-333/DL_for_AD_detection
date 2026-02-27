@@ -210,7 +210,7 @@ def create_idx_array_for_subj(subj, subj_list_per_sample : list) :
     idx_array = np.where(subj_list_per_sample == subj)[0]
     return idx_array
 
-def create_idx_array_for_client(subj_list_client : list, subj_list_per_sample : list) :
+def create_idx_array_from_subj_list(subj_list : list, subj_list_per_sample : list) :
     """
     Create an array with all the indices of the samples of a specific client, given the list of subjects assigned to that client.
 
@@ -228,7 +228,7 @@ def create_idx_array_for_client(subj_list_client : list, subj_list_per_sample : 
     """
 
     idx_array = np.array([], dtype = int)
-    for subj in subj_list_client :
+    for subj in subj_list :
         idx_subj = create_idx_array_for_subj(subj, subj_list_per_sample)
         idx_array = np.concatenate((idx_array, idx_subj))
 
@@ -263,6 +263,49 @@ def check_idx_array(idx_array_list, n_samples : int) :
 
     print("The indices arrays are valid. No duplicates and no indices out of range.")
 
+def print_info_train_val(subj_per_client_train, samples_per_client_train, subj_list_per_sample, list_subj_val, dataset_info) :
+    """
+    I put all this code here inside this function to avoid having too many print inside the main part of the script.
+    """
+
+    print("Training subjects per client:")
+    for i in range(num_clients) :
+        print(f"\tClient {i} : {len(subj_per_client_train[i])} subjects\t{samples_per_client_train[i]} samples")
+        label_counts_client = count_labels_per_idx_set(create_idx_array_from_subj_list(subj_per_client_train[i], subj_list_per_sample), dataset_info)
+        print(f"\t\tLabel counts : ")
+        for label, count in label_counts_client.items() :
+            print(f"\t\t-{label} : {int(count)}\t({count / samples_per_client_train[i] * 100:.2f}%)")
+
+    print(f"\nValidation subjects {len(list_subj_val)} subjects\t{n_samples - sum(samples_per_client_train)} samples")
+    label_counts_val = count_labels_per_idx_set(create_idx_array_from_subj_list(list_subj_val, subj_list_per_sample), dataset_info)
+    print(f"\t\tLabel counts : ")
+    for label, count in label_counts_val.items() :
+        print(f"\t\t-{label} : {int(count)}\t({count / (n_samples - sum(samples_per_client_train)) * 100:.2f}%)")
+
+def count_labels_per_idx_set(idx_array, dataset_info) :
+    """
+    Count the number of samples for each class in a given set of indices.
+
+    Parameters
+    ----------
+    idx_array : np.array
+        Array with the indices of the samples for which to count the labels.
+    dataset_info : pd.DataFrame
+        DataFrame with the information about the dataset, including the labels for each sample. It must contain a column named 'label' with the label for each sample.
+
+    Returns
+    -------
+    label_counts : dict
+        Dictionary with the number of samples for each class in the given set of indices. The keys are the unique labels and the values are the counts for each label.
+    """
+
+    labels = dataset_info['labels_str'].to_numpy()
+    labels_subset = labels[idx_array]
+    unique_labels, counts = np.unique(labels_subset, return_counts = True)
+    label_counts = dict(zip(unique_labels, counts))
+    
+    return label_counts
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 data = torch.load(f'{path_data}{name_tensor_file}', mmap = True)
@@ -296,21 +339,22 @@ else :
         subj_per_client_train, samples_per_client_train = divide_subj_per_client_uniformly(list_subj_train, num_clients)
     
     # Print the number of subjects and samples for each client and for the validation set
-    print("Training subjects per client:")
-    for i in range(num_clients) : print(f"\tClient {i} : {len(subj_per_client_train[i])} subjects, {samples_per_client_train[i]} samples")
-    print(f"Validation subjects {len(list_subj_val)} subjects, {n_samples - sum(samples_per_client_train)} samples")
+    print_info_train_val(subj_per_client_train, samples_per_client_train, subj_list_per_sample, list_subj_val, dataset_info)
 
     # Used to check that the indices arrays do not contain duplicates and that they do not contain indices out of range
     all_idx_array = []
 
     # Create the indices files for the training
     for i in range(num_clients) :
-        idx_array_client = create_idx_array_for_client(subj_per_client_train[i], subj_list_per_sample)
+        idx_array_client = create_idx_array_from_subj_list(subj_per_client_train[i], subj_list_per_sample)
         np.save(f'{path_to_save}client_{i}_train_idx.npy', idx_array_client)
         all_idx_array.append(idx_array_client)
 
+    # Save all the training indices in a single file (used to compare federated and centralized training on the same training data)
+    np.save(f'{path_to_save}train_idx_all.npy', np.concatenate(all_idx_array))
+
     # Create the indices file for the validation set
-    idx_array_val = create_idx_array_for_client(list_subj_val, subj_list_per_sample)
+    idx_array_val = create_idx_array_from_subj_list(list_subj_val, subj_list_per_sample)
     np.save(f'{path_to_save}val_idx.npy', idx_array_val)
     all_idx_array.append(idx_array_val)
 
