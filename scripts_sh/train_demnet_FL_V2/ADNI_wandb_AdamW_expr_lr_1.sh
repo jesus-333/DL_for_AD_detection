@@ -58,7 +58,7 @@ path_to_save_idx_file="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"
 
 # Data preparation settings
 percentage_data_used_for_training=0.85
-seed=-1
+seed=${SLURM_JOB_ID}
 # seed=2627151565
 n_repetitions=1
 

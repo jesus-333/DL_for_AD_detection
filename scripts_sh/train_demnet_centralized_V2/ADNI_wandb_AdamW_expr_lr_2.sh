@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#SBATCH --job-name="train_demnet_FL_V2_ADNI_exp_lr"
+#SBATCH --job-name="train_demnet_CENTRALIZED_V2_ADNI_exp_lr"
 #SBATCH --nodes=1
 #SBATCH --partition=hopper
 #SBATCH --qos=iris-hopper
@@ -37,30 +37,32 @@ pip list
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
+# Slurm ID of the FL training run you want to use to get the config
+slurm_old_id=000000
+
 # Path to library
 PATH_SRC="./"
 
 # Paths to config files
 PATH_CONFIG_FOLDER="scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/config/"
-PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset_${SLURM_JOB_ID}.toml"
+PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset_${slurm_old_id}.toml"
 PATH_MODEL_CONFIG_TEMPLATE="${PATH_CONFIG_FOLDER}template/model.toml"
-PATH_MODEL_CONFIG_SAVE="${PATH_CONFIG_FOLDER}model_${SLURM_JOB_ID}.toml"
-PATH_SERVER_CONFIG="${PATH_CONFIG_FOLDER}server_${SLURM_JOB_ID}.toml"
-PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training_${SLURM_JOB_ID}.toml"
-PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_config_${SLURM_JOB_ID}.toml"
-PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${SLURM_JOB_ID}.toml"
+PATH_MODEL_CONFIG_SAVE="${PATH_CONFIG_FOLDER}model_${slurm_old_id}.toml"
+PATH_SERVER_CONFIG="${PATH_CONFIG_FOLDER}server_${slurm_old_id}.toml"
+PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training_${slurm_old_id}.toml"
+PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_config_${slurm_old_id}.toml"
+PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${slurm_old_id}.toml"
 
 # Path to data
 # PATH_DATA="data/ADNI_axial_3D_z_${input_channels}_size_${input_size}_int/" 
 PATH_DATA="data/ADNI_axial_middle_slice/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
-path_to_save_idx_file="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"
+path_to_save_idx_file="${PATH_DATA}FL_idx_${slurm_old_id}/"
 # N.B. The file for ADNI_middle_slice were saved with value alreay normalized between 0 and 1. 
 
 # Data preparation settings
 percentage_data_used_for_training=0.9
-seed=${SLURM_JOB_ID}
-# seed=2627151565
+seed=${slurm_old_id}
 n_repetitions=1
 
 # Dataset settings for each client
@@ -80,6 +82,7 @@ epoch_to_save_model=-1
 path_to_save_model="model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_${SLURM_JOB_ID}"
 
 # Optimizer config
+# CHANGE only the lr. DO NOT CHANGE the other parameters
 lr=1e-3
 lr=5e-4
 name_optimizer='AdamW'
@@ -96,19 +99,8 @@ input_channels=1
 input_size=176
 
 # Wandb Setting
-project_name="demnet_FL_V2_all_classes_SUBJ_div"
+project_name="demnet_CENTRALIZED_V2_all_classes_SUBJ_div"
 project_name="DEBUG_DEMNET"
-
-# FL settings (Training)
-num_clients=-1
-num_rounds=30
-fraction_fit=1
-
-# FL settings (Hardware)
-num_cpus=4 # Default is 2
-max_cpu_allowed=4
-num_gpus=1
-max_gpu_allowed=1
 
 # Always check use_vgg_normalization and use_rgb_input, use_pretrained_vgg
 # Remember also to check the wandb config inside the server config (e.g. the log_model_artifact parameter). Current no artifcat is loaded (no-log_model_artifact passed to update_server_config)
@@ -137,90 +129,11 @@ for repetition in $(seq 1 $n_repetitions); do
 	fi
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	# Prepare data
-
-	srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations_2.py\
-		--path_data=${PATH_DATA}\
-		--name_tensor_file=${NAME_TENSOR_FILE}\
-		--path_to_save=${path_to_save_idx_file}\
-		--percentage_data_used_for_training=${percentage_data_used_for_training}\
-		--num_clients=${num_clients}\
-		--seed=${seed}\
-		--no-use_cross_fold_validation\
-		--keep_samples_proportion\
-
-	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Reset config files (Note that this reset only the config for the client side)
 
-	srun python ./scripts_python/training/reset_config_files.py\
-		--path_dataset_config="${PATH_DATASET_CONFIG}"\
-		--path_training_config="${PATH_TRAINING_CONFIG}"\
-
-	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	# Update model config
-
-	if [ $merge_AD_class -eq 0 ] ; then
-		num_classes=6
-	elif [ $merge_AD_class -eq 1 ] ; then
-		num_classes=2
-	elif [ $merge_AD_class -eq 2 ] ; then
-		num_classes=4
-	else 
-		echo "INVALID VALUE FOR merge_AD_class in the shell script"
-		num_classes=-1
-	fi
-	echo "NUM CLASSES ${num_classes}"
-
-	srun python ./scripts_python/training/update_model_config_demnet.py\
-		--path_save=${PATH_MODEL_CONFIG_SAVE}\
-		--path_template=${PATH_MODEL_CONFIG_TEMPLATE}\
-		--input_channels=${input_channels}\
-		--input_size=${input_size}\
-		--num_classes=${num_classes}
-
-	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	# Update dataset config. Note that this settings will be applied to each client
-
-	srun python ./scripts_python/training/update_dataset_config.py\
-		--path_dataset_config="${PATH_DATASET_CONFIG}"\
-		--path_data=${PATH_DATA}\
-		--name_tensor_file=${NAME_TENSOR_FILE}\
-		--path_idx_folder=${path_to_save_idx_file}\
-		--merge_AD_class=${merge_AD_class}\
-		--percentage_train=${percentage_train}\
-		--percentage_validation=${percentage_validation}\
-		--percentage_test=${percentage_test}\
-		--no-apply_rescale\
-		--rescale_factor=${rescale_factor}\
-		--use_normalization\
-		--no-use_rgb_input\
-		--load_data_in_memory\
-
-	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	# Update server config
-
-	srun python ./scripts_python/training_FL/update_server_config.py\
-		--path_server_config="${PATH_SERVER_CONFIG}"\
-		--num_rounds=${num_rounds}\
-		--num_clients=${num_clients}\
-		--fraction_fit=${fraction_fit}\
-		--fraction_evaluate=1.0\
-		--path_idx_server_data=${path_to_save_idx_file}\
-		--centralized_evaluation\
-		--simulation\
-		--project_name=${project_name}\
-		--entity="alberto_zancanaro_academic"\
-		--model_artifact_name="demnet_z_${input_channels}"\
-		--name_training_run="DEBUG"
-		--no-log_model_artifact\
-		--log_freq=1\
-		--metrics_to_log_from_clients="accuracy_train accuracy_validation"\
-		--metrics_plot_backend="wandb"\
-		--debug\
-		--num_cpus=${num_cpus}\
-		--max_cpu_allowed=${max_cpu_allowed}\
-		--num_gpus=${num_gpus}\
-		--max_gpu_allowed=${max_gpu_allowed}\
+	# srun python ./scripts_python/training/reset_config_files.py\
+	# 	--path_dataset_config="${PATH_DATASET_CONFIG}"\
+	# 	--path_training_config="${PATH_TRAINING_CONFIG}"\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Update training config (CLIENT) 
@@ -254,20 +167,11 @@ for repetition in $(seq 1 $n_repetitions); do
 		--device="${device}"\
 		--epoch_to_save_model=${epoch_to_save_model}\
 		--path_to_save_model="${path_to_save_model}"\
-		--seed=${seed}\
-		--use_scheduler\
-		--measure_metrics_during_training\
-		--fl_training\
-		--use_weights_with_lower_validation_error\
-		--print_var\
-		--no-wandb_training\
+		--wandb_training\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	# Launch FL Training
+	# Launch CENTRALIZED Training
 
-	srun flwr run ./scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/\
-		--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
-		--run-config "path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG_SAVE}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
 
 done # End of the for loop for repetitions
 
