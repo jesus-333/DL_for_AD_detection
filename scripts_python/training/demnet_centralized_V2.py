@@ -56,9 +56,9 @@ path_config_model    = args.path_model_config if args.path_model_config is not N
 path_config_training = args.path_training_config if args.path_training_config is not None else defualt_path_config_training
 
 # Load configs
-training_config = toml.load(path_config_training)
 dataset_config  = toml.load(path_config_dataset)
 model_config    = toml.load(path_config_model)
+training_config = toml.load(path_config_training)
 
 # Create single dictionary with all the config
 all_config = dict(
@@ -112,10 +112,13 @@ if dataset_config['load_data_in_memory'] :
     MRI_train_dataset.move_data_and_labels_to_device(training_config['device'])
     MRI_validation_dataset.move_data_and_labels_to_device(training_config['device'])
 
+print("Data Loaded")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load model
 model = demnet.demnet(model_config)
+
+print("Model Loaded")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model

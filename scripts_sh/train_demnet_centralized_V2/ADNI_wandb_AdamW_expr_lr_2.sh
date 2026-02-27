@@ -8,11 +8,11 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=13G
-#SBATCH --time=0-00:35:00
+#SBATCH --time=0-02:00:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
-#SBATCH --output=./scripts_sh/train_demnet_FL_V2/output/std_output_%x_%j.txt
-#SBATCH --error=./scripts_sh/train_demnet_FL_V2/output/other_output_%x_%j.txt
+#SBATCH --output=./scripts_sh/train_demnet_centralized_V2/output/std_output_%x_%j.txt
+#SBATCH --error=./scripts_sh/train_demnet_centralized_V2/output/other_output_%x_%j.txt
 
 # Works as script _1 but changes how data are divided between clients
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -38,7 +38,7 @@ pip list
 # Settings
 
 # Slurm ID of the FL training run you want to use to get the config
-slurm_old_id=000000
+slurm_old_id=5200284
 
 # Path to library
 PATH_SRC="./"
@@ -46,8 +46,7 @@ PATH_SRC="./"
 # Paths to config files
 PATH_CONFIG_FOLDER="scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/config/"
 PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset_${slurm_old_id}.toml"
-PATH_MODEL_CONFIG_TEMPLATE="${PATH_CONFIG_FOLDER}template/model.toml"
-PATH_MODEL_CONFIG_SAVE="${PATH_CONFIG_FOLDER}model_${slurm_old_id}.toml"
+PATH_MODEL_CONFIG="${PATH_CONFIG_FOLDER}model_${slurm_old_id}.toml"
 PATH_SERVER_CONFIG="${PATH_CONFIG_FOLDER}server_${slurm_old_id}.toml"
 PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training_${slurm_old_id}.toml"
 PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_config_${slurm_old_id}.toml"
@@ -57,17 +56,17 @@ PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${slurm_old_i
 # PATH_DATA="data/ADNI_axial_3D_z_${input_channels}_size_${input_size}_int/" 
 PATH_DATA="data/ADNI_axial_middle_slice/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
-path_to_idx_file="${PATH_DATA}FL_idx_${slurm_old_id}/"
+path_to_idx_files="${PATH_DATA}FL_idx_${slurm_old_id}/"
 # N.B. The file for ADNI_middle_slice were saved with value alreay normalized between 0 and 1. 
 
 # Data preparation settings
 percentage_data_used_for_training=0.9
 seed=${slurm_old_id}
-n_repetitions=1
+n_repetitions=10
 
 # Training settings
 batch_size=192
-epochs=5
+epochs=50
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_${SLURM_JOB_ID}"
@@ -158,7 +157,15 @@ for repetition in $(seq 1 $n_repetitions); do
 		--device="${device}"\
 		--epoch_to_save_model=${epoch_to_save_model}\
 		--path_to_save_model="${path_to_save_model}"\
+		--use_scheduler\
+		--measure_metrics_during_training\
 		--wandb_training\
+		--project_name=${project_name}\
+		--entity="alberto_zancanaro_academic"\
+		--model_artifact_name="demnet_z_${input_channels}"\
+		--name_training_run="DEBUG_CENTRALIZED"
+		--no-log_model_artifact\
+		--log_freq=1\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Launch CENTRALIZED Training
@@ -169,6 +176,8 @@ for repetition in $(seq 1 $n_repetitions); do
 		--path_model_config="${PATH_MODEL_CONFIG}"\
 		--path_training_config="${PATH_TRAINING_CONFIG}"\
 		--path_to_idx_files=${path_to_idx_files}\
+
+	echo "END Repetition"
 
 done # End of the for loop for repetitions
 
