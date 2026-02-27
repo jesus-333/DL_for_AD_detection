@@ -107,14 +107,14 @@ from addl.federated import support_federated_generic
 
 path_data = "data/ADNI_axial_middle_slice/"
 name_tensor_file = "dataset_tensor___176_resize.pt"
-path_to_save = "data/ADNI_axial_middle_slice/FL_indices/"
+path_to_save = "data/ADNI_axial_middle_slice/FL_indices_TEST/"
 
 percentage_data_used_for_training = 0.8
 num_clients = 5
 seed = -1
 n_folds = None # If None, it will be computed from percentage_data_used_for_training
 
-use_cross_fold_validation = True
+use_cross_fold_validation = False
 keep_labels_proportion = True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -176,7 +176,10 @@ def split_and_save_indices(idx_train, idx_val, labels_train, path_to_save : str,
                                                                                       labels = labels_train, keep_labels_proportion = keep_labels_proportion
                                                                                       )
 
-    # Print info (check if the total number of samples is correct)
+    # Check if the indices arrays are correct (no duplicate values and total number of samples is correct)
+    check_idx_array(idx_clients_train, idx_val, n_samples = len(idx_train) + len(idx_val))
+
+    # Print info about the split between clients
     if print_info :
         print(f"Split training data between {num_clients} clients:")
         for i in range(num_clients) : print(f"\tNumber of training samples for client {i}: {len(set(idx_clients_train[i]))}")
@@ -186,6 +189,22 @@ def split_and_save_indices(idx_train, idx_val, labels_train, path_to_save : str,
     np.save(f'{path_to_save}val_idx.npy', idx_val)
     np.save(f'{path_to_save}train_idx_all.npy', idx_train)
     for i in range(num_clients) : np.save(f'{path_to_save}train_idx_client_{i}.npy', idx_clients_train[i])
+
+
+def check_idx_array(idx_clients_train, idx_val, n_samples : int) :
+    """
+    Check if the indices arrays are correct 
+    """
+
+    all_idx_clients_train = np.concatenate(idx_clients_train)
+    all_idx = np.concatenate([all_idx_clients_train, idx_val])
+
+    if len(set(all_idx)) != len(all_idx) :
+        raise ValueError("The indices arrays contain duplicate values. Please check the split and the saving of the indices files.")
+    if len(all_idx) != n_samples :
+        raise ValueError(f"The total number of samples in the indices arrays is {len(all_idx)} while it should be {n_samples}. Please check the split and the saving of the indices files.")
+
+    print("The indices arrays are correct. No duplicate values and the total number of samples is correct.")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
