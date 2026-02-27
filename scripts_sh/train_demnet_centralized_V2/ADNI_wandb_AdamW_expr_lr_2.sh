@@ -162,7 +162,13 @@ for repetition in $(seq 1 $n_repetitions); do
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Launch CENTRALIZED Training
-
+	
+	srun python ./scripts_python/training/demnet_centralized_V2.py\
+		--path_src="${PATH_SRC}"\
+		--path_dataset_config="${PATH_DATASET_CONFIG}"\
+		--path_model_config="${PATH_MODEL_CONFIG}"\
+		--path_training_config="${PATH_TRAINING_CONFIG}"\
+		--path_to_idx_files=${path_to_idx_files}\
 
 done # End of the for loop for repetitions
 
