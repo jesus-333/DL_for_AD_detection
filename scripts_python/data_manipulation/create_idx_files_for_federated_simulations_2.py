@@ -306,7 +306,7 @@ else :
     # Create the indices files for the training
     for i in range(num_clients) :
         idx_array_client = create_idx_array_for_client(subj_per_client_train[i], subj_list_per_sample)
-        np.save(f'{path_to_save}client_{i}_train_idx.npy', idx_array_client)
+        np.save(f'{path_to_save}train_idx_client_{i}.npy', idx_array_client)
         all_idx_array.append(idx_array_client)
 
     # Create the indices file for the validation set
