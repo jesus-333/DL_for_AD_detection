@@ -57,22 +57,13 @@ PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${slurm_old_i
 # PATH_DATA="data/ADNI_axial_3D_z_${input_channels}_size_${input_size}_int/" 
 PATH_DATA="data/ADNI_axial_middle_slice/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
-path_to_save_idx_file="${PATH_DATA}FL_idx_${slurm_old_id}/"
+path_to_idx_file="${PATH_DATA}FL_idx_${slurm_old_id}/"
 # N.B. The file for ADNI_middle_slice were saved with value alreay normalized between 0 and 1. 
 
 # Data preparation settings
 percentage_data_used_for_training=0.9
 seed=${slurm_old_id}
 n_repetitions=1
-
-# Dataset settings for each client
-merge_AD_class=0
-percentage_train=0.9
-percentage_validation=0.1
-percentage_test=0
-rescale_factor=4095
-
-# possible_values_percentage_data_used_for_training = [0.5, 0.75, 0.8, 0.9, 0.95, 0.98]
 
 # Training settings
 batch_size=192
