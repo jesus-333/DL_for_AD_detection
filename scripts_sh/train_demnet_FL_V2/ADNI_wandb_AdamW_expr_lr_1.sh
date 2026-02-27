@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=13G
-#SBATCH --time=0-05:15:00
+#SBATCH --time=0-00:20:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_FL_V2/output/std_output_%x_%j.txt
@@ -53,13 +53,14 @@ PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${SLURM_JOB_I
 # PATH_DATA="data/ADNI_axial_3D_z_${input_channels}_size_${input_size}_int/" 
 PATH_DATA="data/ADNI_axial_middle_slice/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
+path_to_save_idx_file="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"
 # N.B. The file for ADNI_middle_slice were saved with value alreay normalized between 0 and 1. 
 
 # Data preparation settings
 percentage_data_used_for_training=0.85
 seed=-1
 # seed=2627151565
-n_repetitions=4
+n_repetitions=1
 
 # Dataset settings for each client
 merge_AD_class=0
@@ -99,7 +100,7 @@ project_name="demnet_training_ADNI_FL_V2_all_classes"
 
 # FL settings (Training)
 num_clients=-1
-num_rounds=100
+num_rounds=25
 fraction_fit=1
 
 # FL settings (Hardware)
@@ -139,7 +140,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations.py\
 		--path_data=${PATH_DATA}\
 		--name_tensor_file=${NAME_TENSOR_FILE}\
-		--path_to_save="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"\
+		--path_to_save=${path_to_save_idx_file}\
 		--percentage_data_used_for_training=${percentage_data_used_for_training}\
 		--num_clients=${num_clients}\
 		--seed=${seed}\
@@ -182,7 +183,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--path_dataset_config="${PATH_DATASET_CONFIG}"\
 		--path_data=${PATH_DATA}\
 		--name_tensor_file=${NAME_TENSOR_FILE}\
-		--path_idx_folder="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"\
+		--path_idx_folder=${path_to_save_idx_file}\
 		--merge_AD_class=${merge_AD_class}\
 		--percentage_train=${percentage_train}\
 		--percentage_validation=${percentage_validation}\
@@ -202,7 +203,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--num_clients=${num_clients}\
 		--fraction_fit=${fraction_fit}\
 		--fraction_evaluate=1.0\
-		--path_idx_server_data="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"\
+		--path_idx_server_data=${path_to_save_idx_file}\
 		--centralized_evaluation\
 		--simulation\
 		--project_name=${project_name}\

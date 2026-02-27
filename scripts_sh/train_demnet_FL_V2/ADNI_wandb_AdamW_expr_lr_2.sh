@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=13G
-#SBATCH --time=0-05:15:00
+#SBATCH --time=0-00:35:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_FL_V2/output/std_output_%x_%j.txt
@@ -54,13 +54,14 @@ PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${SLURM_JOB_I
 # PATH_DATA="data/ADNI_axial_3D_z_${input_channels}_size_${input_size}_int/" 
 PATH_DATA="data/ADNI_axial_middle_slice/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
+path_to_save_idx_file="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"
 # N.B. The file for ADNI_middle_slice were saved with value alreay normalized between 0 and 1. 
 
 # Data preparation settings
-percentage_data_used_for_training=0.85
+percentage_data_used_for_training=0.9
 seed=-1
 # seed=2627151565
-n_repetitions=4
+n_repetitions=1
 
 # Dataset settings for each client
 merge_AD_class=0
@@ -95,12 +96,12 @@ input_channels=1
 input_size=176
 
 # Wandb Setting
-project_name="demnet_training_ADNI_FL_V2_all_classes"
-# project_name="demnet_training_ADNI_FL_V2_4_classes"
+project_name="demnet_FL_V2_all_classes_SUBJ_div"
+project_name="DEBUG_DEMNET"
 
 # FL settings (Training)
 num_clients=-1
-num_rounds=100
+num_rounds=30
 fraction_fit=1
 
 # FL settings (Hardware)
@@ -109,9 +110,10 @@ max_cpu_allowed=4
 num_gpus=1
 max_gpu_allowed=1
 
-# Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
-# Remember also to check the wandb config inside the server config (e.g. the log_model_artifact parameter)
-# remember also to check the training config specific for fl training (e.g. use_weights_with_lower_validation_error)
+# Always check use_vgg_normalization and use_rgb_input, use_pretrained_vgg
+# Remember also to check the wandb config inside the server config (e.g. the log_model_artifact parameter). Current no artifcat is loaded (no-log_model_artifact passed to update_server_config)
+# Remember also to check the training config specific for fl training (e.g. use_weights_with_lower_validation_error)
+ 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 # Repeate the experiment n_repetitions times
@@ -140,12 +142,12 @@ for repetition in $(seq 1 $n_repetitions); do
 	srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations_2.py\
 		--path_data=${PATH_DATA}\
 		--name_tensor_file=${NAME_TENSOR_FILE}\
-		--path_to_save="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"\
+		--path_to_save=${path_to_save_idx_file}\
 		--percentage_data_used_for_training=${percentage_data_used_for_training}\
 		--num_clients=${num_clients}\
 		--seed=${seed}\
 		--no-use_cross_fold_validation\
-		--keep_sample_proportion\
+		--keep_samples_proportion\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Reset config files (Note that this reset only the config for the client side)
@@ -183,7 +185,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--path_dataset_config="${PATH_DATASET_CONFIG}"\
 		--path_data=${PATH_DATA}\
 		--name_tensor_file=${NAME_TENSOR_FILE}\
-		--path_idx_folder="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"\
+		--path_idx_folder=${path_to_save_idx_file}\
 		--merge_AD_class=${merge_AD_class}\
 		--percentage_train=${percentage_train}\
 		--percentage_validation=${percentage_validation}\
@@ -203,13 +205,14 @@ for repetition in $(seq 1 $n_repetitions); do
 		--num_clients=${num_clients}\
 		--fraction_fit=${fraction_fit}\
 		--fraction_evaluate=1.0\
-		--path_idx_server_data="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"\
+		--path_idx_server_data=${path_to_save_idx_file}\
 		--centralized_evaluation\
 		--simulation\
 		--project_name=${project_name}\
 		--entity="alberto_zancanaro_academic"\
 		--model_artifact_name="demnet_z_${input_channels}"\
-		--log_model_artifact\
+		--name_training_run="DEBUG"
+		--no-log_model_artifact\
 		--log_freq=1\
 		--metrics_to_log_from_clients="accuracy_train accuracy_validation"\
 		--metrics_plot_backend="wandb"\
