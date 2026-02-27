@@ -177,7 +177,7 @@ def get_dataset_V2(dataset_config : dict, percentage_split_train_val : float = 1
         If you do not want to create a validation set, you can set this value to 1. By default, it is set to 1.
     idx_to_use : list, optional
         List with the indices of the samples to use from the dataset. If None, all the samples are used. The default is None.
-        This is useful to use only a subset of the dataset, e.g. for debugging purposes or to create an imbalanced dataset.
+        This is useful if you want to use only a subset of the dataset (e.g. debug, FL training)
     seed : int, optional
         Seed for the random number generator. The default is -1, which means that a random seed is sampled from the range [0, 2**32 - 1].
         If you want to use a specific seed, you can set this value to a positive integer. If you set it to 0 or a negative integer, a new random seed will be sampled.
