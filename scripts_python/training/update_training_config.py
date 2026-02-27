@@ -1,6 +1,10 @@
 """
 Update the training config toml file
 
+Note that this script update an existing training config file. It does not create one of this file from scratch. If the file does not exist this script will throw an error.
+To create a training file from scratch with default values you can use the script reset_config_files.py
+After that you can use this script to update the config.
+
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
 """

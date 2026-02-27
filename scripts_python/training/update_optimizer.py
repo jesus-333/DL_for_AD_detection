@@ -1,7 +1,7 @@
 """
 Update the optimizer config toml file
 Note that this script works a little bit differently than uupdate_training_config.py
-In the latter, if a config files already exists, it is updated the existing file with the new parameters (if it does not exist of cousre a new toml file is created).
+In the latter, if a config files already exists, it is updated the existing file with the new parameters.
 This script instead, always creates a new toml file with the new parameters. If a toml file with the same name already exists, it is overwritten.
 The optimizer currently available are Adam, AdamW, LBFGS, SGD. For more information see the function get_optimizer() in support_training.py.
 
@@ -18,17 +18,17 @@ parser = argparse.ArgumentParser(description = 'Update the training configuratio
 # *******************************
 # General parameters
 parser.add_argument('--path_optimizer_config', type = str  , default = './config/optimizer.toml', help = 'Path to the toml file with the optimizer scheduler config. Default is ./config/optimizer_scheduler.toml')
-parser.add_argument('--path_src'             , type = str, default = None, help = 'Path of the src folder') # This was added only to execute without problem the line with args.path_src
-parser.add_argument('--name'                 , type = str  , default = None, help = 'Name of the optimizer. If None is provided, an error is raised. Default is None.')
+parser.add_argument('--path_src'             , type = str  , default = None                     , help = 'Path of the src folder') # This was added only to execute without problem the line with args.path_src
+parser.add_argument('--name'                 , type = str  , default = None                     , help = 'Name of the optimizer. If None is provided, an error is raised. Default is None.')
 parser.add_argument('--lr'                   , type = float, default = 0.001                    , help = 'Learning rate for the optimizer. Default is 0.001 (1e-3).')
 # *******************************
 # Adam and AdamW parameters
-parser.add_argument('--betas'                    , type = float, nargs = '+', default = [0.9, 0.999]   , help = 'Betas for the Adam or AdamW optimizer. Default is [0.9, 0.999].')
-parser.add_argument('--eps'                      , type = float             , default = 1e-8           , help = 'Epsilon for the Adam or AdamW optimizer. Default is 1e-08.')
-parser.add_argument('--weight_decay'             , type = float             , default = None           , help = 'Weight decay for the Adam, AdamW or SGD optimizer. If None the default value for those optimizer will be used, i.e. 0.0 for SGD and Adam and 1e-2 for AdamW. Default is None')
-parser.add_argument('--amsgrad'                  , action = 'store_true'    , default = False          , help = 'Amsgrad for the Adam or AdamW optimizer. Default is False.')
-parser.add_argument('--maximize'                 , action = 'store_true'    , default = False          , help = 'Maximize for the Adam or AdamW or SGD optimizer. Default is False.')
-parser.add_argument('--decoupled_weight_decay'   , action = 'store_true'    , default = False          , help = 'Decoupled weight decay for the Adam optimizer. Note that if this parameter is set to True, the Adam optimizer will be equivalent to AdamW. Default is False.')
+parser.add_argument('--betas'                    , type = float, nargs = '+', default = [0.9, 0.999], help = 'Betas for the Adam or AdamW optimizer. Default is [0.9, 0.999].')
+parser.add_argument('--eps'                      , type = float             , default = 1e-8        , help = 'Epsilon for the Adam or AdamW optimizer. Default is 1e-08.')
+parser.add_argument('--weight_decay'             , type = float             , default = None        , help = 'Weight decay for the Adam, AdamW or SGD optimizer. If None the default value for those optimizer will be used, i.e. 0.0 for SGD and Adam and 1e-2 for AdamW. Default is None')
+parser.add_argument('--amsgrad'                  , action = 'store_true'    , default = False       , help = 'Amsgrad for the Adam or AdamW optimizer. Default is False.')
+parser.add_argument('--maximize'                 , action = 'store_true'    , default = False       , help = 'Maximize for the Adam or AdamW or SGD optimizer. Default is False.')
+parser.add_argument('--decoupled_weight_decay'   , action = 'store_true'    , default = False       , help = 'Decoupled weight decay for the Adam optimizer. Note that if this parameter is set to True, the Adam optimizer will be equivalent to AdamW. Default is False.')
 parser.add_argument('--no-amsgrad'               , action = 'store_false'   , dest ='wandb_training')
 parser.add_argument('--no-maximize'              , action = 'store_false'   , dest ='wandb_training')
 parser.add_argument('--no-decoupled_weight_decay', action = 'store_false'   , dest ='wandb_training')
