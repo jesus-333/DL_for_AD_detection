@@ -11,6 +11,7 @@ Note that addl is the name of the package built through hatch from the file in t
 import numpy as np
 import os
 import pandas as pd
+import pprint
 import toml
 import torch
 
@@ -35,9 +36,9 @@ def gen_evaluate_fn(model, idx_data_server, all_config : dict, preprocess_functi
     # Get dataset and training config
     dataset_config  = all_config['dataset_config']
     training_config = all_config['training_config']
-    
+
     # Transform data and label in the dataset
-    # test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'], preprocess_functions = preprocess_functions)
+    # centralized_test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'])
 
     def evaluate(server_round, parameters_ndarrays, config):
         """
@@ -47,10 +48,10 @@ def gen_evaluate_fn(model, idx_data_server, all_config : dict, preprocess_functi
         support_federated_generic.set_weights(model, parameters_ndarrays)
         
         # Transform data and label in the dataset
-        test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'], preprocess_functions = preprocess_functions)
+        centralized_test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'], preprocess_functions = preprocess_functions)
 
         # Evaluate the model on test data
-        test_loss, test_metrics_dict = test_functions.test(training_config, model, test_dataset, label = 'server')
+        test_loss, test_metrics_dict = test_functions.test(training_config, model, centralized_test_dataset, label = 'server')
 
         return test_loss, test_metrics_dict
 
@@ -72,61 +73,6 @@ def gen_on_fit_config_fn(all_config : dict) :
 
     return on_fit_config
 
-def prepare_data_for_FL_training(all_config : dict) :
-    """
-    Read the data and get the path to all of them, split uniformly between clients and save them in npy files.
-    For the ADNI dataset, if I use single tensor file to store the data, I split the indices.
-    I.e. I create an array with value from 0 to n - 1 (with n = total number of samples). After that, the array is split, so for each client I have a list of indices. When I load the data for a client I load only the data corresponding to the indices of that client.
-    
-    Note that the indices are saved in npy files that are later read by the client.
-    The returned indices have only the purpose to allow their backup in the dictionaries uploaded in wandb.
-    """
-
-    dataset_config = all_config['dataset_config']
-    # dataset_name = dataset_config['dataset_name']
-    dataset_tensor_file_name = dataset_config['name_tensor_file']
-    path_to_data = dataset_config['path_data']
-
-    dataset_info = pd.read_csv(f'{path_to_data}dataset_info.csv')
-    labels_int = dataset_info['labels_int'].to_numpy()
-
-    # Set the number of clients.
-    # If I use the centralized_evaluation, I add an extra client for the server. In this way the data will be split in n + 1 parts.
-    # n parts will be used for the clients and the last one will be used for the server.
-    num_clients = all_config['server_config']['num_clients'] if not all_config['server_config']['centralized_evaluation'] else all_config['server_config']['num_clients'] + 1
-
-    data = torch.load(f'{path_to_data}{dataset_tensor_file_name}', mmap = True)
-    idx = np.arange(len(data))
-
-    # Split the data uniformly between clients
-    # In this case, I only interested in the split of the indices, not the data/labels itself.The data/labels will be loaded later in the client.
-    # Note that even if I not keep the labels here, I still pass them to the function, so I can use the keep_labels_proportion parameter.
-    idx_per_client, _ = support_federated_generic.split_data_for_clients_uniformly(idx, num_clients = num_clients,
-                                                                                   seed = all_config['training_config']['seed'],
-                                                                                   labels = labels_int, keep_labels_proportion = all_config['server_config']['keep_labels_proportion']
-                                                                                   )
-    
-    # Create path to save idx
-    path_to_save_idx = os.path.join(all_config['dataset_config']['path_data'], str(all_config['training_config']['seed']) + '/')
-
-    # Create the folder to save the data
-    os.makedirs(path_to_save_idx, exist_ok = True)
-
-    # Save data and labels in npy files
-    for i in range(all_config['server_config']['num_clients']) :
-        # Path to save indices
-        dataset_path = path_to_save_idx + f'{i}_idx.npy'
-
-        # Save indices
-        np.save(dataset_path, idx_per_client[i])
-    
-    # If centralized_evaluation is True, save the indices for the server
-    if all_config['server_config']['centralized_evaluation'] :
-        dataset_path = path_to_save_idx + 'server_idx.npy'
-        np.save(dataset_path, idx_per_client[-1])
-
-    return idx_per_client
-
 def server_fn(context : Context) :
     """
     Create and return the ServerAppComponents required by Flower
@@ -139,7 +85,7 @@ def server_fn(context : Context) :
     training_config = toml.load(context.run_config["path_training_config"])
     if 'print_var' not in training_config : training_config['print_var'] = False
 
-    # Get seed 
+    # Get seed
     if training_config['seed'] == -1 : training_config['seed'] = np.random.randint(0, 2**32 - 1)
     
     # Create single config dictionary
@@ -149,6 +95,12 @@ def server_fn(context : Context) :
         server_config    = server_config,
         training_config  = training_config
     )
+
+    if server_config['wandb_config']['debug'] :
+        print("#######################################")
+        print("SERVER APP")
+        pprint.pprint(all_config)
+        print("#######################################")
     
     # Server/strategy parameters
     num_rounds    = server_config["num_rounds"]
@@ -156,12 +108,19 @@ def server_fn(context : Context) :
     fraction_eval = server_config["fraction_evaluate"]
     if len(server_config['wandb_config']['metrics_to_log_from_clients']) == 0 : server_config['wandb_config']['metrics_to_log_from_clients'] = None
 
-    # Prepare dataset for FL training and central evaluation
-    idx_data_per_client = prepare_data_for_FL_training(all_config)
+    # If it is a simulation, load the indices for each client
+    idx_data_per_client = []
+    if server_config['simulation'] :
+        for client_id in range(server_config['num_clients']) :
+            if not os.path.exists(dataset_config['path_idx_folder'] + f'train_idx_client_{client_id}.npy') :
+                raise FileNotFoundError(f"File {dataset_config['path_idx_folder'] + f'train_idx_client_{client_id}.npy'} not found. Make sure that the dataset has been splitted and the indices saved before starting the simulation.")
+            else :
+                idx_client = np.load(dataset_config['path_idx_folder'] + f'train_idx_client_{client_id}.npy')
+                idx_data_per_client.append(idx_client)
     
     # Save (separately) data for central evaluation
     if all_config['server_config']['centralized_evaluation'] :
-        idx_data_server = idx_data_per_client[-1]
+        idx_data_server = np.load(server_config["path_idx_server_data"] + 'val_idx.npy')
     else :
         idx_data_server = labels_server = None
 
@@ -175,7 +134,7 @@ def server_fn(context : Context) :
     dataset_info = pd.read_csv(f'{dataset_config['path_data']}dataset_info.csv')
     labels_int, labels_str = dataset_info['labels_int'].to_numpy(), dataset_info['labels_str'].to_numpy()
     labels_int = support_dataset_ADNI.merge_AD_class_function(labels_int, labels_str, dataset_config['merge_AD_class'])
-    num_classes  = len(np.unique(labels_int))
+    num_classes = len(np.unique(labels_int))
 
     # Update model config with the number of classes
     model_config['num_classes'] = num_classes
@@ -233,7 +192,7 @@ def server_fn(context : Context) :
     if training_config['print_var'] :
         print("#######################################")
         print("SERVER APP")
-        print(model_config)
+        pprint.pprint(model_config)
         print("#######################################")
 
     return ServerAppComponents(strategy = strategy, config = config)

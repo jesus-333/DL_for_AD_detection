@@ -65,19 +65,23 @@ n_repetitions=2
 
 # Dataset settings for each client
 merge_AD_class=0
-percentage_train=0.85
-percentage_validation=0.15
+percentage_train=0.9
+percentage_validation=0.1
 percentage_test=0
 rescale_factor=4095
 
 # possible_values_percentage_data_used_for_training = [0.5, 0.75, 0.8, 0.9, 0.95, 0.98]
 
 # Training settings
-batch_size=192
-epochs=25
+batch_size=128
+epochs=5
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights/VGG_ADNI_FL_V2/exp_lr_SGD_${SLURM_JOB_ID}"
+
+# VGG Settings
+vgg_training_mode=0 # See set_training_mode method in the VGG class for more details on the training modes (vgg_nets.py file)
+vgg_version=16
 
 # Optimizer config
 lr=1e-3
@@ -175,8 +179,10 @@ for repetition in $(seq 1 $n_repetitions); do
 		--path_save=${PATH_MODEL_CONFIG_SAVE}\
 		--path_template=${PATH_MODEL_CONFIG_TEMPLATE}\
 		--input_channels=${input_channels}\
-		--input_size=${input_size}\
-		--num_classes=${num_classes}
+		--num_classes=${num_classes}\
+		--version=${vgg_version}\
+		--batch_norm\
+		--use_pretrained_vgg\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Update dataset config. Note that this settings will be applied to each client
@@ -193,7 +199,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--no-apply_rescale\
 		--rescale_factor=${rescale_factor}\
 		--use_normalization\
-		--no-use_rgb_input\
+		--use_rgb_input\
 		--load_data_in_memory\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -211,7 +217,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--project_name=${project_name}\
 		--entity="alberto_zancanaro_academic"\
 		--model_artifact_name="VGG_z_${input_channels}"\
-		--name_training_run="Test FedYogi"
+		--name_training_run="Test VGG"\
 		--no-log_model_artifact\
 		--log_freq=1\
 		--metrics_to_log_from_clients="accuracy_train accuracy_validation"\
