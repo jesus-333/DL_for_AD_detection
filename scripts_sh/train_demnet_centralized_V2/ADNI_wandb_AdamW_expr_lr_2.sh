@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=13G
-#SBATCH --time=0-02:00:00
+#SBATCH --time=0-00:30:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_centralized_V2/output/std_output_%x_%j.txt
@@ -38,7 +38,7 @@ pip list
 # Settings
 
 # Slurm ID of the FL training run you want to use to get the config
-slurm_old_id=5200284
+slurm_old_id=5206765
 
 # Path to library
 PATH_SRC="./"
@@ -62,7 +62,7 @@ path_to_idx_files="${PATH_DATA}FL_idx_${slurm_old_id}/"
 # Data preparation settings
 percentage_data_used_for_training=0.9
 seed=${slurm_old_id}
-n_repetitions=10
+n_repetitions=2
 
 # Training settings
 batch_size=192
