@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=13G
-#SBATCH --time=0-09:15:00
+#SBATCH --time=0-00:20:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_FL_V2/output/std_output_%x_%j.txt
@@ -53,16 +53,17 @@ PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${SLURM_JOB_I
 # PATH_DATA="data/ADNI_axial_3D_z_${input_channels}_size_${input_size}_int/" 
 PATH_DATA="data/ADNI_axial_middle_slice/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
+path_to_save_idx_file="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"
 # N.B. The file for ADNI_middle_slice were saved with value alreay normalized between 0 and 1. 
 
 # Data preparation settings
 percentage_data_used_for_training=0.85
-seed=-1
+seed=${SLURM_JOB_ID}
 # seed=2627151565
-n_repetitions=6
+n_repetitions=1
 
 # Dataset settings for each client
-merge_AD_class=2
+merge_AD_class=0
 percentage_train=0.9
 percentage_validation=0.1
 percentage_test=0
@@ -72,7 +73,7 @@ rescale_factor=4095
 
 # Training settings
 batch_size=192
-epochs=25
+epochs=5
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_${SLURM_JOB_ID}"
@@ -95,11 +96,11 @@ input_size=176
 
 # Wandb Setting
 project_name="demnet_training_ADNI_FL_V2_all_classes"
-project_name="demnet_training_ADNI_FL_V2_4_classes_INCREASE_EPOCHS"
+# project_name="demnet_training_ADNI_FL_V2_4_classes"
 
 # FL settings (Training)
 num_clients=-1
-num_rounds=50
+num_rounds=25
 fraction_fit=1
 
 # FL settings (Hardware)
@@ -139,7 +140,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations.py\
 		--path_data=${PATH_DATA}\
 		--name_tensor_file=${NAME_TENSOR_FILE}\
-		--path_to_save="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"\
+		--path_to_save=${path_to_save_idx_file}\
 		--percentage_data_used_for_training=${percentage_data_used_for_training}\
 		--num_clients=${num_clients}\
 		--seed=${seed}\
@@ -169,8 +170,8 @@ for repetition in $(seq 1 $n_repetitions); do
 	echo "NUM CLASSES ${num_classes}"
 
 	srun python ./scripts_python/training/update_model_config_demnet.py\
-		--path_save=${PATH_MODEL_CONFIG_TEMPLATE}\
-		--path_template=${PATH_MODEL_CONFIG_SAVE}\
+		--path_save=${PATH_MODEL_CONFIG_SAVE}\
+		--path_template=${PATH_MODEL_CONFIG_TEMPLATE}\
 		--input_channels=${input_channels}\
 		--input_size=${input_size}\
 		--num_classes=${num_classes}
@@ -182,7 +183,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--path_dataset_config="${PATH_DATASET_CONFIG}"\
 		--path_data=${PATH_DATA}\
 		--name_tensor_file=${NAME_TENSOR_FILE}\
-		--path_idx_folder="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"\
+		--path_idx_folder=${path_to_save_idx_file}\
 		--merge_AD_class=${merge_AD_class}\
 		--percentage_train=${percentage_train}\
 		--percentage_validation=${percentage_validation}\
@@ -202,7 +203,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--num_clients=${num_clients}\
 		--fraction_fit=${fraction_fit}\
 		--fraction_evaluate=1.0\
-		--path_idx_server_data="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"\
+		--path_idx_server_data=${path_to_save_idx_file}\
 		--centralized_evaluation\
 		--simulation\
 		--project_name=${project_name}\
@@ -263,7 +264,7 @@ for repetition in $(seq 1 $n_repetitions); do
 
 	srun flwr run ./scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/\
 		--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
-		--run-config "path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
+		--run-config "path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG_SAVE}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
 
 done # End of the for loop for repetitions
 

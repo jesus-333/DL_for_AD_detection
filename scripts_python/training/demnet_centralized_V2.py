@@ -17,13 +17,6 @@ parser.add_argument('--path_model_config'                , type = str  , default
 parser.add_argument('--path_training_config'             , type = str  , default = None, help = 'Path to the training toml config file. If not provided, an error will be thrown.')
 parser.add_argument('--path_to_idx_files'                , type = str  , default = None, help = 'Path to the folder with the idx files. If not provided, an error will be thrown. The folder must contain two files named train_idx_all.npy and val_idx.npy. The two files are created by the script create_idx_files_for_federated_simulations_2.py')
 
-# Boolean arguments
-parser.add_argument('--use_cross_fold_validation'            , default = None, action = 'store_true', help = 'If passed the script will use cross fold validation. See the script header for more details.')
-parser.add_argument('--keep_samples_proportion'              , default = None, action = 'store_true', help = 'If passed as an argument, the split of the data between clients will be done while trying to keep the same proportion of samples for each class in each client as in the original dataset. If not passed as an argument, the split will be done only dividing the patients uniformly between clients')
-
-# Negate boolean arguments
-parser.add_argument('--no-use_cross_fold_validation'     , action = 'store_false', dest = 'use_cross_fold_validation', help = 'If passed as an argument, no cross-fold validation will be applied')
-
 args = parser.parse_args()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -63,9 +56,9 @@ path_config_model    = args.path_model_config if args.path_model_config is not N
 path_config_training = args.path_training_config if args.path_training_config is not None else defualt_path_config_training
 
 # Load configs
-training_config = toml.load(path_config_training)
 dataset_config  = toml.load(path_config_dataset)
 model_config    = toml.load(path_config_model)
+training_config = toml.load(path_config_training)
 
 # Create single dictionary with all the config
 all_config = dict(
@@ -119,10 +112,13 @@ if dataset_config['load_data_in_memory'] :
     MRI_train_dataset.move_data_and_labels_to_device(training_config['device'])
     MRI_validation_dataset.move_data_and_labels_to_device(training_config['device'])
 
+print("Data Loaded")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load model
 model = demnet.demnet(model_config)
+
+print("Model Loaded")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model

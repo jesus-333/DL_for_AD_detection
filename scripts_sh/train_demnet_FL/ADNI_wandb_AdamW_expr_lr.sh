@@ -63,7 +63,7 @@ rescale_factor=1
 
 # Training settings (Client)
 batch_size=128
-epochs=5
+epochs=15
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights/demnet_ADNI_FL/exp_lr_${SLURM_JOB_ID}"

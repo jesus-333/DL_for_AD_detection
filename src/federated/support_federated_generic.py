@@ -151,6 +151,11 @@ def set_weights(model, weights: List[np.ndarray]):
             state_dict[k] = torch.Tensor(v)
     state_dict = OrderedDict(state_dict)
 
+    # print("#####################")
+    # print(model)
+    # for el in state_dict : print(el)
+    # print("#####################")
+
     try :
         model.load_state_dict(state_dict, strict = True)
     except RuntimeError as e:
