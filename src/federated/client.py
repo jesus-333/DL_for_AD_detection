@@ -46,7 +46,7 @@ class flower_client_v1(NumPyClient):
             print(f"Client n. {self.client_id} - CONSTRUCTOR")
             print(f"N. training samples = {len(self.train_dataset)}")
             print(f"N. validation_dataset samples = {len(self.validation_dataset)}")
-            print(f"Model :\n{self.model}")
+            # print(f"Model :\n{self.model}")
 
     def __dir__(self) :
         # If data are not on the CPU move them to the CPU
