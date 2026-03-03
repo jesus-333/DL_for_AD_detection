@@ -362,3 +362,21 @@ else :
     check_idx_array(all_idx_array, n_samples)
 
 print("Data splitting and saving of indices files completed.")
+
+# Temporary code to remove
+# USED to check correctness of the split. Used also info saved on external file. To be executed on a console.
+# for i in range(num_clients) :
+#     idx_array_client = create_idx_array_from_subj_list(subj_per_client_train[i], subj_list_per_sample)
+#     print(i)
+#     for idx in idx_array_client :
+#         subj_info = dataset_info.iloc[idx]
+#         tmp_id = subj_info['subj_id']
+#         tmp_label = subj_info['labels_str']
+#         external_info = all_subj_info[all_subj_info['Subject'] == tmp_id]
+#         label_from_external_info = external_info.iloc[0]['Group']
+#
+#         if label_from_external_info != tmp_label : raise ValueError(f"Error for subj {tmp_id}")
+         
+
+
+

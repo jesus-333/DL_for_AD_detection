@@ -14,10 +14,11 @@ import toml
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Create parser
-parser = argparse.ArgumentParser(description = 'Update the demnet model configuration file with new parameters.')
+parser = argparse.ArgumentParser(description = 'Update the vgg model configuration file with new parameters.')
 
 # Non boolean arguments
-parser.add_argument('--path_model_config' , type = str  , default = './config/vgg_model.toml', help = 'Path to the toml file with the demnet model config. Default is ./config/vgg_model.toml')
+parser.add_argument('--path_save'         , type = str  , default = './config/vgg_model.toml', help = 'Path to save the updated model config file. Default is ./config/vgg_model.toml')
+parser.add_argument('--path_template'     , type = str  , default = None, help = 'Path to the toml file with a template of the model config')
 parser.add_argument('--input_channels'    , type = int  , default = None, help = 'Number of input channels. If None is passed, the value already present in the config file will be used. Default is None.')
 parser.add_argument('--num_classes'       , type = int  , default = None, help = 'Number of output classes. If None is passed, the value already present in the config file will be used. Default is None.')
 parser.add_argument('--version'           , type = int  , default = None, help = 'Version of the VGG network. Possible values are 11, 13, 16 or 19. Default is None.')
@@ -32,12 +33,17 @@ args = parser.parse_args()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Check if the file exists
-if not os.path.exists(args.path_model_config) :
-    print(f'The file {args.path_model_config} does not exist. A new file will be created.')
-    model_config = {}
+# Check if a template file is provided
+if os.path.exists(args.path_template) :
+    print("Using the template file to create a new model config.")
+    model_config = toml.load(args.path_template)
 else :
-    model_config = toml.load(args.path_model_config)
+    if args.path_template is not None :
+        print(f'Template provided but the file {args.path_template} does not exist. A new file will be created.')
+    else :
+        print('No template file provided. A new file will be created.')
+
+    model_config = {}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save NON boolean arguments
@@ -67,5 +73,12 @@ if args.use_pretrained_vgg is not None : model_config['use_pretrained_vgg'] = ar
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save the config
 
-with open(args.path_model_config, 'w') as f :
+# Create the folder if it does not exist
+os.makedirs(os.path.dirname(args.path_save), exist_ok = True)
+
+# Save the updated config
+with open(args.path_save, 'w') as f :
     toml.dump(model_config, f)
+
+print("Update MODEL config (VGG) - OK")
+

@@ -163,7 +163,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--project_name=${project_name}\
 		--entity="alberto_zancanaro_academic"\
 		--model_artifact_name="demnet_z_${input_channels}"\
-		--name_training_run="DEBUG_CENTRALIZED"
+		--name_training_run="DEBUG_CENTRALIZED"\
 		--no-log_model_artifact\
 		--log_freq=1\
 
