@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=13G
-#SBATCH --time=0-00:35:00
+#SBATCH --time=0-03:15:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_FL_V2/output/std_output_%x_%j.txt
@@ -61,12 +61,12 @@ path_to_save_idx_file="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"
 percentage_data_used_for_training=0.9
 seed=${SLURM_JOB_ID}
 # seed=2627151565
-n_repetitions=1
+n_repetitions=2
 
 # Dataset settings for each client
 merge_AD_class=0
-percentage_train=0.9
-percentage_validation=0.1
+percentage_train=0.85
+percentage_validation=0.15
 percentage_test=0
 rescale_factor=4095
 
@@ -74,7 +74,7 @@ rescale_factor=4095
 
 # Training settings
 batch_size=192
-epochs=5
+epochs=25
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_${SLURM_JOB_ID}"
@@ -101,7 +101,7 @@ project_name="DEBUG_DEMNET"
 
 # FL settings (Training)
 num_clients=-1
-num_rounds=30
+num_rounds=20
 fraction_fit=1
 
 # FL settings (Hardware)
@@ -211,7 +211,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--project_name=${project_name}\
 		--entity="alberto_zancanaro_academic"\
 		--model_artifact_name="demnet_z_${input_channels}"\
-		--name_training_run="DEBUG"
+		--name_training_run="Test FedYogi"
 		--no-log_model_artifact\
 		--log_freq=1\
 		--metrics_to_log_from_clients="accuracy_train accuracy_validation"\

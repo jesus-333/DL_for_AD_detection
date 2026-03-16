@@ -142,6 +142,7 @@ def server_fn(context : Context) :
 
     # Update model config with the number of classes
     model_config['num_classes'] = num_classes
+    model_config['input_channels'] = 3 if dataset_config['use_rgb_input'] else 1
 
     # Get the preprocess functions config for the VGG model
     preprocess_functions_config = download_published_model.get_preprocess_functions_config_for_specific_model('vgg')
