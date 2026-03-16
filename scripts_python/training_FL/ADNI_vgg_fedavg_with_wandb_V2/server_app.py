@@ -48,7 +48,11 @@ def gen_evaluate_fn(model, idx_data_server, all_config : dict, preprocess_functi
         support_federated_generic.set_weights(model, parameters_ndarrays)
         
         # Transform data and label in the dataset
-        centralized_test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1, idx_to_use = idx_data_server, seed = training_config['seed'], preprocess_functions = preprocess_functions)
+        centralized_test_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, percentage_split_train_val = 1,
+                                                                             idx_to_use = idx_data_server,
+                                                                             seed = training_config['seed'],
+                                                                             preprocess_functions = preprocess_functions
+                                                                             )
 
         # Evaluate the model on test data
         test_loss, test_metrics_dict = test_functions.test(training_config, model, centralized_test_dataset, label = 'server')
