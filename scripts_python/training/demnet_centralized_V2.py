@@ -1,5 +1,5 @@
 """
-Script used to train demnet. It is launched from the sh scripts in the folder `./scripts_sh/train_demnet_FL/`
+Script used to train demnet. It is launched from the sh scripts in the folder `./scripts_sh/train_demnet_FL_V2/`
 
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
@@ -93,6 +93,7 @@ num_classes = len(np.unique(labels_int))
 
 # Get the indices for training and validation (the two files must be created before launching the script with the script create_idx_files_for_federated_simulations_2.py)
 idx_train = np.load(f"{args.path_to_idx_files}train_idx_all.npy")
+idx_train = np.load(f"{args.path_to_idx_files}train_idx_client_12.npy")
 idx_val   = np.load(f"{args.path_to_idx_files}val_idx.npy")
 
 # Get train and validation dataset
