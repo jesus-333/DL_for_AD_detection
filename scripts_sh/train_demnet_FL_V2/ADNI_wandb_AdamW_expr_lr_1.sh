@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=13G
-#SBATCH --time=0-00:20:00
+#SBATCH --time=0-00:50:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_FL_V2/output/std_output_%x_%j.txt
@@ -54,18 +54,19 @@ PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${SLURM_JOB_I
 PATH_DATA="data/ADNI_axial_middle_slice/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
 path_to_save_idx_file="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"
+path_to_save_idx_file="${PATH_DATA}EXPERIMENT_3_CLIENTS_OLD/"
 # N.B. The file for ADNI_middle_slice were saved with value alreay normalized between 0 and 1. 
 
 # Data preparation settings
-percentage_data_used_for_training=0.85
+percentage_data_used_for_training=0.9
 seed=${SLURM_JOB_ID}
 # seed=2627151565
 n_repetitions=1
 
 # Dataset settings for each client
 merge_AD_class=0
-percentage_train=0.9
-percentage_validation=0.1
+percentage_train=0.85
+percentage_validation=0.15
 percentage_test=0
 rescale_factor=4095
 
@@ -97,10 +98,11 @@ input_size=176
 # Wandb Setting
 project_name="demnet_training_ADNI_FL_V2_all_classes"
 # project_name="demnet_training_ADNI_FL_V2_4_classes"
+project_name="DEBUG_DEMNET"
 
 # FL settings (Training)
 num_clients=-1
-num_rounds=25
+num_rounds=50
 fraction_fit=1
 
 # FL settings (Hardware)
@@ -121,7 +123,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	echo "====================================="
 
 	if [ $repetition -eq 1 ] ; then
-		num_clients=5
+		num_clients=3
 	elif [ $repetition -eq 2 ] ; then
 		num_clients=10
 	elif [ $repetition -eq 3 ] ; then
