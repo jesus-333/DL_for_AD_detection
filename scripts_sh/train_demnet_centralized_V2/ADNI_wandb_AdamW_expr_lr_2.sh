@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
 #SBATCH --mem=13G
-#SBATCH --time=0-00:30:00
+#SBATCH --time=0-00:20:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_demnet_centralized_V2/output/std_output_%x_%j.txt
@@ -38,7 +38,7 @@ pip list
 # Settings
 
 # Slurm ID of the FL training run you want to use to get the config
-slurm_old_id=5206765
+slurm_old_id=5254840
 
 # Path to library
 PATH_SRC="./"
@@ -62,7 +62,7 @@ path_to_idx_files="${PATH_DATA}FL_idx_${slurm_old_id}/"
 # Data preparation settings
 percentage_data_used_for_training=0.9
 seed=${slurm_old_id}
-n_repetitions=2
+n_repetitions=1
 
 # Training settings
 batch_size=192
@@ -70,11 +70,12 @@ epochs=50
 device="cuda"
 epoch_to_save_model=-1
 path_to_save_model="model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_${SLURM_JOB_ID}"
+path_to_save_model="model_weights/demnet_ADNI_FL_V2/EXPERIMENT_3_CLIENTS/CENT_DATA_Clients_12"
 
 # Optimizer config
 # CHANGE only the lr. DO NOT CHANGE the other parameters
 lr=1e-3
-lr=5e-4
+# lr=5e-4
 name_optimizer='AdamW'
 beta_low=0.9
 beta_high=0.999
@@ -103,20 +104,6 @@ for repetition in $(seq 1 $n_repetitions); do
 	echo "====================================="
 	echo "REPETITION ${repetition} / ${n_repetitions}"
 	echo "====================================="
-
-	if [ $repetition -eq 1 ] ; then
-		num_clients=5
-	elif [ $repetition -eq 2 ] ; then
-		num_clients=10
-	elif [ $repetition -eq 3 ] ; then
-		num_clients=15
-	elif [ $repetition -eq 4 ] ; then
-		num_clients=20
-	elif [ $repetition -eq 5 ] ; then
-		num_clients=25
-	elif [ $repetition -eq 6 ] ; then
-		num_clients=30
-	fi
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Reset config files (Note that this reset only the config for the client side)
@@ -163,7 +150,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--project_name=${project_name}\
 		--entity="alberto_zancanaro_academic"\
 		--model_artifact_name="demnet_z_${input_channels}"\
-		--name_training_run="DEBUG_CENTRALIZED"\
+		--name_training_run="Cent data CLIENTS 12"\
 		--no-log_model_artifact\
 		--log_freq=1\
 

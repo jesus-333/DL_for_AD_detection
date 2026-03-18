@@ -7,12 +7,12 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=13G
-#SBATCH --time=0-03:15:00
+#SBATCH --mem=50G
+#SBATCH --time=0-02:45:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
-#SBATCH --output=./scripts_sh/train_VGG_FL_V2/output/std_output_%x_%j.txt
-#SBATCH --error=./scripts_sh/train_VGG_FL_V2/output/other_output_%x_%j.txt
+#SBATCH --output=./scripts_sh/train_vgg_FL_V2/output/std_output_%x_%j.txt
+#SBATCH --error=./scripts_sh/train_vgg_FL_V2/output/other_output_%x_%j.txt
 
 # Works as script _1 but changes how data are divided between clients
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -41,7 +41,7 @@ pip list
 PATH_SRC="./"
 
 # Paths to config files
-PATH_CONFIG_FOLDER="scripts_python/training_FL/ADNI_VGG_fedavg_with_wandb_V2/config/"
+PATH_CONFIG_FOLDER="scripts_python/training_FL/ADNI_vgg_fedavg_with_wandb_V2/config/"
 PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset_${SLURM_JOB_ID}.toml"
 PATH_MODEL_CONFIG_TEMPLATE="${PATH_CONFIG_FOLDER}template/model.toml"
 PATH_MODEL_CONFIG_SAVE="${PATH_CONFIG_FOLDER}model_${SLURM_JOB_ID}.toml"
@@ -61,7 +61,7 @@ path_to_save_idx_file="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"
 percentage_data_used_for_training=0.9
 seed=${SLURM_JOB_ID}
 # seed=2627151565
-n_repetitions=2
+n_repetitions=1
 
 # Dataset settings for each client
 merge_AD_class=0
@@ -80,8 +80,11 @@ epoch_to_save_model=-1
 path_to_save_model="model_weights/VGG_ADNI_FL_V2/exp_lr_SGD_${SLURM_JOB_ID}"
 
 # VGG Settings
-vgg_training_mode=0 # See set_training_mode method in the VGG class for more details on the training modes (vgg_nets.py file)
+input_channels=1 # This parameter is changed automatically inside the server/client script based on the other parameter
 vgg_version=16
+vgg_training_mode=0 # See set_training_mode method in the VGG class for more details on the training modes (vgg_nets.py file)
+# N.b. training_mode 1 and 2 required the flag use_rgb_input in the dataset (fine tuning only of the classifier)
+# N.b. training_mode 0 and 4 can work both with rgb input or 1 channel images
 
 # Optimizer config
 lr=1e-3
@@ -95,17 +98,13 @@ weight_decay=1e-5
 # Lr scheduler settings
 gamma=0.94
 
-# Information about data used for model_config
-input_channels=1
-input_size=176
-
 # Wandb Setting
 project_name="VGG_FL_V2_all_classes_SUBJ_div"
 project_name="DEBUG_VGG"
 
 # FL settings (Training)
 num_clients=-1
-num_rounds=20
+num_rounds=50
 fraction_fit=1
 
 # FL settings (Hardware)
@@ -175,7 +174,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	fi
 	echo "NUM CLASSES ${num_classes}"
 
-	srun python ./scripts_python/training/update_model_config_VGG.py\
+	srun python ./scripts_python/training/update_model_config_vgg.py\
 		--path_save=${PATH_MODEL_CONFIG_SAVE}\
 		--path_template=${PATH_MODEL_CONFIG_TEMPLATE}\
 		--input_channels=${input_channels}\
@@ -266,12 +265,16 @@ for repetition in $(seq 1 $n_repetitions); do
 		--fl_training\
 		--use_weights_with_lower_validation_error\
 		--print_var\
+		--vgg_training\
+		--use_pretrained_vgg\
+		--vgg_training_mode=${vgg_training_mode}\
+		--no-use_vgg_normalization_values\
 		--no-wandb_training\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Launch FL Training
 
-	srun flwr run ./scripts_python/training_FL/ADNI_VGG_fedavg_with_wandb_V2/\
+	srun flwr run ./scripts_python/training_FL/ADNI_vgg_fedavg_with_wandb_V2/\
 		--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
 		--run-config "path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG_SAVE}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
 
