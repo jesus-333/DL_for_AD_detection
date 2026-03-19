@@ -38,7 +38,7 @@ path_model_config=$3
 path_training_config=$4
 path_optimizer_config=$5
 path_lr_scheduler_config=$6
-path_to_idx_file=$7
+path_to_idx_files=$7
 seed=$8
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -50,7 +50,7 @@ echo "path_model_config: ${path_model_config}"
 echo "path_training_config: ${path_training_config}"
 echo "path_optimizer_config: ${path_optimizer_config}"
 echo "path_lr_scheduler_config: ${path_lr_scheduler_config}"
-echo "path_to_save_idx_file: ${path_to_idx_file}"
+echo "path_to_save_idx_file: ${path_to_idx_files}"
 echo "seed: ${seed}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
