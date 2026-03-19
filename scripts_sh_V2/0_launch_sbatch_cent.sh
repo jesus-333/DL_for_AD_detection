@@ -53,7 +53,7 @@ path_optimizer_config="./scripts_sh_V2/config/optimizer_${optimizer}.toml"
 path_lr_scheduler_config="./scripts_sh_V2/config/lr_sched_${lr_scheduler}.toml"
 path_model_config="./scripts_sh_V2/config/model_${model_name}.toml"
 
-mkdir -p ./scripts_sh_V2/config/training_hpc/${seed}/
+mkdir -p ./scripts_sh_V2/config/training_hpc/${job_name}/
 
 cp ${path_dataset_config} ./scripts_sh_V2/config/training_hpc/${job_name}/dataset.toml
 cp ${path_model_training_config} ./scripts_sh_V2/config/training_hpc/${job_name}/training.toml
