@@ -74,8 +74,8 @@ sbatch  --job-name=${job_name}\
 		${script_name}\
 			${path_src}\
 			./scripts_sh_V2/config/training_hpc/${job_name}/dataset.toml\
-			./scripts_sh_V2/config/training_hpc/${job_name}/training.toml\
 			./scripts_sh_V2/config/training_hpc/${job_name}/model.toml\
+			./scripts_sh_V2/config/training_hpc/${job_name}/training.toml\
 			./scripts_sh_V2/config/training_hpc/${job_name}/optimizer.toml\
 			./scripts_sh_V2/config/training_hpc/${job_name}/lr_scheduler.toml\
 			${path_to_idx_files}\
