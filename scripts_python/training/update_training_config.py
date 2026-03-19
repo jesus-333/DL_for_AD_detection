@@ -29,6 +29,7 @@ parser = argparse.ArgumentParser(description = 'Update the training configuratio
 parser.add_argument('--path_training_config'           , type = str  , default = './config/training.toml'    , help = 'Path to the toml file with the training config. Default is ./config/training.toml')
 parser.add_argument('--path_optimizer_config'          , type = str  , default = './config/optimizer.toml'   , help = 'Path to the toml file with the learning rate optimizer config. Default is ./config/optimizer.toml')
 parser.add_argument('--path_lr_scheduler_config'       , type = str  , default = './config/lr_scheduler.toml', help = 'Path to the toml file with the learning rate scheduler config. Default is ./config/lr_scheduler.toml')
+parser.add_argument('--path_to_save'                   , type = str  , default = None                        , help = 'Path to save the updated training config. If not passed or None, the original training config file will be overwritten. If a new path is provided, the updated training config will be saved in a new file. If passed with the same path as the original training config, the original file will be overwritten. Default is None (overwrite original file).')
 parser.add_argument('--batch_size'                     , type = int  , default = -1             , help = 'Batch size for training. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new batch size. Default is -1 (do not change).')
 parser.add_argument('--epochs'                         , type = int  , default = -1             , help = 'Number of epochs for training. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new number of epochs. Default is -1 (do not change).')
 parser.add_argument('--device'                         , type = str  , default = 'cpu'          , help = 'Device to use for training. Default is "cpu".')
@@ -36,17 +37,21 @@ parser.add_argument('--epoch_to_save_model'            , type = int  , default =
 parser.add_argument('--path_to_save_model'             , type = str  , default = 'model_weights', help = 'Path to save the model weights. If the folder does not exist, it will be created. Default is "model_weights".')
 parser.add_argument('--seed'                           , type = int  , default = -1             , help = 'Seed for reproducibility. It is used to split the dataset. If a negative value (or no value) is provided, the seed will be set to a random value. Default is -1.')
 # Boolean arguments
-parser.add_argument('--use_scheduler'                  , default = True , action = "store_true", help = 'If True, use a learning rate scheduler. Default is True.')
-parser.add_argument('--measure_metrics_during_training', default = True , action = "store_true", help = 'Measure metrics during training. If True various secondary metrics (e.g. accuracy, f1 score, etc.) will be computed during training. Default is True.')
-parser.add_argument('--print_var'                      , default = True , action = "store_true", help = 'If True print information during training. Default is True.')
-parser.add_argument('--wandb_training'                 , default = False, action = "store_true", help = 'If True, use Weights & Biases (wandb) for tracking the training. Default is False.')
-parser.add_argument('--fl_training'                    , default = False, action = "store_true", help = "If True, the training is done in Federated Learning mode. Default is False.")
-parser.add_argument('--vgg_training'                   , default = False, action = "store_true", help = "If True, the training is done using a VGG network. Default is False.")
+parser.add_argument('--use_scheduler'                  , default = True , action = "store_true", help = 'If passed, use a learning rate scheduler. Default is True.')
+parser.add_argument('--measure_metrics_during_training', default = True , action = "store_true", help = 'If passed various secondary metrics (e.g. accuracy, f1 score, etc.) will be computed during training. Default is True.')
+parser.add_argument('--print_var'                      , default = True , action = "store_true", help = 'If passed print information during training. Default is True.')
+parser.add_argument('--wandb_training'                 , default = False, action = "store_true", help = 'If passed, use Weights & Biases (wandb) for tracking the training. Default is False.')
+parser.add_argument('--fl_training'                    , default = False, action = "store_true", help = "If passed, the training is done in Federated Learning mode. Default is False.")
+parser.add_argument('--vgg_training'                   , default = False, action = "store_true", help = "If passed, the training is done using a VGG network. Default is False.")
+parser.add_argument('--swin_training'                  , default = False, action = "store_true", help = "If passed, the training is done using a Swin Transformer. Default is False.")
 # Boolean negate
 parser.add_argument('--no-use_scheduler'                  , dest ='use_scheduler'                  , action = 'store_false')
 parser.add_argument('--no-measure_metrics_during_training', dest ='measure_metrics_during_training', action = 'store_false')
 parser.add_argument('--no-print_var'                      , dest ='print_var'                      , action = 'store_false')
 parser.add_argument('--no-wandb_training'                 , dest ='wandb_training'                 , action = 'store_false')
+parser.add_argument('--no-fl_training'                    , dest ='fl_training'                    , action = 'store_false') # Theoretically, you can completely avoid this argument, since if you do not want to use FL training you can simply avoid to pass the --fl_training argument. In that case the FL training options will be removed by the config (if present). I add this argument for consistency with the other boolean. (And if you are like me, for your own peace of mind to have the possibility to explicitly set the value to False, even if it is not strictly necessary.)
+parser.add_argument('--no-vgg_training'                   , dest ='vgg_training'                   , action = 'store_false') # Same as above for --no-fl_training argument.
+parser.add_argument('--no-swin_training'                  , dest ='swin_training'                  , action = 'store_false') # Same as above for --no-fl_training argument.
 # *******************************
 # Wandb settings
 parser.add_argument('--project_name'         , type = str, default = None, help = 'Name of the wandb project. Default is None.')
@@ -68,9 +73,15 @@ parser.add_argument('--no-use_weights_with_lower_validation_error', dest ='use_w
 parser.add_argument('--vgg_training_mode'              , type = int, default = 0, help = "Training mode for the VGG network. Possible values are 0, 1, 2 or 3. See set_training_mode method in the VGG class for more details on the training modes (vgg_nets.py file). Note that this argument is used only if the VGG network is trained, i.e. if the model is a VGG network.")
 parser.add_argument('--use_pretrained_vgg'             , default = True , action = "store_true", help = "If True, the VGG network is pretrained on ImageNet. Default is True.")
 parser.add_argument('--use_vgg_normalization_values'   , default = True , action = "store_true", help = "If True, when vgg is trained, the data are normalized using the values used in the original VGG paper. Default is None")
-parser.add_argument('--no-use_pretrained_vgg'          , dest = 'use_pretrained_vgg'          , action = 'store_false')
+parser.add_argument('--no-use_pretrained_vgg'          , dest = 'use_pretrained_vgg'           , action = 'store_false')
 parser.add_argument('--no-use_vgg_normalization_values', dest = 'use_vgg_normalization_values' , action = 'store_false')
 # *******************************
+# Arguments for Swin Transformer training
+parser.add_argument('--swin_training_mode'              , type = int, default = 0, help = "Training mode for the Swin Transformer. Possible values are 0, 1")
+parser.add_argument('--use_pretrained_swin'             , default = True , action = "store_true" , help = "If True, the Swin Transformer is pretrained on ImageNet. Default is True. Currently not implemented.")
+parser.add_argument('--use_swin_normalization_values'   , default = True , action = "store_true" , help = "If True, when the Swin Transformer is trained, the data are normalized using the values used in the original Swin Transformer paper. Default is None")
+parser.add_argument('--no-use_pretrained_swin'          , dest = 'use_pretrained_swin'           , action = 'store_false')
+parser.add_argument('--no-use_swin_normalization_values', dest = 'use_swin_normalization_values' , action = 'store_false')
 
 args = parser.parse_args()
 
@@ -222,6 +233,10 @@ if args.vgg_training is not None and args.vgg_training is True :
         training_config['vgg_training_mode'] = args.vgg_training_mode
     else :
         raise ValueError(f"Invalid vgg_training_mode provided: {args.vgg_training_mode}. Possible values are 0, 1, 2 or 3.")
+    
+    # Check that both vgg_training and swin_training are not True at the same time
+    if args.swin_training is not None and args.swin_training is True :
+        raise ValueError("Both vgg_training and swin_training cannot be True at the same time. Please choose one of the two training modes.")
 else :
     training_config['vgg_training'] = None
     training_config['use_pretrained_vgg'] = None
@@ -229,13 +244,42 @@ else :
     training_config['vgg_training_mode'] = None
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Update the training config for Swin Transformer training
+
+if args.swin_training is not None and args.swin_training is True :
+    training_config['swin_training'] = True
+
+    # Use pretrained Swin and use Swin normalization values to normalize input (see https://pytorch.org/hub/microsoft_swin_transformer/)
+    training_config['use_pretrained_swin'] = args.use_pretrained_swin
+    training_config['use_swin_normalization_values'] = args.use_swin_normalization_values
+
+    # Training mode for Swin Transformer
+    if args.swin_training_mode in [0, 1] :
+        training_config['swin_training_mode'] = args.swin_training_mode
+    else :
+        raise ValueError(f"Invalid swin_training_mode provided: {args.swin_training_mode}. Possible values are 0 or 1.")
+
+    # Check that both vgg_training and swin_training are not True at the same time
+    if args.vgg_training is not None and args.vgg_training is True :
+        raise ValueError("Both vgg_training and swin_training cannot be True at the same time. Please choose one of the two training modes.")
+else :
+    training_config['swin_training'] = None
+    training_config['use_pretrained_swin'] = None
+    training_config['use_swin_normalization_values'] = None
+    training_config['swin_training_mode'] = None
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save the config
 
+path_to_save = args.path_to_save if args.path_to_save is not None else args.path_training_config
+if path_to_save != args.path_training_config :
+    print(f"Saving the updated training config in a new file: {path_to_save}. The original file {args.path_training_config} will not be overwritten.")
+
 # Create the folder if it does not exist
-os.makedirs(os.path.dirname(args.path_training_config), exist_ok = True)
+os.makedirs(os.path.dirname(path_to_save), exist_ok = True)
 
 # Save the updated training config
-with open(args.path_training_config, 'w') as f:
+with open(path_to_save, 'w') as f:
     toml.dump(training_config, f)
 
 print("Update TRAINING config - OK")

@@ -22,3 +22,4 @@ config/demnet_wandb
 config/test_code
 config/vgg_finetuning
 scripts_python/TMP_PLOT
+scripts_sh_V2/config

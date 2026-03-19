@@ -212,7 +212,7 @@ def get_dataset_V2(dataset_config : dict, percentage_split_train_val : float = 1
     # If you want to use rgb input but your data has only 1 channel (greyscale image), then that channel will be repeated 3 times
     if dataset_config['use_rgb_input'] and data.shape[1] == 1 :
         # Convert to 3 channels if greyscale images are used and use_rgb_input is set to True
-        print("VGG created with 3 input cahnnels, but the data have only 1 channel. The single channel will be repeated 3 times.")
+        print("You have specified use_rgb_input as True. but the data have only 1 channel. The single channel will be repeated 3 times.")
 
         # Repeat the single channel 3 times
         data = data.repeat(1, 3, 1, 1)
