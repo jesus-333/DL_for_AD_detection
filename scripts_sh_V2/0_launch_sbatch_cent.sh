@@ -1,3 +1,5 @@
+set -e
+
 # Set seed with a random positive integer (+ 1 to avoid seed=0)
 seed=($RANDOM + 1)
 seed=($(((RANDOM << 15) | RANDOM )) + 1)
@@ -14,7 +16,10 @@ path_src="./"
 # Config files paths.
 model_name="swin"
 optimizer="AdamW"
-lr_scheduler="exp"
+lr_scheduler="ExponentialLR"
+
+# Possible lr lr_scheduler ExponentialLR, CosineAnnealingWarmRestarts
+# Possible optimizer AdamW, SGD
 
 # Data paths and names.
 path_data="data/ADNI_axial_middle_slice/" 
@@ -27,9 +32,9 @@ percentage_data_used_for_training=0.8
 
 # Sbatch settings
 partition="gpu"
-qos="gpu"
+qos="normal"
 mem="16G"
-time="24:00:00"
+time="01:00:00"
 output="./scripts_sh_V2/output/out_%x_%j.txt"
 error="./scripts_sh_V2/output/err_%x_%j.txt"
 
@@ -50,11 +55,11 @@ path_model_config="./scripts_sh_V2/config/model_${model_name}.toml"
 
 mkdir -p ./scripts_sh_V2/config/training_hpc/${seed}/
 
-cp ${path_dataset_config} ./scripts_sh_V2/config/training_hpc/${seed}/dataset.toml
-cp ${path_model_training_config} ./scripts_sh_V2/config/training_hpc/${seed}/training.toml
-cp ${path_optimizer_config} ./scripts_sh_V2/config/training_hpc/${seed}/optimizer.toml
-cp ${path_lr_scheduler_config} ./scripts_sh_V2/config/training_hpc/${seed}/lr_scheduler.toml
-cp ${path_model_config} ./scripts_sh_V2/config/training_hpc/${seed}/model.toml
+cp ${path_dataset_config} ./scripts_sh_V2/config/training_hpc/${job_name}/dataset.toml
+cp ${path_model_training_config} ./scripts_sh_V2/config/training_hpc/${job_name}/training.toml
+cp ${path_optimizer_config} ./scripts_sh_V2/config/training_hpc/${job_name}/optimizer.toml
+cp ${path_lr_scheduler_config} ./scripts_sh_V2/config/training_hpc/${job_name}/lr_scheduler.toml
+cp ${path_model_config} ./scripts_sh_V2/config/training_hpc/${job_name}/model.toml
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Submit job
