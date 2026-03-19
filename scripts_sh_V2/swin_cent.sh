@@ -69,7 +69,7 @@ echo "path_to_idx_files: ${path_to_idx_files}"
 echo "percentage_data_used_for_training: ${percentage_data_used_for_training}"
 echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
 
-srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations_2.py\
+python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations_2.py\
 	--path_data=${path_data}\
 	--name_tensor_file=${name_tensor_file}\
 	--path_to_save=${path_to_idx_files}\
@@ -78,6 +78,8 @@ srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_si
 	--seed=${seed}\
 	--no-use_cross_fold_validation\
 	--keep_samples_proportion\
+
+echo "Data preparation END"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
