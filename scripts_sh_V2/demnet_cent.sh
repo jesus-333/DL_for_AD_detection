@@ -50,7 +50,7 @@ echo "path_model_config: ${path_model_config}"
 echo "path_training_config: ${path_training_config}"
 echo "path_optimizer_config: ${path_optimizer_config}"
 echo "path_lr_scheduler_config: ${path_lr_scheduler_config}"
-echo "path_to_idx_file: ${path_to_idx_files}"
+echo "path_to_idx_files: ${path_to_idx_files}"
 echo "seed: ${seed}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -83,19 +83,19 @@ echo "Data preparation END"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Update training config. 
-# srun python ./scripts_python/training/update_training_config.py\
-# 	--path_training_config="${path_training_config}"\
-# 	--path_optimizer_config="${path_optimizer_config}"\
-# 	--path_lr_scheduler_config="${path_lr_scheduler_config}"\
-# 	--seed="${seed}"\
-# 	--no-fl_training\
-# 	--no-vgg_training\
-# 	--swin_training\
-#
-# srun python ./scripts_python/training/demnet_centralized_V2.py\
-# 	--path_src="${path_src}"\
-# 	--path_dataset_config="${path_dataset_config}"\
-# 	--path_model_config="${path_model_config_save}"\
-# 	--path_training_config="${path_training_config}"\
-# 	--path_to_idx_files=${path_to_idx_file}\
+Update training config. 
+srun python ./scripts_python/training/update_training_config.py\
+	--path_training_config="${path_training_config}"\
+	--path_optimizer_config="${path_optimizer_config}"\
+	--path_lr_scheduler_config="${path_lr_scheduler_config}"\
+	--seed="${seed}"\
+	--no-fl_training\
+	--no-vgg_training\
+	--swin_training\
+
+srun python ./scripts_python/training/demnet_centralized_V2.py\
+	--path_src="${path_src}"\
+	--path_dataset_config="${path_dataset_config}"\
+	--path_model_config="${path_model_config}"\
+	--path_training_config="${path_training_config}"\
+	--path_to_idx_files=${path_to_idx_files}\

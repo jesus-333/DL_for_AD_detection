@@ -14,7 +14,7 @@ echo "====================================="
 path_src="./"
 
 # Config files paths.
-model_name="swin"
+model_name="demnet"
 optimizer="SGD"
 lr_scheduler="ExponentialLR"
 
@@ -31,8 +31,8 @@ percentage_data_used_for_training=0.8
 # Slurm variables.
 
 # Sbatch settings
-partition="gpu"
-qos="normal"
+partition="gpu" # l40s, hopper, gpu
+qos="normal" # besteffort, iris-hopper, normal
 mem="16G"
 time="01:00:00"
 output="./scripts_sh_V2/output/out_%x_%j.txt"
