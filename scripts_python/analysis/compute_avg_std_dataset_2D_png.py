@@ -1,14 +1,13 @@
 """
-Given the path of a dataset compute the avg and std for that dataset
-Note that the dataset must contains images
+Given the path of a dataset compute the avg and std for that dataset. 
+The dataset must be a collection of images that will be loaded through torchvision.io.read_image 
 
-
-Links with some details/discussion about it : 
+Links with some details/discussion about it :
 https://datascience.stackexchange.com/questions/77084/how-imagenet-mean-and-std-derived
 https://discuss.pytorch.org/t/discussion-why-normalise-according-to-imagenet-mean-and-std-dev-for-transfer-learning/115670
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import numpy as np
 import torchvision
@@ -17,7 +16,7 @@ import matplotlib.pyplot as plt
 
 from src.dataset import support_dataset
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 path_dataset = './data/ADNI_axial_PD_T2_TSE_png/'
 # path_dataset = './data/Kaggle_Alzheimer_MRI_4_classes_dataset'
@@ -35,7 +34,7 @@ preprocess_functions  = torchvision.transforms.Compose([
     torchvision.transforms.Resize((176, 176)),
 ])
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def compute_final_mean_and_std_from_list(mean_list, std_list) :
     # Compute the mean and std for the dataset (for each channel separately)
@@ -47,7 +46,7 @@ def compute_final_mean_and_std_from_list(mean_list, std_list) :
 
     return mean_dataset, std_dataset
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 list_files_path = support_dataset.get_all_files_from_path(path_dataset, filetype_filter = 'png')
 print(list_files_path[0])
@@ -94,7 +93,7 @@ for i in range(len(idx_to_use)) :
     image = image / 255
 
     if preprocess_functions is not None :
-        image = preprocess_functions (image)
+        image = preprocess_functions(image)
     
     mean_list.append(image.mean(dim = (1, 2)))
     std_list.append(image.std(dim = (1, 2)))
@@ -102,7 +101,7 @@ for i in range(len(idx_to_use)) :
 
 final_mean, final_std = compute_final_mean_and_std_from_list(mean_list, std_list)
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Plot convergence of the mean and std
 
 x = (np.arange(len(tmp_mean_list)) + 1) * n_elements_to_print
