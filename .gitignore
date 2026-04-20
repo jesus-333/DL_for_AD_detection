@@ -24,3 +24,5 @@ config/vgg_finetuning
 scripts_python/TMP_PLOT
 scripts_sh_V2/config
 config_example/
+scripts_sh_V2/create_config/*
+scripts_sh_V2/debug/*
