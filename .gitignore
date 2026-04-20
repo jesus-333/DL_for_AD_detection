@@ -24,5 +24,7 @@ config/test_code
 config/vgg_finetuning
 scripts_python/TMP_PLOT
 config_example/
-scripts_sh_V2/output
 scripts_sh_V2/config/training_hpc
+scripts_sh_V2/create_config/
+scripts_sh_V2/debug/
+scripts_sh_V2/output

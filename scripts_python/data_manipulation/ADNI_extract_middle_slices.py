@@ -12,7 +12,6 @@ The data area saved as torch tensors (1 sample --> 1 tensor, conversion_type = 0
 
 import json
 import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
@@ -24,8 +23,8 @@ from src.dataset import support_dataset
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Settings
 
-path_data = "./data/ADNI_dicom_converted_axial/"
-path_dataset_info = "./data/ADNI_dicom_converted_axial/data_info.json"
+path_data = "./data/ADNI_PD_dicom_converted_axial/"
+path_dataset_info = "./data/ADNI_PD_dicom_converted_axial/data_info.json"
 
 path_to_save = './data/ADNI_axial_middle_slice/'
 
@@ -34,7 +33,7 @@ conversion_type = 1
 apply_resize = True
 resize_size = 176
 
-create_png_backup = False# If True for each slice saved it creates also a copy in png
+create_png_backup = False # If True for each slice saved it creates also a copy in png
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get data and create preprocess function

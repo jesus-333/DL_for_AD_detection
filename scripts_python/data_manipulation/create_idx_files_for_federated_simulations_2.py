@@ -50,7 +50,7 @@ import torch
 path_data = "data/ADNI_axial_middle_slice/"
 name_tensor_file = "dataset_tensor___176_resize.pt"
 dataset_info_file = "dataset_info.csv"
-path_to_save = "data/ADNI_axial_middle_slice/FL_indices/"
+path_to_save = "data/ADNI_axial_middle_slice/FL_indices_V2/"
 
 percentage_data_used_for_training = 0.8
 num_clients = 15
@@ -376,7 +376,3 @@ print("Data splitting and saving of indices files completed.")
 #         label_from_external_info = external_info.iloc[0]['Group']
 #
 #         if label_from_external_info != tmp_label : raise ValueError(f"Error for subj {tmp_id}")
-         
-
-
-

@@ -1,7 +1,9 @@
 """
 This script is similar to convert/all_subjects_ADNI_ONLY_2D_MRI_V4_2.py with the numpy settings.
 So this file will convert all the dicom of a single scan in a single npy file (so 1 scan ---> 1 npy file)
-Together with samples a dictionary and a csv will be created. The dictionary will have as key the file name and as values all the info about that specific scan (subject id, label, original dataset etc). The csv file will have the same information but in a table structure.
+Together a dictionary and a csv will be created. 
+- The dictionary will have as key the file name and as values all the info about that specific scan (subject id, label, original dataset etc). 
+- The csv file will have the same information but in a table structure.
 The main purpose is to convert all the data downloaded from the ADNI website in a format and structure which can be easily manipulated by the create_dataset.py script.
 
 Note that no resize will be applied or any other preprocess will be applied to the image. All this operation will be performed by the create_dataset.py script.
@@ -89,6 +91,7 @@ for i in range(len(list_files)) :
     tmp_id = file_path_decomposition[-2]
 
     # Get folder for that specific recording
+    # I.e. the folder with the files. Note that file_path contains the complete path (included the file name)
     path_specific_recording = file_path.split(file_name)[0]
 
     # Check if I have already converted that folder
