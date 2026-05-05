@@ -46,6 +46,18 @@ script_name="./scripts_sh_V2/${model_name}_cent.sh"
 # Job name (modify as needed)
 job_name="train_${model_name}_${seed}"
 
+if [ $partition = "l40s" ] ; then
+	qos="besteffort"
+elif [ $partition = "hopper" ] ; then
+	qos="iris-hopper"
+elif [ $partition = "gpu" ] ; then
+	qos="normal"
+elif [ $partition = "batch" ] ; then
+	qos="normal"
+else 
+	echo "INVALID PARTITION"
+fi
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Create config file for training run.
 
