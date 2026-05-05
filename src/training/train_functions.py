@@ -189,23 +189,30 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
                 else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
                     computed_metrics_during_training[f"{metric}_train"].append(train_metrics_dict[metric])
                     if validation_loader is not None : computed_metrics_during_training[f"{metric}_validation"].append(validation_metrics_dict[metric])
+        
+        # Save learning rate
+        if training_config['wandb_training']: log_dict['learning_rate'] = optimizer.param_groups[0]['lr']
 
-        #  Update learning rate (if a scheduler is provided)
+        #  (OPTIONAL )Update learning rate (if a scheduler is provided)
         if lr_scheduler is not None:
             # Save the current learning rate if I load the data on wandb
-            if training_config['wandb_training']: log_dict['learning_rate'] = optimizer.param_groups[0]['lr']
 
             # Update scheduler
             lr_scheduler.step()
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # (OPTIONAL) Print loss
+        # (OPTIONAL) Print loss. The spaces were added to make the print more aligned and more readable.
         if training_config['print_var']:
             print("Epoch:{}".format(epoch))
+            
+            # Losses
             print("\t Train loss        = {}".format(train_loss))
             if validation_loader is not None: print("\t Validation loss   = {}".format(validation_loss))
-
+            
+            # Learning rate
             if lr_scheduler is not None: print("\t Learning rate     = {}".format(optimizer.param_groups[0]['lr']))
+            
+            # Metrics
             if training_config['measure_metrics_during_training']:
                 print("\t Accuracy (TRAIN)  = {}".format(train_metrics_dict['accuracy']))
                 print("\t Accuracy (VALID)  = {}".format(validation_metrics_dict['accuracy']))

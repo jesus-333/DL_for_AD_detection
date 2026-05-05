@@ -14,29 +14,24 @@ echo "====================================="
 path_src="./"
 
 # Config files paths.
-model_name="swin"
+model_name="demnet"
 optimizer="AdamW"
 lr_scheduler="ExponentialLR"
 
-# Possible lr lr_scheduler ExponentialLR, CosineAnnealingWarmRestarts
 # Possible optimizer AdamW, SGD
+# Possible lr lr_scheduler ExponentialLR, CosineAnnealingWarmRestarts
+# IF you do not want to use any LR scheduler you have to add the optional flag --no-use_scheduler\ directly inside the script.
 
 # Data paths and names.
-path_data="data/ADNI_axial_middle_slice/" 
+# Remember that to modify the dataset you have ALSO to modify the data path inside the dataset.toml
+path_data="data/ADNI_MRI_Normalized_middle_slice/" 
+name_tensor_file="dataset_tensor___176_resize.pt"
 name_tensor_file="dataset_tensor___176_resize.pt"
 path_to_idx_files="${path_data}CENT_idx_${seed}/"
 percentage_data_used_for_training=0.8
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Slurm variables.
-
-# Sbatch settings
-partition="gpu"
-qos="normal"
-mem="25G"
-time="01:00:00"
-output="./scripts_sh_V2/output/out_%x_%j.txt"
-error="./scripts_sh_V2/output/err_%x_%j.txt"
+# Script variables (equivalent to the slurm variables section of the 0_launch_sbatch_cent).
 
 # Script that will be launched with sbatch. Selected based on the model name.
 script_name="./scripts_sh_V2/${model_name}_cent.sh"
@@ -53,22 +48,22 @@ path_optimizer_config="./scripts_sh_V2/config/optimizer_${optimizer}.toml"
 path_lr_scheduler_config="./scripts_sh_V2/config/lr_sched_${lr_scheduler}.toml"
 path_model_config="./scripts_sh_V2/config/model_${model_name}.toml"
 
-mkdir -p ./scripts_sh_V2/config/training_hpc/${job_name}/
+mkdir -p ./scripts_sh_V2/config/debug/${job_name}/
 
-cp ${path_dataset_config} ./scripts_sh_V2/config/training_hpc/${job_name}/dataset.toml
-cp ${path_model_training_config} ./scripts_sh_V2/config/training_hpc/${job_name}/training.toml
-cp ${path_optimizer_config} ./scripts_sh_V2/config/training_hpc/${job_name}/optimizer.toml
-cp ${path_lr_scheduler_config} ./scripts_sh_V2/config/training_hpc/${job_name}/lr_scheduler.toml
-cp ${path_model_config} ./scripts_sh_V2/config/training_hpc/${job_name}/model.toml
+cp ${path_dataset_config} ./scripts_sh_V2/config/debug/${job_name}/dataset.toml
+cp ${path_model_training_config} ./scripts_sh_V2/config/debug/${job_name}/training.toml
+cp ${path_optimizer_config} ./scripts_sh_V2/config/debug/${job_name}/optimizer.toml
+cp ${path_lr_scheduler_config} ./scripts_sh_V2/config/debug/${job_name}/lr_scheduler.toml
+cp ${path_model_config} ./scripts_sh_V2/config/debug/${job_name}/model.toml
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Submit job
 sh ${script_name}\
 	${path_src}\
-	./scripts_sh_V2/config/training_hpc/${job_name}/dataset.toml\
-	./scripts_sh_V2/config/training_hpc/${job_name}/model.toml\
-	./scripts_sh_V2/config/training_hpc/${job_name}/training.toml\
-	./scripts_sh_V2/config/training_hpc/${job_name}/optimizer.toml\
-	./scripts_sh_V2/config/training_hpc/${job_name}/lr_scheduler.toml\
+	./scripts_sh_V2/config/debug/${job_name}/dataset.toml\
+	./scripts_sh_V2/config/debug/${job_name}/model.toml\
+	./scripts_sh_V2/config/debug/${job_name}/training.toml\
+	./scripts_sh_V2/config/debug/${job_name}/optimizer.toml\
+	./scripts_sh_V2/config/debug/${job_name}/lr_scheduler.toml\
 	${path_to_idx_files}\
 	${seed}\

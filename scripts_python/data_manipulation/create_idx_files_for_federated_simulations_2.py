@@ -47,13 +47,13 @@ import torch
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Arguments
 
-path_data = "data/ADNI_axial_middle_slice/"
+path_data = "data/ADNI_MRI_Normalized_middle_slice/"
 name_tensor_file = "dataset_tensor___176_resize.pt"
 dataset_info_file = "dataset_info.csv"
-path_to_save = "data/ADNI_axial_middle_slice/FL_indices_V2/"
+path_to_save = f"{path_data}FL_indices_V2/"
 
 percentage_data_used_for_training = 0.8
-num_clients = 15
+num_clients = 3
 seed = -1
 n_folds = None # If None, it will be computed from percentage_data_used_for_training
 
@@ -144,7 +144,7 @@ def create_train_val_split(subj_list : list, sample_per_subj : dict, min_sample_
         else :
             # If I don't have enough samples in the training data, I put the current subject in the training set
             list_subj_train.append(current_subj)
-            samples_in_training_data += sample_per_subj[subj]
+            samples_in_training_data += sample_per_subj[current_subj]
 
     return list_subj_train, list_subj_val
 
@@ -362,17 +362,3 @@ else :
     check_idx_array(all_idx_array, n_samples)
 
 print("Data splitting and saving of indices files completed.")
-
-# Temporary code to remove
-# USED to check correctness of the split. Used also info saved on external file. To be executed on a console.
-# for i in range(num_clients) :
-#     idx_array_client = create_idx_array_from_subj_list(subj_per_client_train[i], subj_list_per_sample)
-#     print(i)
-#     for idx in idx_array_client :
-#         subj_info = dataset_info.iloc[idx]
-#         tmp_id = subj_info['subj_id']
-#         tmp_label = subj_info['labels_str']
-#         external_info = all_subj_info[all_subj_info['Subject'] == tmp_id]
-#         label_from_external_info = external_info.iloc[0]['Group']
-#
-#         if label_from_external_info != tmp_label : raise ValueError(f"Error for subj {tmp_id}")

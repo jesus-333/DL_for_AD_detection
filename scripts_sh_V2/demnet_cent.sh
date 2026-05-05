@@ -79,6 +79,9 @@ python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulat
 	--no-use_cross_fold_validation\
 	--keep_samples_proportion\
 
+# Note that the number of clients is not relevant for the centralized training. The script create also for backup an idx file with the indices of all the training data together.
+# So I use the server data as validation set and the clients data as training set.
+
 # srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations.py\
 # 	--path_data=${path_data}\
 # 	--name_tensor_file=${name_tensor_file}\
@@ -93,17 +96,17 @@ echo "Data preparation END"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Update training config. 
-srun python ./scripts_python/training/update_training_config.py\
+# Update training config. 
+python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${path_training_config}"\
 	--path_optimizer_config="${path_optimizer_config}"\
 	--path_lr_scheduler_config="${path_lr_scheduler_config}"\
 	--seed="${seed}"\
 	--no-fl_training\
 	--no-vgg_training\
-	--no-use_scheduler\
+	# --no-use_scheduler\
 
-srun python ./scripts_python/training/demnet_centralized_V2.py\
+python ./scripts_python/training/demnet_centralized_V2.py\
 	--path_src="${path_src}"\
 	--path_dataset_config="${path_dataset_config}"\
 	--path_model_config="${path_model_config}"\
