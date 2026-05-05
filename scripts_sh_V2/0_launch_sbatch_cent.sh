@@ -18,6 +18,8 @@ model_name="demnet"
 optimizer="AdamW"
 lr_scheduler="CosineAnnealingWarmRestarts"
 
+# Remember that for demnet you have to set use_rgb_input to false inside dataset.toml
+
 # Possible optimizer AdamW, SGD
 # Possible lr lr_scheduler ExponentialLR, CosineAnnealingWarmRestarts
 # IF you do not want to use any LR scheduler you have to add the optional flag --no-use_scheduler\ directly inside the script.
@@ -36,7 +38,7 @@ percentage_data_used_for_training=0.8
 partition="gpu" # l40s, hopper, gpu
 qos="normal" # besteffort, iris-hopper, normal
 mem="20G"
-time="00:05:00"
+time="00:10:00"
 output="./scripts_sh_V2/output/${model_name}/out_%x_%j.txt"
 error="./scripts_sh_V2/output/${model_name}/err_%x_%j.txt"
 

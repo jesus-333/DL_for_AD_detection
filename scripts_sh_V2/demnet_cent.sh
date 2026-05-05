@@ -17,17 +17,24 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
 
-echo "---------------------------------------------------"
-echo $CONDA_DEFAULT_ENV
-echo "---------------------------------------------------"
-conda init
-conda activate jesus-hpc
-echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo $CONDA_DEFAULT_ENV
-echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
+# echo "---------------------------------------------------"
+# echo $CONDA_DEFAULT_ENV
+# echo "---------------------------------------------------"
+# conda init
+# conda activate jesus-hpc
+# echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
+# echo $CONDA_DEFAULT_ENV
+# echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
 
 hatchling build
 pip install .
+
+source /usr/share/lmod/lmod/libexec/../init/bash
+export MODULEPATH=/opt/apps/easybuild/environment/modules:/cvmfs/software.eessi.io/init/modules:/opt/apps/easybuild/systems/iris/rhel810-20250803/2023b/broadwell/modules/all:/opt/apps/easybuild/systems/binary/rhel810-20250803/2023b/generic/modules/all
+
+module load ai/PyTorch
+
+which python
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Get arguments passed to the script.
@@ -104,7 +111,7 @@ python ./scripts_python/training/update_training_config.py\
 	--seed="${seed}"\
 	--no-fl_training\
 	--no-vgg_training\
-	# --no-use_scheduler\
+	--no-use_scheduler\
 
 python ./scripts_python/training/demnet_centralized_V2.py\
 	--path_src="${path_src}"\
