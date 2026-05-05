@@ -44,9 +44,9 @@ from src.training import train_functions
 # Default settings. Used only if the corresponding argument is not provided when launching the script.
 
 # Path to config files.
-defualt_path_config_dataset  = './config/demnet_wandb/dataset.toml'
-defualt_path_config_model    = './config/demnet_wandb/model.toml'
-defualt_path_config_training = './config/demnet_wandb/training.toml'
+defualt_path_config_dataset  = './config/swin_wandb/dataset.toml'
+defualt_path_config_model    = './config/swin_wandb/model.toml'
+defualt_path_config_training = './config/swin_wandb/training.toml'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load config
