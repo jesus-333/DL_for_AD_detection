@@ -9,4 +9,4 @@ percentage_validation = 0.1
 apply_rescale = false
 load_data_in_memory = true
 use_normalization = true
-use_rgb_input = true
+use_rgb_input = false

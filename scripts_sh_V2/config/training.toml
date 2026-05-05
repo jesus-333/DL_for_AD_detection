@@ -1,10 +1,10 @@
 # General training parameters
 # Optimizer and lr scheduler have their own separate config files.
 # The lr is set inside 
-batch_size = 77
-epochs = 10
+batch_size = 73
+epochs = 40
 use_scheduler = true
-device = "cuda"
+device = "mps"
 epoch_to_save_model = -1
 path_to_save_model = "model_weights/"
 measure_metrics_during_training = true
