@@ -81,6 +81,7 @@ srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${path_training_config}"\
 	--path_optimizer_config="${path_optimizer_config}"\
 	--path_lr_scheduler_config="${path_lr_scheduler_config}"\
+	--path_to_save_model="model_weights/swin/${seed}_${SLURM_JOB_ID}/"\
 	--seed="${seed}"\
 	--no-fl_training\
 	--no-vgg_training\

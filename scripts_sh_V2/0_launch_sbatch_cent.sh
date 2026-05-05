@@ -15,14 +15,16 @@ path_src="./"
 
 # Config files paths.
 model_name="demnet"
-optimizer="SGD"
-lr_scheduler="ExponentialLR"
+optimizer="AdamW"
+lr_scheduler="CosineAnnealingWarmRestarts"
 
-# Possible lr lr_scheduler ExponentialLR, CosineAnnealingWarmRestarts
 # Possible optimizer AdamW, SGD
+# Possible lr lr_scheduler ExponentialLR, CosineAnnealingWarmRestarts
+# IF you do not want to use any LR scheduler you have to add the optional flag --no-use_scheduler\ directly inside the script.
 
 # Data paths and names.
-path_data="data/ADNI_axial_middle_slice/" 
+# Remember that to modify the dataset you have ALSO to modify the data path inside the dataset.toml
+path_data="data/ADNI_MRI_Normalized_middle_slice/" 
 name_tensor_file="dataset_tensor___176_resize.pt"
 path_to_idx_files="${path_data}CENT_idx_${seed}/"
 percentage_data_used_for_training=0.8
@@ -33,10 +35,10 @@ percentage_data_used_for_training=0.8
 # Sbatch settings
 partition="gpu" # l40s, hopper, gpu
 qos="normal" # besteffort, iris-hopper, normal
-mem="16G"
-time="01:00:00"
-output="./scripts_sh_V2/output/out_%x_%j.txt"
-error="./scripts_sh_V2/output/err_%x_%j.txt"
+mem="20G"
+time="00:05:00"
+output="./scripts_sh_V2/output/${model_name}/out_%x_%j.txt"
+error="./scripts_sh_V2/output/${model_name}/err_%x_%j.txt"
 
 # Script that will be launched with sbatch. Selected based on the model name.
 script_name="./scripts_sh_V2/${model_name}_cent.sh"

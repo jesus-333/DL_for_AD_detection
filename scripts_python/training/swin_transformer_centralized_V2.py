@@ -96,6 +96,10 @@ print("Data Loaded")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Create model
 
+if dataset_config['merge_AD_class'] == 0   : num_classes = 6
+elif dataset_config['merge_AD_class'] == 1 : num_classes = 2
+elif dataset_config['merge_AD_class'] == 2 : num_classes = 4
+
 model = transformer.swin_transformer_classifier(num_classes, version = model_config['version'], size = model_config['size'])
 
 print("Model Loaded")
@@ -105,7 +109,6 @@ print("Model Loaded")
 
 # Get the indices for training and validation (the two files must be created before launching the script with the script create_idx_files_for_federated_simulations_2.py)
 idx_train = np.load(f"{args.path_to_idx_files}train_idx_all.npy")
-idx_train = np.load(f"{args.path_to_idx_files}train_idx_client_12.npy")
 idx_val   = np.load(f"{args.path_to_idx_files}val_idx.npy")
 
 # Get train and validation dataset
@@ -118,6 +121,7 @@ if training_config['print_var'] :
     print("dataset_config['merge_AD_class'] ", dataset_config['merge_AD_class'])
     print(f"N. training samples    : {len(MRI_train_dataset)}")
     print(f"N. validations samples : {len(MRI_validation_dataset)}")
+    print(f"Model transforms : {model.transforms}")
     print("#######################################")
 
 # (OPTIONAL) Move dataset to device

@@ -1,0 +1,8 @@
+lr = 0.0001
+name = "SGD"
+momentum = 0.9
+dampening = 0.0
+nesterov = false
+weight_decay = 1e-4
+maximize = false
+

@@ -33,7 +33,7 @@ percentage_data_used_for_training=0.8
 # Sbatch settings
 partition="gpu"
 qos="normal"
-mem="16G"
+mem="25G"
 time="01:00:00"
 output="./scripts_sh_V2/output/out_%x_%j.txt"
 error="./scripts_sh_V2/output/err_%x_%j.txt"
