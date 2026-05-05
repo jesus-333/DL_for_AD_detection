@@ -26,3 +26,4 @@ scripts_sh_V2/config
 config_example/
 scripts_sh_V2/create_config/*
 scripts_sh_V2/debug/*
+/src/model/references
