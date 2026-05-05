@@ -83,9 +83,34 @@ class swin_transformer_classifier(torch.nn.Module) :
 
         x = self.encoder(x)
 
-        x = self.classifier(x)
+        # x = self.classifier(x)
 
         return x
+
+    def classify(self, x, return_prob : bool = False) :
+        """
+        Classify the input x.
+        If return_prob is True, the function will return the probability of each class. Otherwise, it will return the predicted class.
+
+        Parameters
+        ----------
+        x : torch.tensor
+            Input tensor. Shape must be B x C x H x W
+        return_prob : bool
+            If True, the function will return the probability of each class. Otherwise, it will return the predicted class.
+
+        Returns
+        -------
+        torch.tensor
+            If return_prob is True, the function will return the probability of each class. Otherwise, it will return the predicted class.
+            The shape of the output tensor is B x num_classes if return_prob is True. Otherwise, the shape is B.
+        """
+        x = self.forward(x)
+
+        if return_prob :
+            return torch.nn.functional.softmax(x, dim = 1)
+        else :
+            return torch.argmax(x, dim = 1)
 
     def set_training_mode(self, training_mode : int = 0) :
         """

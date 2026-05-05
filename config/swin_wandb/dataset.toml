@@ -1,0 +1,8 @@
+merge_AD_class = 1
+percentage_train = 0.8
+percentage_test = 0.1
+percentage_validation = 0.1
+rescale_factor = 4095.0
+apply_rescale = true
+load_data_in_memory = false
+use_normalization = true

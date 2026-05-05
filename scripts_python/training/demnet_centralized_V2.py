@@ -55,6 +55,12 @@ path_config_dataset  = args.path_dataset_config if args.path_dataset_config is n
 path_config_model    = args.path_model_config if args.path_model_config is not None else defualt_path_config_model
 path_config_training = args.path_training_config if args.path_training_config is not None else defualt_path_config_training
 
+print("Debug Python")
+print(f"path_config_dataset  = {path_config_dataset}")
+print(f"path_config_model    = {path_config_model}")
+print(f"path_config_training = {path_config_training}")
+print(f"path_to_idx_files    = {args.path_to_idx_files}")
+
 # Load configs
 dataset_config  = toml.load(path_config_dataset)
 model_config    = toml.load(path_config_model)
@@ -66,8 +72,6 @@ all_config = dict(
     dataset_config = dataset_config,
     model_config = model_config
 )
-
-pprint.pprint(all_config)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Select training device
@@ -89,7 +93,6 @@ training_config['device'] = device
 dataset_info = pd.read_csv(f'{dataset_config['path_data']}dataset_info.csv')
 labels_int, labels_str = dataset_info['labels_int'].to_numpy(), dataset_info['labels_str'].to_numpy()
 labels_int = support_dataset_ADNI.merge_AD_class_function(labels_int, labels_str, dataset_config['merge_AD_class'])
-num_classes = len(np.unique(labels_int))
 
 # Get the indices for training and validation (the two files must be created before launching the script with the script create_idx_files_for_federated_simulations_2.py)
 idx_train = np.load(f"{args.path_to_idx_files}train_idx_all.npy")
@@ -102,7 +105,7 @@ MRI_validation_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_confi
 if training_config['print_var'] :
     print("#######################################")
     print("Demnet Centralized Training")
-    print("dataset_config['merge_AD_class'] ", dataset_config['merge_AD_class'])
+    print(f"dataset_config['merge_AD_class'] : {dataset_config['merge_AD_class']}", )
     print(f"N. training samples    : {len(MRI_train_dataset)}")
     print(f"N. validations samples : {len(MRI_validation_dataset)}")
     print("#######################################")
@@ -116,6 +119,12 @@ print("Data Loaded")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load model
+
+if dataset_config['merge_AD_class'] == 0   : num_classes = 6
+elif dataset_config['merge_AD_class'] == 1 : num_classes = 2
+elif dataset_config['merge_AD_class'] == 2 : num_classes = 4
+model_config['num_classes'] = num_classes
+
 model = demnet.demnet(model_config)
 
 print("Model Loaded")

@@ -50,7 +50,7 @@ echo "path_model_config: ${path_model_config}"
 echo "path_training_config: ${path_training_config}"
 echo "path_optimizer_config: ${path_optimizer_config}"
 echo "path_lr_scheduler_config: ${path_lr_scheduler_config}"
-echo "path_to_save_idx_file: ${path_to_idx_files}"
+echo "path_to_idx_file: ${path_to_idx_files}"
 echo "seed: ${seed}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -61,13 +61,6 @@ echo "seed: ${seed}"
 path_data=$(toml get -r ${path_dataset_config} path_data)
 name_tensor_file=$(toml get -r ${path_dataset_config} name_tensor_file)
 percentage_data_used_for_training=$(toml get -r ${path_dataset_config} percentage_train)
-
-echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-echo "path_data: ${path_data}"
-echo "name_tensor_file: ${name_tensor_file}"
-echo "path_to_idx_files: ${path_to_idx_files}"
-echo "percentage_data_used_for_training: ${percentage_data_used_for_training}"
-echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
 
 python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations_2.py\
 	--path_data=${path_data}\
@@ -88,6 +81,7 @@ srun python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${path_training_config}"\
 	--path_optimizer_config="${path_optimizer_config}"\
 	--path_lr_scheduler_config="${path_lr_scheduler_config}"\
+	--path_to_save_model="model_weights/swin/${seed}_${SLURM_JOB_ID}/"\
 	--seed="${seed}"\
 	--no-fl_training\
 	--no-vgg_training\
@@ -96,6 +90,6 @@ srun python ./scripts_python/training/update_training_config.py\
 srun python ./scripts_python/training/swin_transformer_centralized_V2.py\
 	--path_src="${path_src}"\
 	--path_dataset_config="${path_dataset_config}"\
-	--path_model_config="${path_model_config_save}"\
+	--path_model_config="${path_model_config}"\
 	--path_training_config="${path_training_config}"\
-	--path_to_idx_files=${path_to_idx_file}\
+	--path_to_idx_files=${path_to_idx_files}\

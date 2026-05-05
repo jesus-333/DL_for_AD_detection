@@ -96,6 +96,10 @@ print("Data Loaded")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Create model
 
+if dataset_config['merge_AD_class'] == 0   : num_classes = 6
+elif dataset_config['merge_AD_class'] == 1 : num_classes = 2
+elif dataset_config['merge_AD_class'] == 2 : num_classes = 4
+
 model = transformer.swin_transformer_classifier(num_classes, version = model_config['version'], size = model_config['size'])
 
 print("Model Loaded")
@@ -117,6 +121,7 @@ if training_config['print_var'] :
     print("dataset_config['merge_AD_class'] ", dataset_config['merge_AD_class'])
     print(f"N. training samples    : {len(MRI_train_dataset)}")
     print(f"N. validations samples : {len(MRI_validation_dataset)}")
+    print(f"Model transforms : {model.transforms}")
     print("#######################################")
 
 # (OPTIONAL) Move dataset to device

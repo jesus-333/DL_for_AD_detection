@@ -14,6 +14,7 @@ scripts_sh/output/
 scripts_sh/debug/output/
 scripts_sh/**/*.toml
 scripts_sh/**/*.txt
+scripts_sh/**/**/*.toml
 scripts_python/**/*.toml
 dist/
 config/test_code/
@@ -22,8 +23,9 @@ config/demnet_wandb
 config/test_code
 config/vgg_finetuning
 scripts_python/TMP_PLOT
-scripts_sh_V2/config
 config_example/
 scripts_sh_V2/create_config/*
 scripts_sh_V2/debug/*
+scripts_sh_V2/config/training_hpc
+scripts_sh_V2/output
 /src/model/references
