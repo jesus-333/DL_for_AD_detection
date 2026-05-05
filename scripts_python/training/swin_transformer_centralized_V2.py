@@ -44,9 +44,9 @@ from src.training import train_functions
 # Default settings. Used only if the corresponding argument is not provided when launching the script.
 
 # Path to config files.
-defualt_path_config_dataset  = './config/demnet_wandb/dataset.toml'
-defualt_path_config_model    = './config/demnet_wandb/model.toml'
-defualt_path_config_training = './config/demnet_wandb/training.toml'
+defualt_path_config_dataset  = './config/swin_wandb/dataset.toml'
+defualt_path_config_model    = './config/swin_wandb/model.toml'
+defualt_path_config_training = './config/swin_wandb/training.toml'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load config
@@ -105,7 +105,6 @@ print("Model Loaded")
 
 # Get the indices for training and validation (the two files must be created before launching the script with the script create_idx_files_for_federated_simulations_2.py)
 idx_train = np.load(f"{args.path_to_idx_files}train_idx_all.npy")
-idx_train = np.load(f"{args.path_to_idx_files}train_idx_client_12.npy")
 idx_val   = np.load(f"{args.path_to_idx_files}val_idx.npy")
 
 # Get train and validation dataset
