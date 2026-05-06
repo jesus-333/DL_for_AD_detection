@@ -17,22 +17,23 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
 
-# echo "---------------------------------------------------"
-# echo $CONDA_DEFAULT_ENV
-# echo "---------------------------------------------------"
-# conda init
+# source /usr/share/lmod/lmod/libexec/../init/bash
+# export MODULEPATH=/opt/apps/easybuild/environment/modules:/cvmfs/software.eessi.io/init/modules:/opt/apps/easybuild/systems/iris/rhel810-20250803/2023b/broadwell/modules/all:/opt/apps/easybuild/systems/binary/rhel810-20250803/2023b/generic/modules/all
+#
+# module load ai/PyTorch
+
+echo "---------------------------------------------------"
+echo $CONDA_DEFAULT_ENV
+echo "---------------------------------------------------"
+conda init
 # conda activate jesus-hpc
-# echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
-# echo $CONDA_DEFAULT_ENV
-# echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
+conda activate jesus_hpc_2
+echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo $CONDA_DEFAULT_ENV
+echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
 
 hatchling build
 pip install .
-
-source /usr/share/lmod/lmod/libexec/../init/bash
-export MODULEPATH=/opt/apps/easybuild/environment/modules:/cvmfs/software.eessi.io/init/modules:/opt/apps/easybuild/systems/iris/rhel810-20250803/2023b/broadwell/modules/all:/opt/apps/easybuild/systems/binary/rhel810-20250803/2023b/generic/modules/all
-
-module load ai/PyTorch
 
 which python
 
@@ -108,6 +109,7 @@ python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${path_training_config}"\
 	--path_optimizer_config="${path_optimizer_config}"\
 	--path_lr_scheduler_config="${path_lr_scheduler_config}"\
+	--path_to_save_model="model_weights/demnet_${seed}/"\
 	--seed="${seed}"\
 	--no-fl_training\
 	--no-vgg_training\

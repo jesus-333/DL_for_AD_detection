@@ -37,8 +37,8 @@ percentage_data_used_for_training=0.8
 # Sbatch settings
 partition="gpu" # l40s, hopper, gpu
 qos="normal" # besteffort, iris-hopper, normal
-mem="20G"
-time="00:10:00"
+mem="18G"
+time="23:00:00"
 output="./scripts_sh_V2/output/${model_name}/out_%x_%j.txt"
 error="./scripts_sh_V2/output/${model_name}/err_%x_%j.txt"
 
