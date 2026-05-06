@@ -29,16 +29,17 @@ import toml
 parser = argparse.ArgumentParser(description = 'Update the demnet model configuration file with new parameters.')
 
 # Non boolean arguments
-parser.add_argument('--path_save'         , type = str  , default = './config/demnet_model.toml', help = 'Path to save the updated model config file. Default is ./config/demnet_model.toml')
-parser.add_argument('--path_template'     , type = str  , default = None, help = 'Path to the toml file with a template of the model config')
-parser.add_argument('--input_size'        , type = int  , default = None, help = 'Input size of the model. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--input_channels'    , type = int  , default = None, help = 'Number of input channels. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--num_classes'       , type = int  , default = None, help = 'Number of output classes. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--activation'        , type = str  , default = None, help = 'Activation function to use. If None is passed, the value already present in the config file will be used. Default is None. Allowed values are: elu, relu, gelu, selu.')
-parser.add_argument('--kernel_size_conv_1', type = int  , default = None, help = 'Kernel size for the first convolutional layer. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--kernel_size_conv_2', type = int  , default = None, help = 'Kernel size for the second convolutional layer. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--dropout_rate_1'    , type = float, default = None, help = 'Dropout rate for the first dropout layer. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--dropout_rate_2'    , type = float, default = None, help = 'Dropout rate for the second dropout layer. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--path_save'                  , type = str  , default = './config/demnet_model.toml', help = 'Path to save the updated model config file. Default is ./config/demnet_model.toml')
+parser.add_argument('--path_template'              , type = str  , default = None, help = 'Path to the toml file with a template of the model config')
+parser.add_argument('--input_size'                 , type = int  , default = None, help = 'Input size of the model. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--input_channels'             , type = int  , default = None, help = 'Number of input channels. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--output_channels_first_layer', type = int  , default = None, help = 'Number of output channels for the first convolutional layer. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--num_classes'                , type = int  , default = None, help = 'Number of output classes. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--activation'                 , type = str  , default = None, help = 'Activation function to use. If None is passed, the value already present in the config file will be used. Default is None. Allowed values are: elu, relu, gelu, selu.')
+parser.add_argument('--kernel_size_conv_1'         , type = int  , default = None, help = 'Kernel size for the first convolutional layer. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--kernel_size_conv_2'         , type = int  , default = None, help = 'Kernel size for the second convolutional layer. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--dropout_rate_1'             , type = float, default = None, help = 'Dropout rate for the first dropout layer. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--dropout_rate_2'             , type = float, default = None, help = 'Dropout rate for the second dropout layer. If None is passed, the value already present in the config file will be used. Default is None.')
 # List to dement block config files
 parser.add_argument('--demnet_blocks_path_list'     , nargs = '+', default = [], help = 'List of paths to the toml files with the dement block model config. Default is an empty list. Example: --demnet_blocks ./config/demnet_block_1.toml ./config/demnet_block_2.toml')
 # Boolean arguments
@@ -80,6 +81,12 @@ if args.input_channels is not None:
         raise ValueError(f'Input channels must be a positive integer. Given: {args.input_channels}')
     else :
         model_config['input_channels'] = args.input_channels
+
+if args.output_channels_first_layer is not None:
+    if args.output_channels_first_layer <= 0:
+        raise ValueError(f'Output channels for the first convolutional layer must be a positive integer. Given: {args.output_channels_first_layer}')
+    else :
+        model_config['output_channels_first_layer'] = args.output_channels_first_layer
 
 if args.num_classes is not None:
     if args.num_classes <= 0:

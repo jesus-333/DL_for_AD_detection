@@ -4,7 +4,7 @@
 batch_size = 131
 epochs = 50000
 use_scheduler = true
-device = "cuda"
+device = "mps"
 epoch_to_save_model = -1
 path_to_save_model = "model_weights/"
 measure_metrics_during_training = true
