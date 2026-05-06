@@ -102,6 +102,12 @@ python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulat
 
 echo "Data preparation END"
 
+# Note abous num_classes
+# Before the new normalized dataset I had 6 possible classes (AD, CN, MCI, LMCI, SMC, EMCI). 
+# To avoid problems in that situation I automatically changed the number of classes (i.e. the output dimension of the model) based on the variable "merge_AD_class inside the python script.
+# With the new already normalized dataset I have only 3 classes (AD, CN, MCI).
+# So for now I commented the part of the code that automatically change the number of classes based on the variable "merge_AD_class" because I do not need it anymore.
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Update training config. 

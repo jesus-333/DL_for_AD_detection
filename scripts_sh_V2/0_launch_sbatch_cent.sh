@@ -19,6 +19,7 @@ optimizer="AdamW"
 lr_scheduler="CosineAnnealingWarmRestarts"
 
 # Remember that for demnet you have to set use_rgb_input to false inside dataset.toml
+# Also if you have problem with NUM_CLASSES and MERGE_AD_CLASS remember to read the note you write in demnet.sh, at the end of `Prepare data` section.
 
 # Possible optimizer AdamW, SGD
 # Possible lr lr_scheduler ExponentialLR, CosineAnnealingWarmRestarts

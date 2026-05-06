@@ -120,10 +120,10 @@ print("Data Loaded")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load model
 
-if dataset_config['merge_AD_class'] == 0   : num_classes = 6
-elif dataset_config['merge_AD_class'] == 1 : num_classes = 2
-elif dataset_config['merge_AD_class'] == 2 : num_classes = 4
-model_config['num_classes'] = num_classes
+# if dataset_config['merge_AD_class'] == 0   : num_classes = 6
+# elif dataset_config['merge_AD_class'] == 1 : num_classes = 2
+# elif dataset_config['merge_AD_class'] == 2 : num_classes = 4
+# model_config['num_classes'] = num_classes
 
 model = demnet.demnet(model_config)
 
