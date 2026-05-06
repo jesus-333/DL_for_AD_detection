@@ -35,8 +35,10 @@ parser.add_argument('--epochs'                         , type = int  , default =
 parser.add_argument('--device'                         , type = str  , default = 'cpu'          , help = 'Device to use for training. Default is "cpu".')
 parser.add_argument('--epoch_to_save_model'            , type = int  , default = -1             , help = 'Save model every n epochs. If a negative value (or zero or no value) is provided, it will be set to epochs + 1, i.e. only the model at the end of training will be saved. Default is -1.')
 parser.add_argument('--path_to_save_model'             , type = str  , default = 'model_weights', help = 'Path to save the model weights. If the folder does not exist, it will be created. Default is "model_weights".')
+parser.add_argument('--path_past_weights'              , type = str  , default = None           , help = 'Path to a file with the weights of a previous training session. Used only if you want to continue training from a previous checkpoint. Default is None (do not load past weights).')
 parser.add_argument('--seed'                           , type = int  , default = -1             , help = 'Seed for reproducibility. It is used to split the dataset. If a negative value (or no value) is provided, the seed will be set to a random value. Default is -1.')
 # Boolean arguments
+parser.add_argument('--backup_model_every_epoch'       , default = None, action = "store_true", help = 'If passed, a checkpoint of the model called model_END.pth will be saved at the end of each epoch. Note that this is different from the checkpoint created by the --epoch_to_save_model argument, which saves the model every n epochs with a name that includes the epoch number (e.g. model_epoch_10.pth). Default is False.')
 parser.add_argument('--use_scheduler'                  , default = True , action = "store_true", help = 'If passed, use a learning rate scheduler. Default is True.')
 parser.add_argument('--measure_metrics_during_training', default = True , action = "store_true", help = 'If passed various secondary metrics (e.g. accuracy, f1 score, etc.) will be computed during training. Default is True.')
 parser.add_argument('--print_var'                      , default = True , action = "store_true", help = 'If passed print information during training. Default is True.')
@@ -45,6 +47,7 @@ parser.add_argument('--fl_training'                    , default = False, action
 parser.add_argument('--vgg_training'                   , default = False, action = "store_true", help = "If passed, the training is done using a VGG network. Default is False.")
 parser.add_argument('--swin_training'                  , default = False, action = "store_true", help = "If passed, the training is done using a Swin Transformer. Default is False.")
 # Boolean negate
+parser.add_argument('--no-backup_model_every_epoch'       , dest ='backup_model_every_epoch'       , action = 'store_false')
 parser.add_argument('--no-use_scheduler'                  , dest ='use_scheduler'                  , action = 'store_false')
 parser.add_argument('--no-measure_metrics_during_training', dest ='measure_metrics_during_training', action = 'store_false')
 parser.add_argument('--no-print_var'                      , dest ='print_var'                      , action = 'store_false')
@@ -132,9 +135,29 @@ else :
     training_config['epoch_to_save_model'] = training_config['epochs'] + 1
     print("Model will be saved on the end of training.")
 
+# Backup model every epoch
+if args.backup_model_every_epoch is None :
+    if 'backup_model_every_epoch' in training_config :
+        print(f"No value provided for backup_model_every_epoch. Using value from config: {training_config['backup_model_every_epoch']}.")
+    else :
+        print("No value provided for backup_model_every_epoch and no value found in the training config. Using default value: False.")
+        training_config['backup_model_every_epoch'] = False
+else :
+    training_config['backup_model_every_epoch'] = args.backup_model_every_epoch
+
 # Path to save model
 training_config['path_to_save_model'] = args.path_to_save_model
 if args.path_to_save_model is None : print("No path provided to save the model. Using default path: 'model_weights'.")
+
+# Path to past weights
+if args.path_past_weights is None :
+    if 'path_past_weights' in training_config :
+        print(f"No path provided for past weights. Using value from config: {training_config['path_past_weights']}.")
+    else :
+        print("No path provided for past weights and no path found in the training config. Using default value: None (do not load past weights).")
+        training_config['path_past_weights'] = None
+else :
+    training_config['path_past_weights'] = args.path_past_weights
 
 # Measure metrics during training
 training_config['measure_metrics_during_training'] = args.measure_metrics_during_training
@@ -177,33 +200,80 @@ if args.wandb_training is True :
     training_config['wandb_training'] = True
 
     # Project name
-    if args.project_name is None : print("No project name provided for wandb. Using default value: None.")
-    training_config['project_name'] = args.project_name
-
-    if args.entity is None : print("No entity name provided for wandb. Using default value: None.")
-    training_config['entity'] = args.entity
-
-    # Name of the training run
-    if args.name_training_run is None : print("No name provided for the training run in wandb. Using default value: None.")
-    training_config['name_training_run'] = args.name_training_run
-
-    # Notes for the training run
-    if args.notes is None : print("No notes provided for the training run in wandb. Using default value: None.")
-    training_config['notes'] = args.notes
-
-    # Log frequency
-    if args.log_freq is not None and args.log_freq > 0 :
-        training_config['log_freq'] = args.log_freq
+    if args.project_name is None :
+        if 'project_name' in training_config :
+            print(f"No project name provided for wandb. Using value from config: {training_config['project_name']}.")
+        else :
+            raise ValueError("No project name provided for wandb and no project name found in the training config. Please provide a project name using the --project_name argument or add a project name in the training config file.")
     else :
-        training_config['log_freq'] = 1
-        print(f"Invalid log frequency provided: {args.log_freq}. Using default value: {training_config['log_freq']}.")
+        training_config['project_name'] = args.project_name
+
+    # Entity name
+    if args.entity is None : 
+        if 'entity' in training_config : 
+            print(f"No entity name provided for wandb. Using value from config: {training_config['entity']}.")
+        else :
+            print("No entity name provided for wandb and no entity name found in the training config. Using default value: None.")
+            training_config['entity'] = None
+    else :
+        training_config['entity'] = args.entity
     
+    # Name of the training
+    if args.name_training_run is None :
+        if 'name_training_run' in training_config :
+            print(f"No name provided for the training run in wandb. Using value from config: {training_config['name_training_run']}.")
+        else :
+            # Note that if the name of the training run is not provided, then wandb will automatically assign a random name to the training run.
+            training_config['name_training_run'] = args.name_training_run
+    else :
+        training_config['name_training_run'] = args.name_training_run
+    
+    # Notes for the training run
+    if args.notes is None :
+        if 'notes' in training_config :
+            print(f"No notes provided for the training run in wandb. Using value from config: {training_config['notes']}.")
+        else :
+            # Same as above for the name of the training run. If no notes are provided, wandb will automatically assign an empty string as notes for the training run.
+            training_config['notes'] = args.notes
+    else :
+        training_config['notes'] = args.notes
+    
+    # Log frequency
+    if args.log_freq is None :
+        if 'log_freq' in training_config :
+            print(f"No log frequency provided for wandb. Using value from config: {training_config['log_freq']}.")
+            training_config['log_freq'] = training_config['log_freq']
+        else :
+            training_config['log_freq'] = 1
+            print("No log frequency provided for wandb and no log frequency found in the training config. Using default value: 1.")
+    else :
+        if args.log_freq <= 0 :
+            print(f"Invalid log frequency provided for wandb: {args.log_freq}. Using default value: 1.")
+            training_config['log_freq'] = 1
+        else :
+            training_config['log_freq'] = args.log_freq
+
     # Log model artifact
-    training_config['log_model_artifact'] = args.log_model_artifact
+    if args.log_model_artifact is None :
+        if 'log_model_artifact' in training_config :
+            print(f"No value provided for log_model_artifact. Using value from config: {training_config['log_model_artifact']}.")
+            training_config['log_model_artifact'] = training_config['log_model_artifact']
+        else :
+            print("No value provided for log_model_artifact and no value found in the training config. Using default value: True.")
+            training_config['log_model_artifact'] = True
+    else :
+        training_config['log_model_artifact'] = args.log_model_artifact
 
     # Model artifact name
-    if args.model_artifact_name is None : print("No model artifact name provided for wandb. Using default value: None.")
-    training_config['model_artifact_name'] = args.model_artifact_name
+    if args.model_artifact_name is None :
+        if 'model_artifact_name' in training_config :
+            print(f"No model artifact name provided for wandb. Using value from config: {training_config['model_artifact_name']}.")
+            training_config['model_artifact_name'] = training_config['model_artifact_name']
+        else :
+            print("No model artifact name provided for wandb and no model artifact name found in the training config. Using default value: None.")
+            training_config['model_artifact_name'] = None
+    else :
+        training_config['model_artifact_name'] = args.model_artifact_name
 
     # Debug flag
     training_config['debug'] = args.debug

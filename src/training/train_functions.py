@@ -98,6 +98,11 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     # Move model to training device
     model.to(training_config['device'])
     
+    # (OPTIONAL) Load past model weights if the training is a continuation of a past training.
+    if 'path_past_weights' in training_config :
+        model.load_state_dict(torch.load(training_config['path_past_weights'], map_location = training_config['device']))
+        if training_config['print_var'] : print("Model weights loaded from {}".format(training_config['path_past_weights']))
+
     # Create loss function
     # TODO Add option for other loss function
     loss_function = torch.nn.CrossEntropyLoss()
@@ -142,15 +147,23 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
                                           training_config['device'], log_dict, training_config['print_var']
                                           )
 
-        # Save the model after the epoch
+        # Save the model every n epochs (i.e. created checkpoint called model_n.pth)
         # N.b. When the variable epoch is n the model is trained for n + 1 epochs when arrive at this instructions.
         if (epoch + 1) % training_config['epoch_to_save_model'] == 0 and training_config['epoch_to_save_model'] > 0:
             torch.save(model.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], "model_{}.pth".format(epoch + 1)))
+
+        # Save the model for backup every epoch of the function is enabled.
+        # Note that this is different from the checkpoint saved every n epochs because the file created will be overwritten at each epoch.
+        # This could be useful if you want to hava a backup of the model during training and the model is quite large (so creating many checkpoints could be a problem)
+        if training_config['backup_model_every_epoch'] :
+            model_file_path_END = '{}/{}'.format(training_config['path_to_save_model'], 'model_END.pth')
+            torch.save(model.state_dict(), model_file_path_END)
 
         if epoch == 0 : # If it is the first epoch create the list for the specific metric
             computed_metrics_during_training["train_loss"] = [train_loss]
         else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
             computed_metrics_during_training["train_loss"].append(train_loss)
+
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # (OPTIONAL) Validation epoch
@@ -246,10 +259,6 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # End training cycle
-
-    # Save the model at the end of the training
-    model_file_path_END = '{}/{}'.format(training_config['path_to_save_model'], 'model_END.pth')
-    torch.save(model.state_dict(), model_file_path_END)
     
     # Save in wandb the model at the end of the training (and the best model if validation is performed)
     if training_config['wandb_training'] :
