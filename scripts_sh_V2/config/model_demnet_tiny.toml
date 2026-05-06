@@ -1,7 +1,7 @@
 input_size = 176
 input_channels = 1
 output_channels_first_layer = 2
-num_classes = 4
+num_classes = 3
 activation = "elu"
 kernel_size_conv_1 = 7
 kernel_size_conv_2 = 5

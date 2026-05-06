@@ -18,6 +18,9 @@ model_name="demnet"
 optimizer="AdamW"
 lr_scheduler="ExponentialLR"
 
+# Remember that for demnet you have to set use_rgb_input to false inside dataset.toml
+# Also if you have problem with NUM_CLASSES and MERGE_AD_CLASS remember to read the note you write in demnet.sh, at the end of `Prepare data` section.
+
 # Possible optimizer AdamW, SGD
 # Possible lr lr_scheduler ExponentialLR, CosineAnnealingWarmRestarts
 # IF you do not want to use any LR scheduler you have to add the optional flag --no-use_scheduler\ directly inside the script.
@@ -46,7 +49,7 @@ path_dataset_config="./scripts_sh_V2/config/dataset.toml"
 path_model_training_config="./scripts_sh_V2/config/training.toml"
 path_optimizer_config="./scripts_sh_V2/config/optimizer_${optimizer}.toml"
 path_lr_scheduler_config="./scripts_sh_V2/config/lr_sched_${lr_scheduler}.toml"
-path_model_config="./scripts_sh_V2/config/model_${model_name}.toml"
+path_model_config="./scripts_sh_V2/config/model_${model_name}_tiny.toml"
 
 mkdir -p ./scripts_sh_V2/config/debug/${job_name}/
 

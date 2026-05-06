@@ -17,24 +17,22 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
 
-# echo "---------------------------------------------------"
-# echo $CONDA_DEFAULT_ENV
-# echo "---------------------------------------------------"
-# conda init
-# conda activate jesus-hpc
-# echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
-# echo $CONDA_DEFAULT_ENV
-# echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo "---------------------------------------------------"
+echo $CONDA_DEFAULT_ENV
+echo "---------------------------------------------------"
+conda init
+conda activate jesus-hpc
+echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo $CONDA_DEFAULT_ENV
+echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
 
 hatchling build
 pip install .
 
-source /usr/share/lmod/lmod/libexec/../init/bash
-export MODULEPATH=/opt/apps/easybuild/environment/modules:/cvmfs/software.eessi.io/init/modules:/opt/apps/easybuild/systems/iris/rhel810-20250803/2023b/broadwell/modules/all:/opt/apps/easybuild/systems/binary/rhel810-20250803/2023b/generic/modules/all
-
-module load ai/PyTorch
-
-which python
+# source /usr/share/lmod/lmod/libexec/../init/bash
+# export MODULEPATH=/opt/apps/easybuild/environment/modules:/cvmfs/software.eessi.io/init/modules:/opt/apps/easybuild/systems/iris/rhel810-20250803/2023b/broadwell/modules/all:/opt/apps/easybuild/systems/binary/rhel810-20250803/2023b/generic/modules/all
+# module load ai/PyTorch
+# which python
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Get arguments passed to the script.
@@ -101,6 +99,12 @@ python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulat
 
 echo "Data preparation END"
 
+# Note abous num_classes
+# Before the new normalized dataset I had 6 possible classes (AD, CN, MCI, LMCI, SMC, EMCI). 
+# To avoid problems in that situation I automatically changed the number of classes (i.e. the output dimension of the model) based on the variable "merge_AD_class inside the python script.
+# With the new already normalized dataset I have only 3 classes (AD, CN, MCI).
+# So for now I commented the part of the code that automatically change the number of classes based on the variable "merge_AD_class" because I do not need it anymore.
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Update training config. 
@@ -108,6 +112,7 @@ python ./scripts_python/training/update_training_config.py\
 	--path_training_config="${path_training_config}"\
 	--path_optimizer_config="${path_optimizer_config}"\
 	--path_lr_scheduler_config="${path_lr_scheduler_config}"\
+	--path_to_save_model="model_weights/demnet_${seed}/"\
 	--seed="${seed}"\
 	--no-fl_training\
 	--no-vgg_training\
