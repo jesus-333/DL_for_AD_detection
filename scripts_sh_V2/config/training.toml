@@ -1,8 +1,8 @@
 # General training parameters
 # Optimizer and lr scheduler have their own separate config files.
 # The lr is set inside 
-batch_size = 77
-epochs = 40
+batch_size = 131
+epochs = 50000
 use_scheduler = true
 device = "cuda"
 epoch_to_save_model = -1
@@ -17,8 +17,8 @@ notes = ""
 log_freq = 1
 debug = false
 entity = "alberto_zancanaro_academic"
-project_name = "DEBUG_Demnet_CENT"
-name_training_run = "TEST restart HPC"
+project_name = "DEBUG_DEMNET_CENT"
+name_training_run = "Grokking (fixed LR, weight decay 1e-2, betas, batch 131)"
 log_model_artifact = false
 model_artifact_name = "model"
 
