@@ -7,6 +7,7 @@ use_scheduler = true
 device = "mps"
 epoch_to_save_model = -1
 path_to_save_model = "model_weights/"
+backup_model_every_epoch = true
 measure_metrics_during_training = true
 print_var = true
 seed = -1

@@ -90,16 +90,6 @@ python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulat
 # Note that the number of clients is not relevant for the centralized training. The script create also for backup an idx file with the indices of all the training data together.
 # So I use the server data as validation set and the clients data as training set.
 
-# srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations.py\
-# 	--path_data=${path_data}\
-# 	--name_tensor_file=${name_tensor_file}\
-# 	--path_to_save=${path_to_idx_files}\
-# 	--percentage_data_used_for_training=${percentage_data_used_for_training}\
-# 	--num_clients=3\
-# 	--seed=${seed}\
-# 	--no-use_cross_fold_validation\
-# 	--keep_labels_proportion\
-
 echo "Data preparation END"
 
 # Note abous num_classes
