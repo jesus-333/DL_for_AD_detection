@@ -1,6 +1,6 @@
 input_size = 176
 input_channels = 1
-output_channels_first_layer = 16
+output_channels_first_layer = 2
 num_classes = 4
 activation = "elu"
 kernel_size_conv_1 = 7
@@ -12,32 +12,32 @@ use_activation_in_classifier = true
 use_as_features_extractor = false
 
 [config_demnet_block_1]
-input_channels_block = 16
-output_channels_block = 32
+input_channels_block = 2
+output_channels_block = 4
 kernel_size_conv_1 = 3
 kernel_size_conv_2 = 3
 batch_norm = true
 activation = "elu"
 
 [config_demnet_block_2]
-input_channels_block = 32
-output_channels_block = 64
+input_channels_block = 4
+output_channels_block = 8
 kernel_size_conv_1 = 3
 kernel_size_conv_2 = 3
 batch_norm = true
 activation = "elu"
 
 [config_demnet_block_3]
-input_channels_block = 64
-output_channels_block = 128
+input_channels_block = 8
+output_channels_block = 16
 kernel_size_conv_1 = 3
 kernel_size_conv_2 = 3
 batch_norm = true
 activation = "elu"
 
 [config_demnet_block_4]
-input_channels_block = 128
-output_channels_block = 256
+input_channels_block = 16
+output_channels_block = 32
 kernel_size_conv_1 = 3
 kernel_size_conv_2 = 3
 batch_norm = true

@@ -44,6 +44,8 @@ class demnet(torch.nn.Module) :
             Size of the input image. It is assumed that the image is square. This value is used to compute the size of the input of the fully connected layers.
         - input_channels : int
             Number of channels of the input image. It is assumed that the image is grayscale. If not provided, the default value is 3.
+        - output_channels_first_layer : int
+            Number of output channels of the first convolutional layer. The default value in the original paper is 16. Note that the number of output channels of the first convolutional layer is also the number of input channels of the second convolutional layer and the first demnet block.
         - num_classes : int
             Number of classes of the classification problem.
         - activation : str
@@ -113,14 +115,14 @@ class demnet(torch.nn.Module) :
         # Convolutional layers (feature extraction)
 
         self.conv_1 = torch.nn.Sequential(
-            torch.nn.Conv2d(config['input_channels'], 16, kernel_size = config['kernel_size_conv_1'], padding = 'same'),
-            torch.nn.BatchNorm2d(16) if config['batch_norm'] else torch.nn.Identity(),
+            torch.nn.Conv2d(config['input_channels'], config['output_channels_first_layer'], kernel_size = config['kernel_size_conv_1'], padding = 'same'),
+            torch.nn.BatchNorm2d(config['output_channels_first_layer']) if config['batch_norm'] else torch.nn.Identity(),
             activation,
         )
 
         self.conv_2 = torch.nn.Sequential(
-            torch.nn.Conv2d(16, 16, kernel_size = config['kernel_size_conv_2'] , padding = 'same'),
-            torch.nn.BatchNorm2d(16) if config['batch_norm'] else torch.nn.Identity(),
+            torch.nn.Conv2d(config['output_channels_first_layer'], config['output_channels_first_layer'], kernel_size = config['kernel_size_conv_2'] , padding = 'same'),
+            torch.nn.BatchNorm2d(config['output_channels_first_layer']) if config['batch_norm'] else torch.nn.Identity(),
             activation,
         )
 
