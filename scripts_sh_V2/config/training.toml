@@ -2,11 +2,12 @@
 # Optimizer and lr scheduler have their own separate config files.
 # The lr is set inside 
 batch_size = 77
-epochs = 40
+epochs = 9
 use_scheduler = true
 device = "mps"
 epoch_to_save_model = -1
 path_to_save_model = "model_weights/"
+backup_model_every_epoch = true
 measure_metrics_during_training = true
 print_var = true
 seed = -1
@@ -17,8 +18,8 @@ notes = ""
 log_freq = 1
 debug = false
 entity = "alberto_zancanaro_academic"
-project_name = "DEBUG_Demnet_CENT"
-name_training_run = "TEST restart HPC"
+project_name = "Demnet_Grokking_Experiment"
+name_training_run = "TEST tiny"
 log_model_artifact = false
 model_artifact_name = "model"
 
