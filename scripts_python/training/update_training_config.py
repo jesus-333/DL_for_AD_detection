@@ -36,6 +36,7 @@ parser.add_argument('--device'                         , type = str  , default =
 parser.add_argument('--epoch_to_save_model'            , type = int  , default = -1             , help = 'Save model every n epochs. If a negative value (or zero or no value) is provided, it will be set to epochs + 1, i.e. only the model at the end of training will be saved. Default is -1.')
 parser.add_argument('--path_to_save_model'             , type = str  , default = 'model_weights', help = 'Path to save the model weights. If the folder does not exist, it will be created. Default is "model_weights".')
 parser.add_argument('--path_past_weights'              , type = str  , default = None           , help = 'Path to a file with the weights of a previous training session. Used only if you want to continue training from a previous checkpoint. Default is None (do not load past weights).')
+parser.add_argument('--path_past_optimizer'            , type = str  , default = None           , help = 'Path to a file with the state dict of the optimizer from a previous training session. Used only if you want to continue training from a previous checkpoint and you want to load also the optimizer state. Default is None (do not load past optimizer state).')
 parser.add_argument('--seed'                           , type = int  , default = -1             , help = 'Seed for reproducibility. It is used to split the dataset. If a negative value (or no value) is provided, the seed will be set to a random value. Default is -1.')
 # Boolean arguments
 parser.add_argument('--backup_model_every_epoch'       , default = None, action = "store_true", help = 'If passed, a checkpoint of the model called model_END.pth will be saved at the end of each epoch. Note that this is different from the checkpoint created by the --epoch_to_save_model argument, which saves the model every n epochs with a name that includes the epoch number (e.g. model_epoch_10.pth). Default is False.')
@@ -158,6 +159,16 @@ if args.path_past_weights is None :
         training_config['path_past_weights'] = None
 else :
     training_config['path_past_weights'] = args.path_past_weights
+
+# Path to past optimizer state
+if args.path_past_optimizer is None :
+    if 'path_past_optimizer' in training_config :
+        print(f"No path provided for past optimizer state. Using value from config: {training_config['path_past_optimizer']}.")
+    else :
+        print("No path provided for past optimizer state and no path found in the training config. Using default value: None (do not load past optimizer state).")
+        training_config['path_past_optimizer'] = None
+else :
+    training_config['path_past_optimizer'] = args.path_past_optimizer
 
 # Measure metrics during training
 training_config['measure_metrics_during_training'] = args.measure_metrics_during_training
