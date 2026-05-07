@@ -6,10 +6,13 @@
 # Package source code path
 path_src="./"
 
+# Path to data
+path_data="data/ADNI_MRI_Normalized_middle_slice/" 
+
 # Name of past jobs you want to continue and name of the new job you want to create.
 model_name="demnet" # Modify with the name of the model you want to train, e.g. demnet, vgg, resnet.
-past_job_name="train_demnet_403047872_C" # Modify with the name of the previous job, i.e. the one you want to continue.
-new_job_name="train_demnet_403047872_CC" # Create a new name for the new training run.
+past_job_name="train_demnet_841798381" # Modify with the name of the previous job, i.e. the one you want to continue.
+new_job_name="train_demnet_841798381_C" # Create a new name for the new training run.
 
 # Path with old configs and path with past wieghts
 path_folder_with_previous_config="./scripts_sh_V2/config/debug/${past_job_name}/"
@@ -63,6 +66,13 @@ seed=$(toml get -r "${path_folder_with_previous_config}training.toml" seed)
 # Get the path where the past model weights are saved.
 path_past_weights_folder=$(toml get -r "${path_folder_with_previous_config}training.toml" path_to_save_model) 
 path_past_weights="${path_past_weights_folder}model_END.pth"
+path_past_optimizer="${path_past_weights_folder}optimizer_END.pth"
+
+echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+echo "seed: ${seed}"
+echo "path_past_weights: ${path_past_weights}"
+echo "path_past_optimizer: ${path_past_optimizer}"
+echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
 
 # Update training config with the path of the past weights and the new path to save the model weights.
 python ./scripts_python/training/update_training_config.py\
@@ -70,6 +80,7 @@ python ./scripts_python/training/update_training_config.py\
 	--path_optimizer_config="${path_optimizer_config}"\
 	--path_lr_scheduler_config="${path_lr_scheduler_config}"\
 	--path_past_weights="${path_past_weights}"\
+	--path_past_optimizer=${path_past_optimizer}\
 	--epochs=${epochs}\
 	--seed="${seed}"\
 	--device="${device}"\
