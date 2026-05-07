@@ -6,34 +6,33 @@
 # Package source code path
 path_src="./"
 
+# Path to data
+path_data="data/ADNI_MRI_Normalized_middle_slice/" 
+
 # Name of past jobs you want to continue and name of the new job you want to create.
-past_job_name="train_xxx" # Modify with the name of the previous job, i.e. the one you want to continue.
-new_job_name="train_xxx_continuation" # Create a new name for the new training run.
+model_name="demnet" # Modify with the name of the model you want to train, e.g. demnet, vgg, resnet.
+past_job_name="train_demnet_841798381" # Modify with the name of the previous job, i.e. the one you want to continue.
+new_job_name="train_demnet_841798381_C" # Create a new name for the new training run.
 
 # Path with old configs and path with past wieghts
-path_folder_with_previous_config="./scripts_sh_V2/config/training_hpc/${past_job_name}/"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Update current config with information from the past training run.
-
-# Get seed
-seed=$(toml get -r "${path_folder_with_previous_config}training.toml" seed)
-
-# Get the path where the past model weights are saved.
-path_past_weights=$(toml get -r "${path_folder_with_previous_config}training.toml" path_to_save_model) 
-
-# Update training config with the path of the past weights and the new path to save the model weights.
-python ./scripts_python/training/update_training_config.py\
-	--path_past_weights="${path_past_weights}"\
+path_folder_with_previous_config="./scripts_sh_V2/config/debug/${past_job_name}/"
 
 # Remember that for demnet you have to set use_rgb_input to false inside dataset.toml
 # Also if you have problem with NUM_CLASSES and MERGE_AD_CLASS remember to read the note you write in demnet.sh, at the end of `Prepare data` section.
 
-# Data paths and names.
-path_to_idx_files="${path_data}CENT_idx_${seed}/"
-# path_data="data/ADNI_MRI_Normalized_middle_slice/" 
-# name_tensor_file="dataset_tensor___176_resize.pt"
-# percentage_data_used_for_training=0.8
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Hyperparameters for the new training run.
+# Note that the most of the settings of the old training run will be kept for the new training run, in order to have a coherent continuation.
+
+# Number of epochs for the new training run. Remember that the total number of epochs will be the sum of the epochs of the past training run and the epochs of the new training run.
+epochs=15
+
+# Name used by wandb when the training run is logged.
+# Modify as needed. This is just for logging purposes, it does not affect the training.
+name_training_run="TEST tiny (CONTINUATION)" 
+
+# Device used for training. Modify as needed.
+device="cuda"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Slurm variables.
@@ -49,8 +48,8 @@ error="./scripts_sh_V2/output/${model_name}_continuation/err_%x_%j.txt"
 # Script that will be launched with sbatch. Selected based on the model name.
 script_name="./scripts_sh_V2/${model_name}_cent.sh"
 
-# Job name (modify as needed)
-job_name="train_${model_name}_${seed}"
+# Data paths and names.
+path_to_idx_files="${path_data}CENT_idx_${seed}/"
 
 if [ $partition = "l40s" ] ; then
 	qos="besteffort"
@@ -73,13 +72,49 @@ path_optimizer_config="${path_folder_with_previous_config}optimizer.toml"
 path_lr_scheduler_config="${path_folder_with_previous_config}lr_scheduler.toml"
 path_model_config="${path_folder_with_previous_config}model.toml"
 
-mkdir -p ./scripts_sh_V2/config/training_hpc/${new_job_name}/
+mkdir -p ./scripts_sh_V2/config/debug/${new_job_name}/
 
-cp ${path_dataset_config} ./scripts_sh_V2/config/training_hpc/${new_job_name}/dataset.toml
-cp ${path_model_training_config} ./scripts_sh_V2/config/training_hpc/${new_job_name}/training.toml
-cp ${path_optimizer_config} ./scripts_sh_V2/config/training_hpc/${new_job_name}/optimizer.toml
-cp ${path_lr_scheduler_config} ./scripts_sh_V2/config/training_hpc/${new_job_name}/lr_scheduler.toml
-cp ${path_model_config} ./scripts_sh_V2/config/training_hpc/${new_job_name}/model.toml
+new_path_dataset_config="./scripts_sh_V2/config/debug/${new_job_name}/dataset.toml"
+new_path_training_config="./scripts_sh_V2/config/debug/${new_job_name}/training.toml"
+new_path_optimizer_config="./scripts_sh_V2/config/debug/${new_job_name}/optimizer.toml"
+new_path_lr_scheduler_config="./scripts_sh_V2/config/debug/${new_job_name}/lr_scheduler".toml
+new_path_model_config="./scripts_sh_V2/config/debug/${new_job_name}/model.toml"
+
+cp ${path_dataset_config} ${new_path_dataset_config}
+cp ${path_model_training_config} ${new_path_training_config}
+cp ${path_optimizer_config} ${new_path_optimizer_config}
+cp ${path_lr_scheduler_config} ${new_path_lr_scheduler_config}
+cp ${path_model_config} ${new_path_model_config}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Update current config with information from the past training run.
+
+# Get seed
+seed=$(toml get -r "${path_folder_with_previous_config}training.toml" seed)
+
+# Get the path where the past model weights are saved.
+path_past_weights_folder=$(toml get -r "${path_folder_with_previous_config}training.toml" path_to_save_model) 
+path_past_weights="${path_past_weights_folder}model_END.pth"
+path_past_optimizer="${path_past_weights_folder}optimizer_END.pth"
+
+echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+echo "seed: ${seed}"
+echo "path_past_weights: ${path_past_weights}"
+echo "path_past_optimizer: ${path_past_optimizer}"
+echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+
+# Update training config with the path of the past weights and the new path to save the model weights.
+python ./scripts_python/training/update_training_config.py\
+	--path_training_config="${new_path_training_config}"\
+	--path_optimizer_config="${path_optimizer_config}"\
+	--path_lr_scheduler_config="${path_lr_scheduler_config}"\
+	--path_past_weights="${path_past_weights}"\
+	--path_past_optimizer=${path_past_optimizer}\
+	--epochs=${epochs}\
+	--seed="${seed}"\
+	--device="${device}"\
+	--wandb_training\
+	--name_training_run="${name_training_run}"\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Submit job
@@ -93,10 +128,10 @@ sbatch  --job-name=${new_job_name}\
 		--error=${error}\
 		${script_name}\
 			${path_src}\
-			./scripts_sh_V2/config/training_hpc/${new_job_name}/dataset.toml\
-			./scripts_sh_V2/config/training_hpc/${new_job_name}/model.toml\
-			./scripts_sh_V2/config/training_hpc/${new_job_name}/training.toml\
-			./scripts_sh_V2/config/training_hpc/${new_job_name}/optimizer.toml\
-			./scripts_sh_V2/config/training_hpc/${new_job_name}/lr_scheduler.toml\
+			${new_path_dataset_config}\
+			${new_path_model_config}\
+			${new_path_training_config}\
+			${new_path_optimizer_config}\
+			${new_path_lr_scheduler_config}\
 			${path_to_idx_files}\
 			${seed}\
