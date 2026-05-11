@@ -1,0 +1,8 @@
+model_name     = 'vit_tiny_patch16_224'
+pretrained     = false
+num_classes    = 3
+input_size     = 176
+input_channels = 1
+embed_dim      = 128
+depth 		   = 6
+num_heads 	   = 4
