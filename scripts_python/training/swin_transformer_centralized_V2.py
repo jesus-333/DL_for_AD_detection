@@ -1,5 +1,5 @@
 """
-Script used to train demnet. It is launched from the sh scripts in the folder `./scripts_sh/train_demnet_FL_V2/`
+Script used to train the swin transformer. 
 
 @author: Alberto Zancanaro (Jesus)
 @organization: Luxembourg Centre for Systems Biomedicine (LCSB)
