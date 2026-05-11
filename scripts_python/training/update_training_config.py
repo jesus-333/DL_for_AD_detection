@@ -47,6 +47,7 @@ parser.add_argument('--wandb_training'                 , default = False, action
 parser.add_argument('--fl_training'                    , default = False, action = "store_true", help = "If passed, the training is done in Federated Learning mode. Default is False.")
 parser.add_argument('--vgg_training'                   , default = False, action = "store_true", help = "If passed, the training is done using a VGG network. Default is False.")
 parser.add_argument('--swin_training'                  , default = False, action = "store_true", help = "If passed, the training is done using a Swin Transformer. Default is False.")
+parser.add_argument('--vit_training'                   , default = False, action = "store_true", help = "If passed, the training is done using a ViT Transformer. Default is False.")
 # Boolean negate
 parser.add_argument('--no-backup_model_every_epoch'       , dest ='backup_model_every_epoch'       , action = 'store_false')
 parser.add_argument('--no-use_scheduler'                  , dest ='use_scheduler'                  , action = 'store_false')
@@ -56,6 +57,7 @@ parser.add_argument('--no-wandb_training'                 , dest ='wandb_trainin
 parser.add_argument('--no-fl_training'                    , dest ='fl_training'                    , action = 'store_false') # Theoretically, you can completely avoid this argument, since if you do not want to use FL training you can simply avoid to pass the --fl_training argument. In that case the FL training options will be removed by the config (if present). I add this argument for consistency with the other boolean. (And if you are like me, for your own peace of mind to have the possibility to explicitly set the value to False, even if it is not strictly necessary.)
 parser.add_argument('--no-vgg_training'                   , dest ='vgg_training'                   , action = 'store_false') # Same as above for --no-fl_training argument.
 parser.add_argument('--no-swin_training'                  , dest ='swin_training'                  , action = 'store_false') # Same as above for --no-fl_training argument.
+parser.add_argument('--no-vit_training'                   , dest ='vit_training'                   , action = 'store_false') # Same as above for --no-fl_training argument.
 # *******************************
 # Wandb settings
 parser.add_argument('--project_name'         , type = str, default = None, help = 'Name of the wandb project. Default is None.')
@@ -86,6 +88,10 @@ parser.add_argument('--use_pretrained_swin'             , default = True , actio
 parser.add_argument('--use_swin_normalization_values'   , default = True , action = "store_true" , help = "If True, when the Swin Transformer is trained, the data are normalized using the values used in the original Swin Transformer paper. Default is None")
 parser.add_argument('--no-use_pretrained_swin'          , dest = 'use_pretrained_swin'           , action = 'store_false')
 parser.add_argument('--no-use_swin_normalization_values', dest = 'use_swin_normalization_values' , action = 'store_false')
+# *******************************
+# ViT training arguments
+# No arguments for now, but I add this section for consistency and to easily add arguments for ViT training in the future if needed.
+# *******************************
 
 args = parser.parse_args()
 
@@ -348,6 +354,11 @@ else :
     training_config['use_pretrained_swin'] = None
     training_config['use_swin_normalization_values'] = None
     training_config['swin_training_mode'] = None
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if args.vit_training is not None and args.vit_training is True :
+    training_config['vit_training'] = True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save the config
