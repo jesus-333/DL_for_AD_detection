@@ -37,7 +37,7 @@ import toml
 import torch
 
 from src.dataset import support_dataset_ADNI
-from src.model import transformer
+from src.model import swin
 from src.training import train_functions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -100,7 +100,7 @@ if dataset_config['merge_AD_class'] == 0   : num_classes = 6
 elif dataset_config['merge_AD_class'] == 1 : num_classes = 2
 elif dataset_config['merge_AD_class'] == 2 : num_classes = 4
 
-model = transformer.swin_transformer_classifier(num_classes, version = model_config['version'], size = model_config['size'])
+model = swin.swin_transformer_classifier(num_classes, version = model_config['version'], size = model_config['size'])
 
 print("Model Loaded")
 
