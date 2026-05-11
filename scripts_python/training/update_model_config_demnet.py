@@ -13,8 +13,9 @@ In this way I use the file from path_template as a bae to create a new config fi
 
 I will probably add this feature also to the other update_xxx_config.py scripts.
 
-@author: Alberto Zancanaro (Jesus)
-@organization: Luxembourg Centre for Systems Biomedicine (LCSB)
+Authors
+-------
+Alberto Zancanaro <alberto.zancanaro@uni.lu>
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
