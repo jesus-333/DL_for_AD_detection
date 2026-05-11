@@ -25,6 +25,7 @@ parser.add_argument('--path_save'                  , type = str  , default = './
 parser.add_argument('--path_template'              , type = str  , default = None, help = 'Path to the toml file with a template of the model config')
 parser.add_argument('--model_name'                 , type = str  , default = None, help = 'Name of the model. If None is passed, the value already present in the config file will be used. Default is None.')
 parser.add_argument('--input_size'                 , type = int  , default = None, help = 'Input size of the model. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--input_channels'             , type = int  , default = None, help = 'Number of input channels of the model. If None is passed, the value already present in the config file will be used. Default is None.')
 parser.add_argument('--num_classes'                , type = int  , default = None, help = 'Number of output classes. If None is passed, the value already present in the config file will be used. Default is None.')
 parser.add_argument('--embed_dim'                  , type = int  , default = None, help = 'Embedding dimension of the model. If None is passed, the value already present in the config file will be used. Default is None.')
 parser.add_argument('--depth'                      , type = int  , default = None, help = 'Depth of the model. If None is passed, the value already present in the config file will be used. Default is None.')
@@ -89,6 +90,9 @@ else :
 
 # Input size
 check_int_input(model_config, 'input_size', args.input_size, 0)
+
+# Input channels
+check_int_input(model_config, 'input_channels', args.in_channels, 0)
 
 # Number of classes
 check_int_input(model_config, 'num_classes', args.num_classes, 0)

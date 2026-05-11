@@ -185,6 +185,7 @@ def get_dataset_V2(dataset_config : dict, percentage_split_train_val : float = 1
     preprocess_functions : torchvision.transforms.Compose, optional
         If you want to apply specific preprocessing functions to the data, you can pass them through this parameter. By default, it is None.
         If it is None and the dataset_config['use_normalization'] is True, the function will create a normalization function using the mean and std of the dataset (loaded from path_data/dataset_mean.pt and path_data/dataset_std.pt).
+        If you pass the preprocess_functions and config['use_normalization'] is True, the function will not create a normalization function and it will use the one passed in the preprocess_functions. Note that in this case, if you want to apply normalization, you must include it in the preprocess_functions passed as argument.
     """
     
     # Check seed and sample a new one if the value is not valid
@@ -239,7 +240,7 @@ def get_dataset_V2(dataset_config : dict, percentage_split_train_val : float = 1
         std_dataset  = torch.load(f'{path_to_data}dataset_std.pt')
 
         # Create normalization function
-        preprocess_functions  = torchvision.transforms.Compose([torchvision.transforms.Normalize(mean = mean_dataset, std = std_dataset)])
+        preprocess_functions = torchvision.transforms.Compose([torchvision.transforms.Normalize(mean = mean_dataset, std = std_dataset)])
 
     # Split data in train/validation/test
     if dataset_config['apply_rescale'] :
