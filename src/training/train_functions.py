@@ -340,8 +340,7 @@ def wandb_train(config : dict, model, train_dataset, validation_dataset = None) 
     ) as run:
 
         # Check if run is already running
-        if run.state == "running" :
-            raise ValueError(f"A run with the same id ({id}) is already running. Please change the seed in the training_config to have a different id")
+        # if run.state == "running" : #     raise ValueError(f"A run with the same id ({id}) is already running. Please change the seed in the training_config to have a different id")
 
         # Setup artifact to save model
         model_artifact_name = training_config['model_artifact_name'] + '_trained'
