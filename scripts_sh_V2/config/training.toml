@@ -1,8 +1,8 @@
 # General training parameters
 # Optimizer and lr scheduler have their own separate config files.
 # The lr is set inside 
-batch_size = 77
-epochs = 9
+batch_size = 131
+epochs = 50000
 use_scheduler = true
 device = "mps"
 epoch_to_save_model = -1
@@ -19,7 +19,7 @@ log_freq = 1
 debug = false
 entity = "alberto_zancanaro_academic"
 project_name = "Demnet_Grokking_Experiment"
-name_training_run = "TEST tiny"
+name_training_run = "NO BATCH NORM - decay 2 - Batch 131 - Tiny Size"
 log_model_artifact = false
 model_artifact_name = "model"
 

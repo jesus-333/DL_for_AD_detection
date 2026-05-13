@@ -17,11 +17,17 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load python environment
 
+# source /usr/share/lmod/lmod/libexec/../init/bash
+# export MODULEPATH=/opt/apps/easybuild/environment/modules:/cvmfs/software.eessi.io/init/modules:/opt/apps/easybuild/systems/iris/rhel810-20250803/2023b/broadwell/modules/all:/opt/apps/easybuild/systems/binary/rhel810-20250803/2023b/generic/modules/all
+#
+# module load ai/PyTorch
+
 echo "---------------------------------------------------"
 echo $CONDA_DEFAULT_ENV
 echo "---------------------------------------------------"
 conda init
-conda activate jesus-hpc
+# conda activate jesus-hpc
+conda activate jesus_hpc_2
 echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo $CONDA_DEFAULT_ENV
 echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
@@ -29,10 +35,7 @@ echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"
 hatchling build
 pip install .
 
-# source /usr/share/lmod/lmod/libexec/../init/bash
-# export MODULEPATH=/opt/apps/easybuild/environment/modules:/cvmfs/software.eessi.io/init/modules:/opt/apps/easybuild/systems/iris/rhel810-20250803/2023b/broadwell/modules/all:/opt/apps/easybuild/systems/binary/rhel810-20250803/2023b/generic/modules/all
-# module load ai/PyTorch
-# which python
+which python
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Get arguments passed to the script.

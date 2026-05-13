@@ -14,7 +14,7 @@ echo "====================================="
 path_src="./"
 
 # Config files paths.
-model_name="demnet"
+model_name="vit"
 optimizer="AdamW"
 lr_scheduler="CosineAnnealingWarmRestarts"
 
@@ -30,7 +30,6 @@ lr_scheduler="CosineAnnealingWarmRestarts"
 # path_data="data/ADNI_MRI_Normalized_middle_slice/" 
 # name_tensor_file="dataset_tensor___176_resize.pt"
 path_to_idx_files="${path_data}CENT_idx_${seed}/"
-# percentage_data_used_for_training=0.8
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Slurm variables.
@@ -38,8 +37,8 @@ path_to_idx_files="${path_data}CENT_idx_${seed}/"
 # Sbatch settings
 partition="gpu" # l40s, hopper, gpu
 qos="normal" # besteffort, iris-hopper, normal
-mem="20G"
-time="00:10:00"
+mem="10G"
+time="28:13:00"
 output="./scripts_sh_V2/output/${model_name}/out_%x_%j.txt"
 error="./scripts_sh_V2/output/${model_name}/err_%x_%j.txt"
 
@@ -47,7 +46,7 @@ error="./scripts_sh_V2/output/${model_name}/err_%x_%j.txt"
 script_name="./scripts_sh_V2/${model_name}_cent.sh"
 
 # Job name (modify as needed)
-job_name="train_${model_name}_${seed}"
+job_name="grokking_${model_name}_${seed}"
 
 if [ $partition = "l40s" ] ; then
 	qos="besteffort"
@@ -64,19 +63,42 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Create config file for training run.
 
+# Path dataset, training, optimizer and lr scheduler config (file to copy)
 path_dataset_config="./scripts_sh_V2/config/dataset.toml"
 path_model_training_config="./scripts_sh_V2/config/training.toml"
 path_optimizer_config="./scripts_sh_V2/config/optimizer_${optimizer}.toml"
 path_lr_scheduler_config="./scripts_sh_V2/config/lr_sched_${lr_scheduler}.toml"
-path_model_config="./scripts_sh_V2/config/model_${model_name}.toml"
 
+# Path for model config (file to copy)
+path_model_config="./scripts_sh_V2/config/model_${model_name}_micro.toml"
+# path_model_config="./scripts_sh_V2/config/model_${model_name}_tiny.toml"
+# path_model_config="./scripts_sh_V2/config/model_${model_name}.toml"
+
+# Create the folder for the config files
+# TODO Create a variable and use it also for the path
 mkdir -p ./scripts_sh_V2/config/training_hpc/${job_name}/
 
-cp ${path_dataset_config} ./scripts_sh_V2/config/training_hpc/${job_name}/dataset.toml
-cp ${path_model_training_config} ./scripts_sh_V2/config/training_hpc/${job_name}/training.toml
-cp ${path_optimizer_config} ./scripts_sh_V2/config/training_hpc/${job_name}/optimizer.toml
-cp ${path_lr_scheduler_config} ./scripts_sh_V2/config/training_hpc/${job_name}/lr_scheduler.toml
-cp ${path_model_config} ./scripts_sh_V2/config/training_hpc/${job_name}/model.toml
+# New locations for the config file
+new_path_dataset_config="./scripts_sh_V2/config/training_hpc/${job_name}/dataset.toml"
+new_path_training_config="./scripts_sh_V2/config/training_hpc/${job_name}/training.toml"
+new_path_optimizer_config="./scripts_sh_V2/config/training_hpc/${job_name}/optimizer.toml"
+new_path_lr_scheduler_config="./scripts_sh_V2/config/training_hpc/${job_name}/lr_scheduler".toml
+new_path_model_config="./scripts_sh_V2/config/training_hpc/${job_name}/model.toml"
+
+# Copy config in the new path
+cp ${path_dataset_config} ${new_path_dataset_config}
+cp ${path_model_training_config} ${new_path_training_config}
+cp ${path_optimizer_config} ${new_path_optimizer_config}
+cp ${path_lr_scheduler_config} ${new_path_lr_scheduler_config}
+cp ${path_model_config} ${new_path_model_config}
+
+# Print seed and paths
+# TODO finish this section
+echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+echo "seed: ${seed}"
+echo "path_dataset_config : ${new_path_dataset_config}"
+echo "path_to_idx_files   : ${path_to_idx_files}"
+echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Submit job
@@ -90,10 +112,10 @@ sbatch  --job-name=${job_name}\
 		--error=${error}\
 		${script_name}\
 			${path_src}\
-			./scripts_sh_V2/config/training_hpc/${job_name}/dataset.toml\
-			./scripts_sh_V2/config/training_hpc/${job_name}/model.toml\
-			./scripts_sh_V2/config/training_hpc/${job_name}/training.toml\
-			./scripts_sh_V2/config/training_hpc/${job_name}/optimizer.toml\
-			./scripts_sh_V2/config/training_hpc/${job_name}/lr_scheduler.toml\
+			${new_path_dataset_config}\
+			${new_path_model_config}\
+			${new_path_training_config}\
+			${new_path_optimizer_config}\
+			${new_path_lr_scheduler_config}\
 			${path_to_idx_files}\
 			${seed}\
