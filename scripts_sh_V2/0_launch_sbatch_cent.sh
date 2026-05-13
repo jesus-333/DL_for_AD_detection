@@ -26,9 +26,9 @@ lr_scheduler="CosineAnnealingWarmRestarts"
 # IF you do not want to use any LR scheduler you have to add the optional flag --no-use_scheduler\ directly inside the script.
 
 # Data paths and names.
-# Remember that to modify the dataset you have ALSO to modify the data path inside the dataset.toml
-path_data="data/ADNI_MRI_Normalized_middle_slice/" 
-name_tensor_file="dataset_tensor___176_resize.pt"
+# Remember that to modify the dataset you have to modify the data path INSIDE the dataset.toml
+# path_data="data/ADNI_MRI_Normalized_middle_slice/" 
+# name_tensor_file="dataset_tensor___176_resize.pt"
 path_to_idx_files="${path_data}CENT_idx_${seed}/"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
