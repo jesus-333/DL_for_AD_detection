@@ -70,8 +70,8 @@ path_optimizer_config="./scripts_sh_V2/config/optimizer_${optimizer}.toml"
 path_lr_scheduler_config="./scripts_sh_V2/config/lr_sched_${lr_scheduler}.toml"
 
 # Path for model config (file to copy)
-path_model_config="./scripts_sh_V2/config/model_${model_name}_micro.toml"
-# path_model_config="./scripts_sh_V2/config/model_${model_name}_tiny.toml"
+# path_model_config="./scripts_sh_V2/config/model_${model_name}_micro.toml"
+path_model_config="./scripts_sh_V2/config/model_${model_name}_tiny.toml"
 # path_model_config="./scripts_sh_V2/config/model_${model_name}.toml"
 
 # Create the folder for the config files
