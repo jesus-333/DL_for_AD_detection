@@ -88,6 +88,7 @@ cp ${path_model_config} ${new_path_model_config}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Update current config with information from the past training run.
+# You can find the toml tool here to https://github.com/gnprice/toml-cli
 
 # Get seed
 # Note that this is identical to old_seed but but I prefer to extract it from the config
@@ -99,8 +100,10 @@ path_to_idx_files="${path_data}CENT_idx_${seed}/"
 
 # Get the path where the past model weights are saved.
 path_past_weights_folder=$(toml get -r "${path_folder_with_previous_config}training.toml" path_to_save_model) 
-path_past_weights="${path_past_weights_folder}model_END.pth"
-path_past_optimizer="${path_past_weights_folder}optimizer_END.pth"
+
+# Get the older backup file (see function backup_every_epoch in support_training.py for more info)
+path_past_weights=$(python ./scripts_python/training/get_oldest_file.py --path="${path_past_weights_folder}" --filter="model")
+path_past_optimizer=$(python ./scripts_python/training/get_oldest_file.py --path="${path_past_weights_folder}" --filter="optimizer")
 
 echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
 echo "seed: ${seed}"

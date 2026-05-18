@@ -17,13 +17,56 @@ import time
 import torch
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Function used during training
 
-def update_log_dict_metrics(metrics_dict, log_dict, label = None):
+def backup_every_epoch(path_to_save : str, epoch : int, model, optimizer = None, lr_scheduler = None) :
+    """
+    Function used to backup the model every epoch (and eventually the optimizer and the lr scheduler).
+    The model will be saved in the folder specified by path_to_save_model. For even epoch will be saved as "model_A.pth", for odd epoch will be saved as "model_B.pth".
+
+    The reason behind this function is simply to have a "backup of the backup". Training the model on an hpc it happens to me that the training was interrupted during the saving of the model, corrupting the file.
+    Having two files (last epoch and previous epoch) ensures that at least one of the two files will be correct and can be used to restart the training from the last epoch. This is especially useful for long trainings, where you have to divide the training in several runs.
+    """
+
+    suffix = '_A' if epoch % 2 == 0 else '_B'
+    
+    # Save the model
+    path_to_save_model = os.path.join(path_to_save, f'model{suffix}.pth')
+    torch.save(model.state_dict(), path_to_save_model)
+
+    # (OPTIONAL) Save the optimizer
+    if optimizer is not None :
+        path_to_save_optimizer = os.path.join(path_to_save, f'optimizer{suffix}.pth')
+        torch.save(optimizer.state_dict(), path_to_save_optimizer)
+
+    # (OPTIONAL) Save the lr scheduler
+    if lr_scheduler is not None :
+        path_to_save_lr_scheduler = os.path.join(path_to_save, f'lr_scheduler{suffix}.pth')
+        torch.save(lr_scheduler.state_dict(), path_to_save_lr_scheduler)
+
+def update_log_dict_metrics(metrics_dict, log_dict, label = None) :
+    """
+    Function used to update the dictionary that will be logged in wandb.
+
+    Parameters
+    ----------
+    metrics_dict : dict
+        The dictionary containing the metrics to log. The keys of the dictionary will be used as the name of the metric in wandb, and the values will be the value of the metric.
+    log_dict : dict
+        The dictionary that will be logged in wandb. This dictionary will be updated with the metrics contained in metrics_dict. The keys of the metrics_dict will be added to the log_dict with the prefix given by the label parameter (if not None).
+        For example, if metrics_dict = {'accuracy': 0.9, 'loss': 0.1} and label = 'train', the log_dict will be updated with the keys 'train_accuracy' and 'train_loss' with the corresponding values. If label is None, the keys will be added to the log_dict without any prefix.
+    label : str, optional
+        The prefix to add to the keys of the metrics_dict when adding them to the log_dict. If None, the keys will be added to the log_dict without any prefix. Default is None.
+    """
+
     for key, value in metrics_dict.items() :
         if label is not None :
             log_dict['{}_{}'.format(key, label)] = value
         else :
             log_dict['{}'.format(key)] = value
+             
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Training config function
 
 def check_training_config(config : dict) :
 
@@ -143,7 +186,7 @@ def check_training_config(config : dict) :
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# optimizer config config
+# Optimizer config
 
 def get_optimizer(optimizer_config : dict, model : torch.nn.Module) :
     """

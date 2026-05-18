@@ -10,9 +10,10 @@ path_src="./"
 path_data="data/ADNI_MRI_Normalized_middle_slice/" 
 
 # Name of past jobs you want to continue and name of the new job you want to create.
+old_seed=93720466 
 model_name="demnet" # Modify with the name of the model you want to train, e.g. demnet, vgg, resnet.
-past_job_name="train_demnet_841798381" # Modify with the name of the previous job, i.e. the one you want to continue.
-new_job_name="train_demnet_841798381_C" # Create a new name for the new training run.
+past_job_name="train_demnet_${old_seed}" # Modify with the name of the previous job, i.e. the one you want to continue.
+new_job_name="train_demnet_${old_seed}_C" # Create a new name for the new training run.
 
 # Path with old configs and path with past wieghts
 path_folder_with_previous_config="./scripts_sh_V2/config/debug/${past_job_name}/"
@@ -25,7 +26,7 @@ path_folder_with_previous_config="./scripts_sh_V2/config/debug/${past_job_name}/
 # Note that the most of the settings of the old training run will be kept for the new training run, in order to have a coherent continuation.
 
 # Number of epochs for the new training run. Remember that the total number of epochs will be the sum of the epochs of the past training run and the epochs of the new training run.
-epochs=15
+epochs=5
 
 # Name used by wandb when the training run is logged.
 # Modify as needed. This is just for logging purposes, it does not affect the training.
@@ -59,14 +60,17 @@ cp ${path_model_config} ${new_path_model_config}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Update current config with information from the past training run.
+# You can find the toml tool here to https://github.com/gnprice/toml-cli
 
 # Get seed
 seed=$(toml get -r "${path_folder_with_previous_config}training.toml" seed)
 
 # Get the path where the past model weights are saved.
 path_past_weights_folder=$(toml get -r "${path_folder_with_previous_config}training.toml" path_to_save_model) 
-path_past_weights="${path_past_weights_folder}model_END.pth"
-path_past_optimizer="${path_past_weights_folder}optimizer_END.pth"
+
+# Get the older backup file (see function backup_every_epoch in support_training.py for more info)
+path_past_weights=$(python ./scripts_python/training/get_oldest_file.py --path="${path_past_weights_folder}" --filter="model")
+path_past_optimizer=$(python ./scripts_python/training/get_oldest_file.py --path="${path_past_weights_folder}" --filter="optimizer")
 
 echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
 echo "seed: ${seed}"
