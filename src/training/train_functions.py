@@ -100,7 +100,8 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     
     # (OPTIONAL) Load past model weights if the training is a continuation of a past training.
     if 'path_past_weights' in training_config :
-        model.load_state_dict(torch.load(training_config['path_past_weights'], map_location = training_config['device']))
+        model_state_dict = torch.load(training_config['path_past_weights'], map_location = training_config['device'])
+        model.load_state_dict(model_state_dict)
         if training_config['print_var'] : print("Model weights loaded from {}".format(training_config['path_past_weights']))
 
     # Create loss function
@@ -112,7 +113,8 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
 
     # (OPTIONAL) Load past optimizer state dict if the training is a continuation of a past training.
     if 'path_past_optimizer' in training_config :
-        optimizer.load_state_dict(torch.load(training_config['path_past_optimizer'])) # CHECK IF I HAVE TO ADD DEVICE
+        optimizer_state_dict = torch.load(training_config['path_past_optimizer'], map_location = training_config['device']) # CHECK IF I HAVE TO ADD DEVICE
+        optimizer.load_state_dict(optimizer_state_dict) 
         if training_config['print_var'] : print("Optimizer state dict loaded from {}".format(training_config['path_past_optimizer']))
 
     # (OPTIONAL) Setup lr scheduler
