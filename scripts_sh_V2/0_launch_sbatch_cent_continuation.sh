@@ -10,10 +10,10 @@ path_src="./"
 path_data="data/ADNI_MRI_Normalized_middle_slice/" 
 
 # Name of past jobs you want to continue and name of the new job you want to create.
-old_seed=160864370 
-model_name="demnet" # Modify with the name of the model you want to train, e.g. demnet, vgg, resnet.
-past_job_name="grokking_demnet_${old_seed}" # Modify with the name of the previous job, i.e. the one you want to continue.
-new_job_name="grokking_demnet_${old_seed}_C" # Create a new name for the new training run.
+old_seed=978875066    
+model_name="vit" # Modify with the name of the model you want to train, e.g. demnet, vgg, resnet.
+past_job_name="grokking_${model_name}_${old_seed}" # Modify with the name of the previous job, i.e. the one you want to continue.
+new_job_name="grokking_${model_name}_${old_seed}_C" # Create a new name for the new training run.
 
 # Path with old configs and path with past wieghts
 path_folder_with_previous_config="./scripts_sh_V2/config/training_hpc/${past_job_name}/"
@@ -42,8 +42,8 @@ device="cuda"
 # Sbatch settings
 partition="gpu" # l40s, hopper, gpu
 qos="normal" # besteffort, iris-hopper, normal
-mem="12G"
-time="38:00:00"
+mem="10G"
+time="48:00:00"
 output="./scripts_sh_V2/output/${model_name}_continuation/out_%x_%j.txt"
 error="./scripts_sh_V2/output/${model_name}_continuation/err_%x_%j.txt"
 
