@@ -165,14 +165,8 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
         # Save the model for backup every epoch of the function is enabled.
         # Note that this is different from the checkpoint saved every n epochs because the file created will be overwritten at each epoch.
         # This could be useful if you want to hava a backup of the model during training and the model is quite large (so creating many checkpoints could be a problem)
-        if training_config['backup_model_every_epoch'] :
-            # Save model
-            # torch.save(model.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], 'model_END.pth'))
-            torch.save(model.state_dict(), f'{training_config["path_to_save_model"]}/model_END.pth')
-
-            # Save optimizer state dict (useful if you want to continue the training)
-            # torch.save(optimizer.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], 'optimizer_END.pth'))
-            torch.save(optimizer.state_dict(), f'{training_config["path_to_save_model"]}/optimizer_END.pth')
+        # Read the docstring of the function backup_every_epoch for more information about the file created and the path where it is saved.
+        if training_config['backup_model_every_epoch'] : support_training.backup_every_epoch(training_config['path_to_save_model'], epoch, model, optimizer, lr_scheduler)
 
         if epoch == 0 : # If it is the first epoch create the list for the specific metric
             computed_metrics_during_training["train_loss"] = [train_loss]
@@ -225,7 +219,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
         # Save learning rate
         if training_config['wandb_training']: log_dict['learning_rate'] = optimizer.param_groups[0]['lr']
 
-        #  (OPTIONAL )Update learning rate (if a scheduler is provided)
+        #  (OPTIONAL) Update learning rate (if a scheduler is provided)
         if lr_scheduler is not None:
             # Save the current learning rate if I load the data on wandb
 
@@ -248,7 +242,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
             if training_config['measure_metrics_during_training']:
                 print("\t Accuracy (TRAIN)  = {}".format(train_metrics_dict['accuracy']))
                 print("\t Accuracy (VALID)  = {}".format(validation_metrics_dict['accuracy']))
-    
+
             if training_config['debug'] :
                 print_debug = getattr(model, "print_debug", None)
                 if callable(print_debug):
@@ -262,12 +256,12 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
             # Update the log with the epoch losses
             log_dict['train_loss'] = train_loss
             log_dict['validation_loss'] = validation_loss
-        
+
             # Save the metrics in the log
             if training_config['measure_metrics_during_training']:
                 support_training.update_log_dict_metrics(train_metrics_dict, log_dict, 'train')
                 if validation_loader is not None: support_training.update_log_dict_metrics(validation_metrics_dict, log_dict, 'validation')
-            
+
             # Add the model to the artifact
             if (epoch + 1) % training_config['epoch_to_save_model'] == 0 and training_config['log_model_artifact']:
                 model_file_path = '{}/{}'.format(training_config['path_to_save_model'], "model_{}.pth".format(epoch + 1))
@@ -278,6 +272,14 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # End training cycle
+
+    # Save the model at the end of the training
+    if training_config['backup_model_every_epoch'] :
+        # TODO Implement the removal of the backup file created during the training? Or at least the last file created because it will be the same that I create now.
+        model_file_path_END = f'{training_config['path_to_save_model']}/model_END.pth'
+    else :
+        model_file_path_END = f'{training_config['path_to_save_model']}/model_END.pth'
+    torch.save(model.state_dict(), model_file_path_END)
     
     # Save in wandb the model at the end of the training (and the best model if validation is performed)
     if training_config['wandb_training'] :
@@ -285,7 +287,6 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
         # The check for log_model_artifact inside the if avoid to raise an error if the key is not present in the training_config dictionary
         if training_config['log_model_artifact'] :
             # Path to the model weights at the end of the training
-            model_file_path_END = '{}/{}'.format(training_config['path_to_save_model'], 'model_END.pth')
 
             # Save model
             wandb_model_artifact.add_file(model_file_path_END)
