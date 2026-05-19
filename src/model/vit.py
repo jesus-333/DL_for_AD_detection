@@ -34,7 +34,7 @@ class timm_vit(torch.nn.Module) :
         
         # Create the model
         self.model = timm.create_model(
-            model_name = config['model_name'],
+            model_name  = config['model_name'],
             num_classes = config['num_classes'],
             **kwargs
         )
@@ -81,7 +81,7 @@ class timm_vit(torch.nn.Module) :
     
     def check_config(self, config : dict) :
         """
-        Function to check the model config. By design, only 3 paramters are required to create the model: model_name, pretrained and num_classes. 
+        Function to check the model config. By design, only 2 parameters are required to create the model: model_name  and num_classes.
         The other parameters are optional and will be passed to the timm.create_model function if they are present in the config dictionary.
 
         Parameters
@@ -99,6 +99,12 @@ class timm_vit(torch.nn.Module) :
         for parameter in self.required_parameters :
             if parameter not in config :
                 raise ValueError(f'Missing required parameter {parameter} in the model config.')
+
+        # Rename some parameters to match the ones expected by the timm library
+        # This was done to keep my own naming convention coherent inside the project.
+        # If you prefer to use directly the naming convention of the timm library in the config file, it still works fine, due to the way the kwargs dictionary is created in the __init__ method.
+        if 'input_size' in config     : config['img_size'] = config.pop('input_size')
+        if 'input_channels' in config : config['in_chans'] = config.pop('input_channels')
     
 def get_vit(config : dict) -> timm_vit :
     """
@@ -132,7 +138,7 @@ def get_vit(config : dict) -> timm_vit :
 
 def get_defaul_config(vit_name : str) :
     """
-
+    TODO
     """
 
     if vit_name == 'vit_tiny_patch16_224' :
