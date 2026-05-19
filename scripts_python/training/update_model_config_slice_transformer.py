@@ -1,5 +1,6 @@
 """
-Update/create the ViT model configuration file with new parameters.
+Update/create the slice_transformer model configuration file with new parameters.
+See the class implementation in vav.py for more details about the model and the config parameters.
 
 If you provide a template file, the new config file will be created starting from the template. 
 In this case, only the parameters passed as arguments will be updated, while the other parameters will be kept unchanged.
@@ -21,19 +22,19 @@ import toml
 # Create parser
 parser = argparse.ArgumentParser(description = 'Update the ViT model configuration file with new parameters.')
 
-parser.add_argument('--path_save'                  , type = str  , default = './config/vit_model.toml', help = 'Path to save the updated model config file. Default is ./config/vit_model.toml')
-parser.add_argument('--path_template'              , type = str  , default = None, help = 'Path to the toml file with a template of the model config')
-parser.add_argument('--model_name'                 , type = str  , default = None, help = 'Name of the model. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--input_size'                 , type = int  , default = None, help = 'Input size of the model. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--input_channels'             , type = int  , default = None, help = 'Number of input channels of the model. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--num_classes'                , type = int  , default = None, help = 'Number of output classes. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--embed_dim'                  , type = int  , default = None, help = 'Embedding dimension of the model. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--depth'                      , type = int  , default = None, help = 'Depth of the model. If None is passed, the value already present in the config file will be used. Default is None.')
-parser.add_argument('--num_heads'                  , type = int  , default = None, help = 'Number of heads of the model. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--path_save'       , type = str  , default = './config/vit_model.toml', help = 'Path to save the updated model config file. Default is ./config/vit_model.toml')
+parser.add_argument('--path_template'   , type = str  , default = None, help = 'Path to the toml file with a template of the model config')
+parser.add_argument('--num_classes'     , type = int  , default = None, help = 'Number of output classes. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--d_model'         , type = int  , default = None, help = 'Dimension of the model. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--nhead'           , type = int  , default = None, help = 'Number of heads of the model. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--dim_feedforward' , type = int  , default = None, help = 'Dimension of the feedforward network of the model. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--dropout'         , type = float, default = None, help = 'Dropout rate of the model. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--activation'      , type = str  , default = None, help = 'Activation function of the model. If None is passed, the value already present in the config file will be used. Default is None.')
+parser.add_argument('--num_layers'      , type = int  , default = None, help = 'Number of layers of the model. If None is passed, the value already present in the config file will be used. Default is None.')
 # Boolean argument
-parser.add_argument('--pretrained'                 , default = None, action = 'store_true', help = 'If passed, load the pretrained weights. If not passed, the value already present in the config file will be used. Default is None.')
+# parser.add_argument('--use_same_vit_for_all_directions' , default = None, action = 'store_true', help = 'If passed, the same ViT will be used for all three directions. If not passed, the value already present in the config file will be used. Default is None.')
 # Negative boolean arguments
-parser.add_argument('--no-pretrained'              , action = 'store_false', dest = 'pretrained', help = 'If passed, do not load the pretrained weights. If not passed, the value already present in the config file will be used. Default is None.')
+# parser.add_argument('--no-use_same_vit_for_all_directions' , action = 'store_false', dest = 'use_same_vit_for_all_directions' , help = 'If passed, a separate ViT will be used for each direction. If not passed, the value already present in the config file will be used. Default is None.')
 
 args = parser.parse_args()
 
@@ -91,32 +92,35 @@ else :
 
     model_config = {}
 
-# Model name
-if args.model_name is not None :
-    model_config['model_name'] = args.model_name
-else :
-    if 'model_name' not in model_config :
-        raise ValueError('model_name not provided and not present in the config file. Please provide a value for model_name.')
-    else :
-        print(f"model_name not provided. The value already present in the config file will be used. Current value is {model_config['model_name']}")
-
-# Input size
-check_numerical_input(model_config, 'input_size', args.input_size, threshold_min = 0)
-
-# Input channels
-check_numerical_input(model_config, 'input_channels', args.in_channels, threshold_min = 0)
-
 # Number of classes
 check_numerical_input(model_config, 'num_classes', args.num_classes, threshold_min = 0)
 
-# Embedding dimension
-check_numerical_input(model_config, 'embed_dim', args.embed_dim, threshold_min = 0)
-
-# Depth
-check_numerical_input(model_config, 'depth', args.depth, threshold_min = 0)
+# Dimension of the model
+check_numerical_input(model_config, 'd_model', args.d_model, threshold_min = 0)
 
 # Number of heads
-check_numerical_input(model_config, 'num_heads', args.num_heads, threshold_min = 0)
+check_numerical_input(model_config, 'nhead', args.nhead, threshold_min = 0)
+
+# Dimension of the feedforward network
+check_numerical_input(model_config, 'dim_feedforward', args.dim_feedforward, threshold_min = 0)
+
+# Dropout rate
+check_numerical_input(model_config, 'dropout', args.dropout, threshold_min = 0, threshold_max = 1)
+
+# Activation function
+if args.activation is None :
+    if 'activation' not in model_config :
+        raise ValueError('activation not provided and not present in the config file. Please provide a value for activation.')
+    else :
+        print(f"activation not provided. The value already present in the config file will be used. Current value is {model_config['activation']}")
+else :
+    valid_activations = ['relu', 'gelu', 'glu']
+    if args.activation not in valid_activations :
+        raise ValueError(f'Invalid value for activation. Valid values are {valid_activations}. Current value is {args.activation}')
+    model_config['activation'] = args.activation
+
+# Number of layers
+check_numerical_input(model_config, 'num_layers', args.num_layers, threshold_min = 0)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Save boolean arguments
@@ -137,4 +141,4 @@ os.makedirs(os.path.dirname(args.path_save), exist_ok = True)
 with open(args.path_save, 'w') as f :
     toml.dump(model_config, f)
 
-print("Update MODEL config (ViT) - OK")
+print("Update MODEL config (slice_transformer) - OK")
