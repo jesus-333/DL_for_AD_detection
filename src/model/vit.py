@@ -24,17 +24,32 @@ class timm_vit(torch.nn.Module) :
 
     def __init__(self, config : dict) :
         super().__init__()
-
+        
+        # Check the config
+        self.required_parameters = ['model_name', 'num_classes']
+        self.check_config(config)
+        
+        # Create kwargs dictionary with the parameters to pass to the timm
+        kwargs = {k: v for k, v in config.items() if v is not None and k not in self.required_parameters}
+        
+        # Create the model
         self.model = timm.create_model(
-            config['model_name'],
-            pretrained = config['pretrained'],
+            model_name = config['model_name'],
             num_classes = config['num_classes'],
-            img_size = config['input_size'],
-            in_chans = config['input_channels'],
-            embed_dim = config['embed_dim'],
-            depth = config['depth'],
-            num_heads = config['num_heads'],
+            **kwargs
         )
+        
+        # OLD VERSION
+        # self.model = timm.create_model(
+        #     config['model_name'],
+        #     pretrained = config['pretrained'],
+        #     num_classes = config['num_classes'],
+        #     img_size = config['input_size'],
+        #     in_chans = config['input_channels'],
+        #     embed_dim = config['embed_dim'],
+        #     depth = config['depth'],
+        #     num_heads = config['num_heads'],
+        # )
 
     def forward(self, x) :
         return self.model(x)
@@ -63,7 +78,28 @@ class timm_vit(torch.nn.Module) :
             return torch.nn.functional.softmax(x, dim = 1)
         else :
             return torch.argmax(x, dim = 1)
+    
+    def check_config(self, config : dict) :
+        """
+        Function to check the model config. By design, only 3 paramters are required to create the model: model_name, pretrained and num_classes. 
+        The other parameters are optional and will be passed to the timm.create_model function if they are present in the config dictionary.
 
+        Parameters
+        ----------
+        config : dict
+            The model config dictionary. For more details see `update_model_config_vit.py`.
+
+        Raises
+        ------
+        ValueError
+            If any of the required parameters is missing or has the wrong type.
+        """
+
+        # Check if all the required parameters are present in the config and if they have the correct type.
+        for parameter in self.required_parameters :
+            if parameter not in config :
+                raise ValueError(f'Missing required parameter {parameter} in the model config.')
+    
 def get_vit(config : dict) -> timm_vit :
     """
     Function to get the ViT model.
@@ -93,3 +129,12 @@ def get_vit(config : dict) -> timm_vit :
         preprocess_functions = None
 
     return model, preprocess_functions
+
+def get_defaul_config(vit_name : str) :
+    """
+
+    """
+
+    if vit_name == 'vit_tiny_patch16_224' :
+        pass
+
