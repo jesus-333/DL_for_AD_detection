@@ -36,9 +36,9 @@ import pprint
 import toml
 import torch
 
-from src.dataset import support_dataset_ADNI
-from src.model import swin
-from src.training import train_functions
+from addl.dataset import support_dataset_ADNI
+from addl.model import swin
+from addl.training import train_functions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Default settings. Used only if the corresponding argument is not provided when launching the script.
