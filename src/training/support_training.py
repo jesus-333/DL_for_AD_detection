@@ -22,13 +22,13 @@ import torch
 def backup_every_epoch(path_to_save : str, epoch : int, model, optimizer = None, lr_scheduler = None) :
     """
     Function used to backup the model every epoch (and eventually the optimizer and the lr scheduler).
-    The model will be saved in the folder specified by path_to_save_model. For even epoch will be saved as "model_A.pth", for odd epoch will be saved as "model_B.pth".
+    The model will be saved in the folder specified by path_to_save_model. For even epoch will be saved as "model_backup_A.pth", for odd epoch will be saved as "model_backup_B.pth".
 
     The reason behind this function is simply to have a "backup of the backup". Training the model on an hpc it happens to me that the training was interrupted during the saving of the model, corrupting the file.
     Having two files (last epoch and previous epoch) ensures that at least one of the two files will be correct and can be used to restart the training from the last epoch. This is especially useful for long trainings, where you have to divide the training in several runs.
     """
 
-    suffix = '_A' if epoch % 2 == 0 else '_B'
+    suffix = '_backup_A' if epoch % 2 == 0 else '_backup_B'
     
     # Save the model
     path_to_save_model = os.path.join(path_to_save, f'model{suffix}.pth')

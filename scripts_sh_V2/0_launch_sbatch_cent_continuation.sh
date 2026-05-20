@@ -10,7 +10,7 @@ path_src="./"
 path_data="data/ADNI_MRI_Normalized_middle_slice/" 
 
 # Name of past jobs you want to continue and name of the new job you want to create.
-old_seed=978875066    
+old_seed=371885181    
 model_name="vit" # Modify with the name of the model you want to train, e.g. demnet, vgg, resnet.
 past_job_name="grokking_${model_name}_${old_seed}" # Modify with the name of the previous job, i.e. the one you want to continue.
 new_job_name="grokking_${model_name}_${old_seed}_C" # Create a new name for the new training run.
@@ -102,8 +102,8 @@ path_to_idx_files="${path_data}CENT_idx_${seed}/"
 path_past_weights_folder=$(toml get -r "${path_folder_with_previous_config}training.toml" path_to_save_model) 
 
 # Get the older backup file (see function backup_every_epoch in support_training.py for more info)
-path_past_weights=$(python ./scripts_python/training/get_oldest_file.py --path="${path_past_weights_folder}" --filter="model")
-path_past_optimizer=$(python ./scripts_python/training/get_oldest_file.py --path="${path_past_weights_folder}" --filter="optimizer")
+path_past_weights=$(python ./scripts_python/training/get_oldest_file.py --path="${path_past_weights_folder}" --filter="model_backup")
+path_past_optimizer=$(python ./scripts_python/training/get_oldest_file.py --path="${path_past_weights_folder}" --filter="optimizer_backup")
 
 echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
 echo "seed: ${seed}"
