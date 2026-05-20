@@ -15,7 +15,8 @@ class MRI_dataset(torch.utils.data.Dataset):
     """
     This class is used to create a dataset of MRI images.
     The input is a numpy array/torch tensor of shape N x D x H x W, where N is the number of images, D is the depth dimension, H is the height and W is the width.
-    Since the data are passed as a numpy array/torch tensor, this class can bu used both for 2D and 3D images.
+
+    Note that I wrote this class to work with 2D images, i.e. slices of the MRI volumes but the code SHOULD be general enough to work with 3D images, i.e. collection of slices, without any modification.
 
     Parameters
     ----------
@@ -37,7 +38,7 @@ class MRI_dataset(torch.utils.data.Dataset):
         The labels as a torch tensor.
     """
 
-    def __init__(self, data, labels, preprocess_functions = None, print_var = True) :
+    def __init__(self, data, labels, preprocess_functions = None, print_var : bool = True) :
         # Check input
         if data.shape[0] != len(labels) :
             raise ValueError(f"N. of sampels and n. of labels must be the same. Current n. of samples : {data.shape[0]}, current n. of labels : {len(labels)}")
@@ -84,6 +85,19 @@ class MRI_dataset(torch.utils.data.Dataset):
 
         fig.tight_layout()
         fig.show()
+
+    def add_channel_dimension_for_MRI_volumes(self) :
+        """
+        Function used if you want to use the class for 3D images, i.e. collection of slices. 
+        It adds a depth dimension to the data, i.e. it rearranges the data from shape N x D x H x W to shape N x 1 x D x H x W so they can be used with 3D convolutional layers.
+        Note that the depth dimension is added as the second dimension, following the convention of PyTorch for 3D images (N x C x D x H x W, where C is the number of channels). This is done to ensure compatibility with 3D convolutional layers, which expect the channel dimension to be the second dimension. If you want to add the depth dimension as the last dimension, you can use the rearrange function from the einops library or similar.
+
+        This function is useless if you have already applied the same thing to your data.
+        """
+        
+        # TODO : (OPTIONAL) Add check 
+
+        self.data = self.data.unsqueeze(1)
 
     def check_single_sample_V1(self, idx : int, figsize : tuple = None) :
         """

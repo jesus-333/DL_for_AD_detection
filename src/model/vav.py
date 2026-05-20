@@ -265,7 +265,6 @@ class positional_encoding(torch.nn.Module):
         x = x + self.pe[:, :x.size(1)]
         return self.dropout(x)
 
-
 class slice_transformer_encoder(torch.nn.Module):
     def __init__(self, config : dict) :
         """
