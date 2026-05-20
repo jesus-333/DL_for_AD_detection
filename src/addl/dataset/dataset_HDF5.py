@@ -50,7 +50,7 @@ class MRI_dataset_HDF5(torch.utils.data.Dataset) :
         
         # Read the volume corresponding to the given index. Note that the HDF5 file is organized in chunks, so this operation reads exactly one chunk of data, which is efficient even for large datasets that do not fit in memory.
         # Note that to work properly, you must use chunk with the same shape of the samples.
-        volume = self.hdf5_file["volumes"][idx]
+        volume = self.hdf5_file["data"][idx]
 
         return torch.from_numpy(volume)
 
