@@ -2,16 +2,21 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+# Folder to be included in the package during the build process. 
+# The / indicates that the path is relative to the root of the project (i.e. where the pyproject.toml file is located).
 [tool.hatch.build.targets.wheel]
 include = ["/src"]
 
+# Control how path are mapped in the wheel distribution. The key is the path in the wheel, and the value is the path in the source directory.
+# "src" = "" means : take any path starting with src/ and strip that prefix
+# This basically transforms src/addl into addl in the wheel distribution, which then can be imported as addl in Python.
 [tool.hatch.build.targets.wheel.sources]
-"src" = "addl"
+"src" = ""
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 [project]
-name = "Alzheimer_Deep_Learning_Detection"
+name 	= "Alzheimer_Deep_Learning_Detection"
 version = "0.0.1"
 license = "Apache-2.0"
 authors = [
@@ -31,8 +36,12 @@ dependencies = [
     "torch",
     "torchvision",
 ]
+ 
 [project.optional-dependencies]
 extra = [
   "pytorch-gradcam",
   "wandb",
 ]
+
+[project.scripts]
+nii-to-hdf5 = "addl.cli:nii_to_hdf5"

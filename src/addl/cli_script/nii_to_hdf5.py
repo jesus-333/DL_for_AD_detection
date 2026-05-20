@@ -43,24 +43,25 @@ def nii_to_hdf5_func(args) -> None:
     # Get the list of nii files to convert
     
     # Get the list of all the nii files in the specified dataset folder (including subfolders)
-    nii_files = support_dataset.get_all_files_from_path(path_to_explore = args.dataset_folder, filetype_filter = "nii")
+    nii_files_list = support_dataset.get_all_files_from_path(path_to_explore = args.dataset_folder, filetype_filter = "nii")
     
     # Check that at least one nii file was found in the specified dataset folder
-    if len(nii_files) == 0:
+    if len(nii_files_list) == 0:
         raise ValueError(f"No nii files found in the specified dataset folder '{args.dataset_folder}'. Please specify a valid path to the folder with the nii files.")
 
     # (OPTIONAL) If the --filter argument is specified, keep only the nii files that contain the specified string in their name
     if args.filter is not None:
-        nii_files = [nii_file for nii_file in nii_files if args.filter in os.path.basename(nii_file)]
+        nii_files_list = [nii_file for nii_file in nii_files_list if args.filter in os.path.basename(nii_file)]
 
         # Check that at least one nii file was found in the specified dataset folder that contains the specified string in their name
-        if len(nii_files) == 0:
+        if len(nii_files_list) == 0:
             raise ValueError(f"No nii files found in the specified dataset folder '{args.dataset_folder}' that contain the string '{args.filter}' in their name. Please specify a valid path to the folder with the nii files and/or a valid filter string.")
+
+    if args.debug : print(f"Find {len(nii_files_list)} nii files to convert in the specified dataset folder '{args.dataset_folder}'.")
 
     # ***************************************
     # (OPTIONAL) Load labels
 
-    
     # Check if the --labels_file argument is specified
     if args.labels_file is not None:
         # Check that the specified labels file exists and is a csv file
@@ -83,19 +84,35 @@ def nii_to_hdf5_func(args) -> None:
             labels_dict = {row["file_name"] : {"label_int": row["labels_int"], "label_str": row["labels_str"]} for _, row in labels_df.iterrows()}
         else:
             labels_dict = {row["file_name"] : {"label_int": row["labels_int"]} for _, row in labels_df.iterrows()}
+
+        if args.debug : print(f"Labels file '{args.labels_file}' loaded successfully.")
     else :
         # If the --labels_file argument is not specified, set the labels dictionary to None
         labels_dict = None
+
+        if args.debug : print(f"No labels file specified. No labels will be extracted and the 'dataset_info.csv' file will not be created.")
 
     # ***************************************
     # Conversion to hdf5
 
     # Load a single sample to get the shape of the volumes.
-    sample_volume_shape = nib.load(nii_files[0]).get_fdata().shape
-    print(f"Sample volume shape: {sample_volume_shape}")
+    sample_volume_shape = nib.load(nii_files_list[0]).get_fdata().shape
+
+    # Shape is in the formax (X, Y, Z) but we want (1, X, Y, Z) for the hdf5 chunks
+    chunk_shape = (1, *sample_volume_shape)
     
-    print(f"Converting {len(nii_files)} nii files to hdf5 file...")
+    if args.debug : print(f"Sample volume shape : {sample_volume_shape}. hdf5 chunk shape: {chunk_shape}.")
 
-
+    with h5py.File("dataset.h5", "w") as f:
+        # If each sample is shape (D, H, W), e.g. (128, 128, 128)
+        ds = f.create_dataset(
+            "volumes",
+            shape = (len(nii_files_list), *sample_volume_shape),  # (num_samples, X, Y, Z)
+            dtype = np.float32,
+            chunks = chunk_shape,             # chunk size (1, X, Y, Z)
+            compression = "lzf",           # fast, light compression
+        )
+        for i, path in enumerate(sorted(sample_paths)):
+            ds[i] = load_sample(path)    # your existing loader
 
 
