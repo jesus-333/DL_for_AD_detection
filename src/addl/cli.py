@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Covnersion functions
 
 def nii_to_hdf5() -> None:
     """
@@ -43,6 +44,33 @@ def nii_to_hdf5() -> None:
     # Call the function that implements the cli command
     nii_to_hdf5.nii_to_hdf5_func(args)
 
+def nii_to_pt() -> None:
+    """
+    TODO
+    """
+
+def npy_to_pt() -> None:
+    """
+    Convert all npy files in a folder to a single pt file.
+    """
+    
+    from .cli_script import pt_to_npy
+
+    # ***************************************
+    # Command-line arguments parsing
+    
+    # Parse the command-line arguments
+    parser = argparse.ArgumentParser(prog = "npy-to-pt", description = "Convert all npy files in a folder to a single pt file.")
+    parser.add_argument("--files_folder", default = None, help = "Path to the folder with the npy files. Note that all the npy files inside this path will be converted to pt files. This means both in the root folder and in all the subfolders.")
+    parser.add_argument("--filter"        , default = None, help = "If used keep only the npy files that contain the specified string in their name. E.g., if --filter is set to 'train', only the npy files with 'train' in their name will be converted to pt files.")
+    parser.add_argument("--output_folder" , default = None, help = "Path to the folder where the pt files will be saved. If not specified, the pt files will be saved in the same folder as the npy files.")
+    parser.add_argument("--debug"         , default = False, action = "store_true", help = "If used, the function will print some debug information during the conversion process. This can be useful to understand what is happening during the conversion and to identify potential issues.")
+    args = parser.parse_args()
+
+    # ***************************************
+
+    # Call the function that implements the cli command
+    pt_to_npy.pt_to_npy(args, reverse = True)
 
 def pt_to_npy() -> None:
     """
@@ -67,25 +95,3 @@ def pt_to_npy() -> None:
     # Call the function that implements the cli command
     pt_to_npy.pt_to_npy_func(args)
 
-def npy_to_pt() -> None:
-    """
-    Convert all npy files in a folder to a single pt file.
-    """
-    
-    from .cli_script import pt_to_npy
-
-    # ***************************************
-    # Command-line arguments parsing
-    
-    # Parse the command-line arguments
-    parser = argparse.ArgumentParser(prog = "npy-to-pt", description = "Convert all npy files in a folder to a single pt file.")
-    parser.add_argument("--files_folder", default = None, help = "Path to the folder with the npy files. Note that all the npy files inside this path will be converted to pt files. This means both in the root folder and in all the subfolders.")
-    parser.add_argument("--filter"        , default = None, help = "If used keep only the npy files that contain the specified string in their name. E.g., if --filter is set to 'train', only the npy files with 'train' in their name will be converted to pt files.")
-    parser.add_argument("--output_folder" , default = None, help = "Path to the folder where the pt files will be saved. If not specified, the pt files will be saved in the same folder as the npy files.")
-    parser.add_argument("--debug"         , default = False, action = "store_true", help = "If used, the function will print some debug information during the conversion process. This can be useful to understand what is happening during the conversion and to identify potential issues.")
-    args = parser.parse_args()
-
-    # ***************************************
-
-    # Call the function that implements the cli command
-    pt_to_npy.pt_to_npy(args, reverse = True)
