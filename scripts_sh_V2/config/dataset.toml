@@ -1,12 +1,23 @@
 path_dataset_config = "scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/config/dataset.toml"
+
+# Files and paths settings
 path_data = "data/ADNI_MRI_Normalized_middle_slice/"
 name_tensor_file = "dataset_tensor___176_resize.pt"
-filter_AD_data = false
-merge_AD_class = 0
+name_hdf5_file = "dataset.h5"
+
+# Split settings
 percentage_train = 0.9
 percentage_test = 0.0
 percentage_validation = 0.1
+
+# Labels seettings
+filter_AD_data = false
+merge_AD_class = 0
+
+# General preprocess settings
+use_normalization = true
+
+# Preprocess settings for dataset saved as tensor
 apply_rescale = false
 load_data_in_memory = true
-use_normalization = true
 use_rgb_input = false
