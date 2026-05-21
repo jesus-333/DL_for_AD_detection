@@ -105,10 +105,36 @@ def nii_to_hdf5_func(args) -> None:
         if args.debug : print("No labels file specified. No labels will be extracted and the 'dataset_info.csv' file will not be created.")
 
     # ***************************************
+    # (OPTIONAL) Reshape
+
+    if args.reshape_size is not None :
+        # Import torch only if reshape is applied, since it is required for the interpolation
+        import torch
+        import torch.nn.functional as F
+
+        # Convert the reshape size argument to a tuple of three integers
+        try :
+            reshape_size = tuple(map(int, args.reshape_size.strip("()").split(",")))
+        except Exception as e :
+            raise ValueError(f"The specified reshape size '{args.reshape_size}' is not in the correct format. Please specify the reshape size as a tuple of three integers (x, y, z). E.g., --reshape_size '(128, 128, 128)'. Error details: {e}")
+
+        # Check that the reshape size is valid (i.e., it is a tuple of three positive integers)
+        if len(reshape_size) != 3 :
+            raise ValueError(f"The specified reshape size '{args.reshape_size}' is not in the correct format. Please specify the reshape size as a tuple of three integers (x, y, z). E.g., --reshape_size '(128, 128, 128)'.")
+        elif any(dim <= 0 for dim in reshape_size) :
+            raise ValueError(f"The specified reshape size '{args.reshape_size}' is not valid. All dimensions must be positive integers. Please specify the reshape size as a tuple of three positive integers (x, y, z). E.g., --reshape_size '(128, 128, 128)'.")
+    else :
+        reshape_size = None
+        if args.debug : print("No reshape size specified. The data will not be reshaped before saving it in the hdf5 file.")
+
+    # ***************************************
     # Conversion to hdf5
 
     # Load a single sample to get the shape of the volumes.
-    sample_volume_shape = nib.load(nii_files_list[0]).get_fdata().shape
+    if reshape_size is not None :
+        sample_volume_shape = reshape_size
+    else :
+        sample_volume_shape = nib.load(nii_files_list[0]).get_fdata().shape
 
     # Shape is in the formax (X, Y, Z) but we want (1, X, Y, Z) for the hdf5 chunks
     chunk_shape = (1, *sample_volume_shape)
@@ -131,9 +157,9 @@ def nii_to_hdf5_func(args) -> None:
 
     # (OPTIONAL) Declare variable used to compute mean and std
     if args.compute_stats :
-        channel_sum = 0
+        channel_sum         = 0
         channel_squared_sum = 0
-        total_voxels = 0
+        total_voxels        = 0
 
     with h5py.File(path_dataset_file, "w") as f :
         # Create the hdf5 dataset
@@ -152,8 +178,22 @@ def nii_to_hdf5_func(args) -> None:
             # Get sample in float32
             sample = nib.load(path_sample).get_fdata().astype(np.float32)
 
-            # Check that the sample has the same shape as the first sample, if not raise an error
-            if sample.shape != sample_volume_shape : raise ValueError(f"The sample '{path_sample}' has a different shape ({sample.shape}) than the first sample ({sample_volume_shape}). Please check that all the nii files in the specified dataset folder have the same shape.")
+            if reshape_size is not None : # Reshape the sample to the specified size using trilinear interpolation
+                # Note that interpolate() required a 5D tensor for 3D data
+                # See https://docs.pytorch.org/docs/2.12/generated/torch.nn.functional.interpolate.html
+                sample = torch.from_numpy(sample).unsqueeze(0).unsqueeze(0)
+
+                # Interpolate the sample to the specified size using trilinear interpolation
+                # align_corners = False ensure that the distance between the voxel remain equal after the interpolation
+                sample = F.interpolate(sample, size = reshape_size, mode = "trilinear", align_corners = False)
+
+                # Convert back to numpy array and remove the extra dimensions
+                # Note that I could have simply write sample.squeeze() but in a pathological case where one of the dimensions of the sample is 1, this would have removed also that dimension and caused an "error"
+                # In this way I'm sure to remove only the extra dimensions added for the interpolation.
+                # Yeah I know that it's almost impossible that with a 3D sample one of the dimensions is 1, but I like the idea that the code is robust to this kind of pathological cases.
+                sample = sample.squeeze(0).squeeze(0).numpy()
+            else : # If not reshape, check that the sample has the same shape as the first sample, if not raise an error
+                if sample.shape != sample_volume_shape : raise ValueError(f"The sample '{path_sample}' has a different shape ({sample.shape}) than the first sample ({sample_volume_shape}). Please check that all the nii files in the specified dataset folder have the same shape.")
             
             # (OPTIONAL) Apply min-max normalization to the sample
             if args.minmax : sample = (sample - np.min(sample)) / (np.max(sample) - np.min(sample))
