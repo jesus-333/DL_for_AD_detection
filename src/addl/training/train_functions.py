@@ -88,8 +88,8 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     support_training.check_training_config(training_config)
     
     # Create Dataloaders
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size = training_config['batch_size'], shuffle = True)
-    if validation_dataset is not None : validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size = training_config['batch_size'], shuffle = True)
+    train_loader = support_training.get_dataloader(train_dataset, training_config['batch_size'], training_config['dataloader_config'])
+    if validation_dataset is not None : validation_loader = support_training.get_dataloader(validation_dataset, training_config['batch_size'], training_config['dataloader_config'])
     else : validation_loader = None
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -306,7 +306,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
 def wandb_train(config : dict, model, train_dataset, validation_dataset = None) :
     """
     Train a model using the given configuration and dataset. This function uses wandb to log the training.
-    For more inforamation about the parameters, please refer to the train function.
+    For more information about the parameters, please refer to the train function.
 
     Parameters
     ----------

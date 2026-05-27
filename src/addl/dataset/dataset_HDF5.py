@@ -8,6 +8,7 @@ Alberto Zancanaro <alberto.zancanaro@uni.lu>
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+import matplotlib.pyplot as plt
 import os
 import torch
 
@@ -22,6 +23,9 @@ class MRI_dataset_HDF5(torch.utils.data.Dataset) :
     """
     Class to load MRI data from HDF5 files. The HDF5 file is organized in chunks, where each chunk corresponds to a sample (i.e., a 3D volume).
     This allows to efficiently load large datasets that do not fit in memory, as only the required chunk is loaded when the __getitem__ method is called.
+
+    The data is expected to be 3D MRI volumes in the shape of X x Y x Z, where B is the batch size, X, Y and Z are the dimensions of the input volume.
+    The input tensor follow the NifTi convention, where the first dimension (X) corresponds to the sagittal axis, the second dimension (Y) corresponds to the coronal axis and the third dimension (Z) corresponds to the axial axis. (TO CHECK)
 
     Parameters
     ----------
@@ -81,5 +85,51 @@ class MRI_dataset_HDF5(torch.utils.data.Dataset) :
         label = self.labels[idx]
 
         return torch.from_numpy(volume), label
+
+    def check_single_sample_V2(self, idx : int, axis : str = "axial", figsize : tuple = None) :
+        """
+        Copied from dataset.py and slightly modified to allow the selection of axis to visualize
+        """
+
+        if axis not in ["axial", "sagittal", "coronal"] : raise ValueError(f"Invalid axis {axis}. Valid options are 'axial', 'sagittal' and 'coronal'. Please check the axis and try again.")
+
+        # Get image and ensure that the image is a 3D image (i.e. no batch dimension)
+        image, label = self.__getitem__(idx)
+        image = image.squeeze()
+        
+    
+        # Get the number of images
+        n_depth_map = image.shape[0]
+
+        # Create the figure and the axes
+        if figsize is None : figsize = (10, 10)
+        fig, ax = plt.subplots(figsize = figsize)
+
+        # Create the slider
+        ax_slider = plt.axes([0.1, 0.01, 0.8, 0.03])
+        slider = plt.Slider(ax_slider, 'Depth map', 0, n_depth_map - 1, valinit = 0, valstep = 1)
+
+        ax.imshow(image[0], cmap = 'gray')
+        ax.set_title(f"Depth map order : {0}")
+
+        # Function to update the plot when the slider is moved
+        def update(val) :
+            idx = int(slider.val)
+            if axis == "axial" :
+                img = image[idx].squeeze()
+            elif axis == "coronal" :
+                img = image[:, idx, :].squeeze()
+            elif axis == "sagittal" :
+                img = image[:, :, idx].squeeze()
+            ax.imshow(img, cmap = 'gray')
+            ax.set_title(f"Depth map order : {idx}")
+            fig.canvas.draw_idle()
+
+        # Connect the slider to the update function
+        slider.on_changed(update)
+
+        # Show the plot
+        # fig.tight_layout()
+        fig.show()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

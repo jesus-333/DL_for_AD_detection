@@ -76,6 +76,11 @@ def check_training_config(config : dict) :
     if 'batch_size' not in config :
         raise ValueError('The training configuration must contain the key "batch_size"')
 
+    if 'dataloader_config' not in config :
+        print('Warning: the training configuration does not contain the key "dataloader_config". Default values will be used for the dataloader configuration. If you want to set specific values for the dataloader, please add the key "dataloader_config" to the training configuration and set the desired values. Possible keys for the dataloader configuration: num_workers, prefetch_factor, pin_memory, persistent_workers')
+        config['dataloader_config'] = dict()
+    check_dataloader_config(config['dataloader_config'])
+
     if 'epochs' not in config :
         raise ValueError('The training configuration must contain the key "epochs"')
 
@@ -184,6 +189,57 @@ def check_training_config(config : dict) :
             print('This means that the images will be normalized using the VGG normalization values')
             config['use_vgg_normalization_values'] = True
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Dataloader config
+
+def get_dataloader(dataset, batch_size : int, dataloader_config : dict = None) :
+    """
+    Create and return the dataloader based on the configuration provided.
+    """
+
+    if dataloader_config is None : dataloader_config = dict()
+    check_dataloader_config(dataloader_config)
+
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size = batch_size, shuffle = True,
+        num_workers = dataloader_config['num_workers'], prefetch_factor = dataloader_config['prefetch_factor'],
+        pin_memory = dataloader_config['pin_memory'], persistent_workers = dataloader_config['persistent_workers']
+    )
+
+    return loader
+
+def check_dataloader_config(dataloader_config : dict) :
+    """
+    Check the parameters of the dataloader configuration and set the default values for the missing ones.
+    """
+
+    if 'num_workers' not in dataloader_config :
+        print('Warning: the dataloader configuration does not contain the key "num_workers". 0 will be used as default value')
+        dataloader_config['num_workers'] = 0
+
+    if 'prefetch_factor' not in dataloader_config :
+        if dataloader_config['num_workers'] > 0 :
+            print('Warning: the dataloader configuration does not contain the key "prefetch_factor". 2 will be used as default value since num_workers > 0')
+            dataloader_config['prefetch_factor'] = 2
+        else :
+            print('Warning: the dataloader configuration does not contain the key "prefetch_factor". None will be used as default value since num_workers = 0')
+            dataloader_config['prefetch_factor'] = None
+    else :
+        if dataloader_config['num_workers'] == 0 and dataloader_config['prefetch_factor'] is not None :
+            print('Warning: the dataloader configuration contains the key "prefetch_factor" with a value different from None, but "num_workers" is set to 0. The value of "prefetch_factor" will be set to None to avoid errors, since it is not used when num_workers = 0')
+            dataloader_config['prefetch_factor'] = None
+
+    if 'pin_memory' not in dataloader_config :
+        print('Warning: the dataloader configuration does not contain the key "pin_memory". False will be used as default value')
+        dataloader_config['pin_memory'] = False
+
+    if 'persistent_workers' not in dataloader_config :
+        print('Warning: the dataloader configuration does not contain the key "persistent_workers". False will be used as default value')
+        dataloader_config['persistent_workers'] = False
+    elif dataloader_config['persistent_workers'] and dataloader_config['num_workers'] == 0 :
+        print('Warning: the dataloader configuration contains the key "persistent_workers" set to True, but "num_workers" is set to 0. The value of "persistent_workers" will be set to False to avoid errors, since it is not used when num_workers = 0')
+        dataloader_config['persistent_workers'] = False
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Optimizer config
