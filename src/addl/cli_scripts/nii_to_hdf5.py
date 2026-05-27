@@ -240,7 +240,6 @@ def nii_to_hdf5_func(args) -> None:
         dataset_info_csv.to_csv(path_dataset_info_csv, index = False)
         if args.debug : print(f"Dataset info csv file saved at '{path_dataset_info_csv}'.")
 
-
     # Compute mean and std of the dataset and save them in npy files in the same folder as the hdf5 file
     if args.compute_stats :
         # Compute mean
