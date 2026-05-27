@@ -14,14 +14,14 @@ from __future__ import annotations
 import argparse
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Covnersion functions
+# Conversion functions
 
 def nii_to_hdf5() -> None:
     """
     Convert all nii files in a folder to a single hdf5 file.
     """
     
-    from .cli_script import nii_to_hdf5
+    from .cli_scripts import nii_to_hdf5
 
     # ***************************************
     # Command-line arguments parsing
@@ -51,17 +51,17 @@ def nii_to_pt() -> None:
 
 def npy_to_pt() -> None:
     """
-    Convert all npy files in a folder to a single pt file.
+    Convert all npy files in a folder to a pt files.
     """
     
-    from .cli_script import pt_to_npy
+    from .cli_scripts import pt_to_npy
 
     # ***************************************
     # Command-line arguments parsing
     
     # Parse the command-line arguments
-    parser = argparse.ArgumentParser(prog = "npy-to-pt", description = "Convert all npy files in a folder to a single pt file.")
-    parser.add_argument("--files_folder", default = None, help = "Path to the folder with the npy files. Note that all the npy files inside this path will be converted to pt files. This means both in the root folder and in all the subfolders.")
+    parser = argparse.ArgumentParser(prog = "npy-to-pt", description = "Convert all npy files in a folder to pt files.")
+    parser.add_argument("--files_folder"  , default = None, help = "Path to the folder with the npy files. Note that all the npy files inside this path will be converted to pt files. This means both in the root folder and in all the subfolders.")
     parser.add_argument("--filter"        , default = None, help = "If used keep only the npy files that contain the specified string in their name. E.g., if --filter is set to 'train', only the npy files with 'train' in their name will be converted to pt files.")
     parser.add_argument("--output_folder" , default = None, help = "Path to the folder where the pt files will be saved. If not specified, the pt files will be saved in the same folder as the npy files.")
     parser.add_argument("--debug"         , default = False, action = "store_true", help = "If used, the function will print some debug information during the conversion process. This can be useful to understand what is happening during the conversion and to identify potential issues.")
@@ -74,17 +74,17 @@ def npy_to_pt() -> None:
 
 def pt_to_npy() -> None:
     """
-    Convert all pt (or pth) files in a folder to a single npy file.
+    Convert all pt (or pth) files in a folder to npy files.
     """
     
-    from .cli_script import pt_to_npy
+    from .cli_scripts import pt_to_npy
 
     # ***************************************
     # Command-line arguments parsing
     
     # Parse the command-line arguments
-    parser = argparse.ArgumentParser(prog = "pt-to-npy", description = "Convert all pt files in a folder to a single npy file.")
-    parser.add_argument("--files_folder", default = None, help = "Path to the folder with the pt files. Note that all the pt files inside this path will be converted to npy files. This means both in the root folder and in all the subfolders.")
+    parser = argparse.ArgumentParser(prog = "pt-to-npy", description = "Convert all pt files in a folder to a npy files.")
+    parser.add_argument("--files_folder"  , default = None, help = "Path to the folder with the pt files. Note that all the pt files inside this path will be converted to npy files. This means both in the root folder and in all the subfolders.")
     parser.add_argument("--filter"        , default = None, help = "If used keep only the pt files that contain the specified string in their name. E.g., if --filter is set to 'train', only the pt files with 'train' in their name will be converted to npy files.")
     parser.add_argument("--output_folder" , default = None, help = "Path to the folder where the npy files will be saved. If not specified, the npy files will be saved in the same folder as the pt files.")
     parser.add_argument("--debug"         , default = False, action = "store_true", help = "If used, the function will print some debug information during the conversion process. This can be useful to understand what is happening during the conversion and to identify potential issues.")
@@ -95,3 +95,27 @@ def pt_to_npy() -> None:
     # Call the function that implements the cli command
     pt_to_npy.pt_to_npy_func(args)
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Wandb interaction function
+
+def wandb_get_run_status() -> None :
+    """
+    Given entity, project, and run id return the status of the current run (if exist) and print it in the terminal.
+    """
+
+    from .cli_scripts import wandb_interactions
+
+    # ***************************************
+    # Command-line arguments parsing
+
+    parser = argparse.ArgumentParser(prog = "wandb-get-run-status", description = "Given entity, project and run id return the status of the current run (if exist) and print it in the terminal.")
+    parser.add_argument("--entity"  , default = None, required = True, help = "The entity of the run. This is the name of the user or team that owns the run.")
+    parser.add_argument("--project" , default = None, required = True, help = "The project of the run. This is the name of the project that contains the run.")
+    parser.add_argument("--run_id"  , default = None, required = True, help = "The id of the run. This is the unique identifier of the run. You can find it in the url of the run page on wandb (e.g., https://wandb.ai/your_entity/your_project/runs/your_run_id).")
+    args = parser.parse_args()
+
+    # ***************************************
+
+    # Call the function that implements the cli command
+    wandb_interactions.get_run_status(args)
+    

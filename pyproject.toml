@@ -47,3 +47,5 @@ extra = [
 nii-to-hdf5 = "addl.cli:nii_to_hdf5"
 pt-to-npy 	= "addl.cli:pt_to_npy"
 npy-to-pt 	= "addl.cli:npy_to_pt"
+
+wandb-get-run-status = "addl.cli:wandb_get_run_status"
