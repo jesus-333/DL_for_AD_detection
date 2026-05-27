@@ -36,14 +36,14 @@ import pprint
 import toml
 import torch
 
-from addl.dataset import support_dataset_ADNI
+from addl.dataset import dataset_HDF5, support_dataset_ADNI
 from addl.model import vav
 from addl.training import train_functions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Default settings. Used only if the corresponding argument is not provided when launching the script.
 
-# Path to config files.
+# Path to config files. (TO UPDATE)
 defualt_path_config_dataset  = './config/swin_wandb/dataset.toml'
 defualt_path_config_model    = './config/swin_wandb/model.toml'
 defualt_path_config_training = './config/swin_wandb/training.toml'
@@ -112,15 +112,14 @@ print("Model Loaded")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Create dataset
 
-# TODO. This is old code. Implement the stuff for the 3D dataset.
-
 # Get the indices for training and validation (the two files must be created before launching the script with the script create_idx_files_for_federated_simulations_2.py)
 idx_train = np.load(f"{args.path_to_idx_files}train_idx_all.npy")
 idx_val   = np.load(f"{args.path_to_idx_files}val_idx.npy")
 
 # Get train and validation dataset
-MRI_train_dataset, _, _      = support_dataset_ADNI.get_dataset_V2(dataset_config, idx_to_use = idx_train, preprocess_functions = preprocess_functions)
-MRI_validation_dataset, _, _ = support_dataset_ADNI.get_dataset_V2(dataset_config, idx_to_use = idx_val  , preprocess_functions = preprocess_functions)
+full_path_hdf5_file    = f'{dataset_config['path_data']}{dataset_config['name_hdf5_file']}'
+MRI_train_dataset      = dataset_HDF5.MRI_dataset_HDF5(path_data = full_path_hdf5_file, labels = labels_int, idx_to_use = idx_train)
+MRI_validation_dataset = dataset_HDF5.MRI_dataset_HDF5(path_data = full_path_hdf5_file, labels = labels_int, idx_to_use = idx_val)
 
 if training_config['print_var'] :
     print("#######################################")
@@ -130,11 +129,6 @@ if training_config['print_var'] :
     print(f"N. validations samples : {len(MRI_validation_dataset)}")
     print(f"Model transforms : {preprocess_functions}")
     print("#######################################")
-
-# (OPTIONAL) Move dataset to device
-if dataset_config['load_data_in_memory'] :
-    MRI_train_dataset.move_data_and_labels_to_device(training_config['device'])
-    MRI_validation_dataset.move_data_and_labels_to_device(training_config['device'])
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Train model

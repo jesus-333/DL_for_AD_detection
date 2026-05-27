@@ -1,8 +1,8 @@
 # General training parameters
 # Optimizer and lr scheduler have their own separate config files.
 # The lr is set inside 
-batch_size = 131
-epochs = 50000
+batch_size = 128
+epochs = 5
 use_scheduler = true
 device = "mps"
 epoch_to_save_model = -1
@@ -18,8 +18,8 @@ notes = ""
 log_freq = 1
 debug = false
 entity = "alberto_zancanaro_academic"
-project_name = "Demnet_Grokking_Experiment"
-name_training_run = "NO BATCH NORM - decay 2 - Batch 131 - Tiny Size"
+project_name = "VAV_Experiment"
+name_training_run = "test_backup"
 log_model_artifact = false
 model_artifact_name = "model"
 
@@ -38,3 +38,9 @@ swin_training_mode = 1
 # FL parameters (i.e. used only if fl_training is true)
 fl_training = false
 use_weights_with_lower_validation_error = true
+
+[dataloader_config]
+num_workers = 0
+prefetch_factor = 2  # Not sure on how to handle it
+pin_memory = true
+persistent_workers = true
