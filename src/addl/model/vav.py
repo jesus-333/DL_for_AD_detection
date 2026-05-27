@@ -31,7 +31,7 @@ class vav(torch.nn.Module) :
         Note that each ViT model will have the same configuration, regardless of whether use_same_vit_for_all_directions is True or False.
     - analyze_directions_independently : bool
         If True, a separate transformer encoder will be used for each direction to process the sequence of embeddings produced by the ViT for that direction.
-        In this case, the model will produce three separate embeddings for the whole volume, one for each direction, which will then fuseded together (e.g. by concatenation) and passed through a classification head to produce the final output.
+        In this case, the model will produce three separate embeddings for the whole volume, one for each direction, which will then fused together (e.g. by concatenation) and passed through a classification head to produce the final output.
         If False, a single transformer encoder will be used to process the concatenation of the three sequences of embeddings produced by the ViTs for all three directions.
         In this case, the model will produce a single embedding for the whole volume, which will then be passed through a classification head to produce the final output.
     """
@@ -50,7 +50,7 @@ class vav(torch.nn.Module) :
             self.vit_coronal  = vit_encoder(config['vit_config'])
         
         # Output dimension of the ViT encoder, which will be the input dimension for the transformer encoder(s).
-        vit_encoder_output = self.vit_axial.vit.embed_dim
+        vit_encoder_output = config['vit_config']['embed_dim']
         config['slice_transformer_config']['d_input'] = vit_encoder_output
         
         # Store the analyze_directions_independently flag to use it in the forward pass.

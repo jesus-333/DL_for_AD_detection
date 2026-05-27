@@ -5,14 +5,14 @@ analyze_directions_independently = false
 [vit_config]
 model_name     = 'vit_tiny_patch16_224'
 pretrained     = false
-input_size     = 176
+input_size     = 192
 input_channels = 1
 embed_dim      = 128
 depth 		   = 6
 num_heads 	   = 4
 
 [slice_transformer_config]
-max_len			= 512
+max_len			= 1024
 d_model			= 256
 nhead  		    = 8
 dim_feedforward = 512

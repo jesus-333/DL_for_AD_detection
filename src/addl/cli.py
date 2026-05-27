@@ -96,6 +96,53 @@ def pt_to_npy() -> None:
     pt_to_npy.pt_to_npy_func(args)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Statistics functions
+
+def get_hdf5_dataset_length() -> None :
+    """
+    Read an hdf5 file and return the number of samples contained in it.
+    """
+    
+    from .cli_scripts import stats
+
+    # ***************************************
+    # Command-line arguments parsing
+
+    # Parse the command-line arguments
+    parser = argparse.ArgumentParser(prog = "get-hdf5-dataset-length", description = "Read an hdf5 file and return the number of samples contained in it.")
+    parser.add_argument("--path_hdf5_file", default = None  , required = True , help = "Path to the hdf5 file. The function will read the hdf5 file and return the number of samples contained in it.")
+    parser.add_argument("--group_name"    , default = "data", required = False, help = "Name of the group in the hdf5 file where the dataset is stored. Default is 'data'. Note that the function will look for a dataset named 'data' inside the specified group and it will return the number of samples contained in that dataset.")
+    args = parser.parse_args()
+
+    # ***************************************
+
+    # Call the function that implements the cli command
+    n_samples = stats.get_hdf5_dataset_length_func(args.path_hdf5_file, args.group_name)
+    print(f"{n_samples}")
+
+def compute_nii_dataset_stats() -> None :
+    """
+    Compute mean and std of a dataset of nii files and save them in npy files.
+    """
+    
+    from .cli_scripts import stats
+
+    # ***************************************
+    # Command-line arguments parsing
+    
+    # Parse the command-line arguments
+    parser = argparse.ArgumentParser(prog = "compute-nii-dataset-stats", description = "Compute mean and std of a dataset of nii files and save them in npy files.")
+    parser.add_argument("--dataset_folder", default = None, help = "Path to the folder with the nii files. Note that all the nii files inside this path will be used to compute the statistics. This means both in the root folder and in all the subfolders.")
+    parser.add_argument("--filter"        , default = None, help = "If used keep only the nii files that contain the specified string in their name. E.g., if --filter is set to 'train', only the nii files with 'train' in their name will be used to compute the statistics.")
+    parser.add_argument("--debug"         , default = False, action = "store_true", help = "If used, the function will print some debug information during the computation process. This can be useful to understand what is happening during the computation and to identify potential issues.")
+    args = parser.parse_args()
+
+    # ***************************************
+
+    # Call the function that implements the cli command
+    stats.compute_mean_and_std(args, file_dataset_extension = ".nii")
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Wandb interaction function
 
 def wandb_get_run_status() -> None :

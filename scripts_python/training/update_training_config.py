@@ -31,6 +31,8 @@ parser.add_argument('--path_optimizer_config'          , type = str  , default =
 parser.add_argument('--path_lr_scheduler_config'       , type = str  , default = './config/lr_scheduler.toml', help = 'Path to the toml file with the learning rate scheduler config. Default is ./config/lr_scheduler.toml')
 parser.add_argument('--path_to_save'                   , type = str  , default = None                        , help = 'Path to save the updated training config. If not passed or None, the original training config file will be overwritten. If a new path is provided, the updated training config will be saved in a new file. If passed with the same path as the original training config, the original file will be overwritten. Default is None (overwrite original file).')
 parser.add_argument('--batch_size'                     , type = int  , default = -1             , help = 'Batch size for training. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new batch size. Default is -1 (do not change).')
+parser.add_argument('--num_workers'                    , type = int  , default = -1             , help = 'Number of workers for the dataloader. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new number of workers. Default is -1 (do not change).')
+parser.add_argument('--prefetch_factor'                , type = int  , default = None           , help = 'Prefetch factor for the dataloader. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new prefetch factor. Default is None (do not change).')
 parser.add_argument('--epochs'                         , type = int  , default = -1             , help = 'Number of epochs for training. If a negative value (or no value) is provided, the value already present will not be changed. If a positive value is provided, it will be used as the new number of epochs. Default is -1 (do not change).')
 parser.add_argument('--device'                         , type = str  , default = 'cpu'          , help = 'Device to use for training. Default is "cpu".')
 parser.add_argument('--epoch_to_save_model'            , type = int  , default = -1             , help = 'Save model every n epochs. If a negative value (or zero or no value) is provided, it will be set to epochs + 1, i.e. only the model at the end of training will be saved. Default is -1.')
@@ -47,6 +49,7 @@ parser.add_argument('--wandb_training'                 , default = False, action
 parser.add_argument('--fl_training'                    , default = False, action = "store_true", help = "If passed, the training is done in Federated Learning mode. Default is False.")
 parser.add_argument('--vgg_training'                   , default = False, action = "store_true", help = "If passed, the training is done using a VGG network. Default is False.")
 parser.add_argument('--swin_training'                  , default = False, action = "store_true", help = "If passed, the training is done using a Swin Transformer. Default is False.")
+parser.add_argument('--vav_training'                   , default = False, action = "store_true", help = "If passed, the training is done using a vav. Default is False.")
 parser.add_argument('--vit_training'                   , default = False, action = "store_true", help = "If passed, the training is done using a ViT Transformer. Default is False.")
 # Boolean negate
 parser.add_argument('--no-backup_model_every_epoch'       , dest ='backup_model_every_epoch'       , action = 'store_false')
@@ -57,6 +60,7 @@ parser.add_argument('--no-wandb_training'                 , dest ='wandb_trainin
 parser.add_argument('--no-fl_training'                    , dest ='fl_training'                    , action = 'store_false') # Theoretically, you can completely avoid this argument, since if you do not want to use FL training you can simply avoid to pass the --fl_training argument. In that case the FL training options will be removed by the config (if present). I add this argument for consistency with the other boolean. (And if you are like me, for your own peace of mind to have the possibility to explicitly set the value to False, even if it is not strictly necessary.)
 parser.add_argument('--no-vgg_training'                   , dest ='vgg_training'                   , action = 'store_false') # Same as above for --no-fl_training argument.
 parser.add_argument('--no-swin_training'                  , dest ='swin_training'                  , action = 'store_false') # Same as above for --no-fl_training argument.
+parser.add_argument('--no-vav_training'                   , dest ='vav_training'                   , action = 'store_false') # Same as above for --no-fl_training argument.
 parser.add_argument('--no-vit_training'                   , dest ='vit_training'                   , action = 'store_false') # Same as above for --no-fl_training argument.
 # *******************************
 # Wandb settings
@@ -101,11 +105,41 @@ args = parser.parse_args()
 # Load the training config from the provided path
 training_config = toml.load(args.path_training_config)
 
+# Load the dataloader config
+dataloader_config = training_config['dataloader_config'] if 'dataloader_config' in training_config else dict()
+
 # Batch size
 if args.batch_size is not None and args.batch_size > 0 :
     training_config['batch_size'] = args.batch_size
 else :
     print(f"Invalid batch size provided: {args.batch_size}. Using value from config: {training_config['batch_size']}.")
+
+# Number of workers
+if args.num_workers is not None and args.num_workers >= 0 :
+    dataloader_config['num_workers'] = args.num_workers
+else :
+    if 'num_workers' in dataloader_config :
+        print(f"Invalid number of workers provided: {args.num_workers}. Using value from config: {dataloader_config['num_workers']}.")
+    else :
+        print(f"Invalid number of workers provided: {args.num_workers}. No value found in the training config. Using default value: 0.")
+        dataloader_config['num_workers'] = 0
+
+# Prefetch factor
+if args.prefetch_factor is not None and args.prefetch_factor > 0 :
+    dataloader_config['prefetch_factor'] = args.prefetch_factor
+else :
+    if 'prefetch_factor' in dataloader_config :
+        print(f"Invalid prefetch factor provided: {args.prefetch_factor}. Using value from config: {dataloader_config['prefetch_factor']}.")
+    else :
+        if dataloader_config['num_workers'] > 0 :
+            print(f"Invalid prefetch factor provided: {args.prefetch_factor}. No value found in the training config. Using default value: 2 (torch default when num_workers > 0).")
+            dataloader_config['prefetch_factor'] = 2
+        else :
+            print(f"Invalid prefetch factor provided: {args.prefetch_factor}. No value found in the training config. Using default value: None (required when num_workers = 0).")
+            dataloader_config['prefetch_factor'] = None
+
+# Save dataloader config
+training_config['dataloader_config'] = dataloader_config
 
 # MOVED DIRECTLY to optimizer config
 # Learning rate
@@ -354,6 +388,11 @@ else :
     training_config['use_pretrained_swin'] = None
     training_config['use_swin_normalization_values'] = None
     training_config['swin_training_mode'] = None
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if args.vav_training is not None and args.vav_training is True :
+    training_config['vav_training'] = True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
