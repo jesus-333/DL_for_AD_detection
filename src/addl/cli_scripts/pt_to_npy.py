@@ -31,8 +31,7 @@ from addl.dataset import support_dataset
 
 def pt_to_npy(args, reverse : bool = False) -> None:
     """
-    Convert all pt (or pth) file in a folder to a single npy file. If reverse is True, convert all npy files in a folder to pt files.
-
+    Convert all pt (or pth) file in a folder to npy files. If reverse is True, convert all npy files in a folder to pt files.
     Note that all the pt (or npy) files inside the specified dataset folder will be converted to npy (or pt) files. This means both in the root folder and in all the subfolders.
 
     Parameters
