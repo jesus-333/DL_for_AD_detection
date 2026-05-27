@@ -20,8 +20,25 @@ except ImportError :
 
 
 class MRI_dataset_HDF5(torch.utils.data.Dataset) :
+    """
+    Class to load MRI data from HDF5 files. The HDF5 file is organized in chunks, where each chunk corresponds to a sample (i.e., a 3D volume).
+    This allows to efficiently load large datasets that do not fit in memory, as only the required chunk is loaded when the __getitem__ method is called.
 
-    def __init__(self, path_data : str, labels : list, print_var : bool = True) :
+    Parameters
+    ----------
+    path_data : str
+        Path to the HDF5 file containing the data.
+    labels : list
+        List of labels corresponding to the samples in the HDF5 file. The length of this list must be equal to the number of samples in the HDF5 file (i.e., the number of chunks).
+    idx_to_use : list, optional
+        List of indices of the samples to use. If None, all samples are used.
+        If used, when you call the __getitem__ method with an index i, the sample returned will be the one corresponding to the index idx_to_use[i] in the HDF5 file. Default is None.
+        This option was added to allow the use of a subset of samples with the HDF5 format (e.g. for training/validation split)
+    print_var : bool, optional
+        If True, print some variables to check that the dataset is loaded correctly. Default is True.
+    """
+
+    def __init__(self, path_data : str, labels : list, idx_to_use : list = None, print_var : bool = True) :
 
         # Check that the HDF5 file exists and is valid
         if not os.path.isfile(path_data) :
@@ -32,21 +49,30 @@ class MRI_dataset_HDF5(torch.utils.data.Dataset) :
         # Store the path to the HDF5 file. The file will be opened lazily when the __getitem__ method is called for the first time.
         self.path_data = path_data
         if print_var : print(f"HDF5 file found at path {path_data} and is valid. Path stored.")
-
+        
+        # Save labels
         self.labels = torch.asarray(labels)
         if print_var : print("Labels loaded.")
+        
+        # Save idx_to_use
+        self.idx_to_use = idx_to_use
         
         # Note that the HDF5 file is not opened here, but it will be opened lazily when the __getitem__ method is called for the first time.
         # This is because the HDF5 file cannot be shared between different workers of the DataLoader, so each worker will have its own handle to the file, which will be opened when needed.
         self.hdf5_file = None # opened lazily per worker
 
     def __len__(self):
-        return len(self.labels)
+        if self.idx_to_use is not None :
+            return len(self.idx_to_use)
+        else :
+            return len(self.labels)
 
     def __getitem__(self, idx):
-        # each DataLoader worker gets its own handle
-        if self.hdf5_file is None :
-            self.hdf5_file = h5py.File(self.path_data, "r", swmr = True)
+        # Each DataLoader worker gets its own handle
+        if self.hdf5_file is None : self.hdf5_file = h5py.File(self.path_data, "r", swmr = True)
+        
+        # (OPTIONAL) If idx_to_use is not None, get idx_to_use[idx] instead of idx.
+        if self.idx_to_use is not None : idx = self.idx_to_use[idx]
         
         # Read the volume corresponding to the given index. Note that the HDF5 file is organized in chunks, so this operation reads exactly one chunk of data, which is efficient even for large datasets that do not fit in memory.
         # Note that to work properly, you must use chunk with the same shape of the samples.
@@ -55,4 +81,3 @@ class MRI_dataset_HDF5(torch.utils.data.Dataset) :
         return torch.from_numpy(volume)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
