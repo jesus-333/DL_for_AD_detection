@@ -58,9 +58,9 @@ def nii_to_hdf5_func(args) -> None:
         if len(nii_files_list) == 0 :
             raise ValueError(f"No nii files found in the specified dataset folder '{args.dataset_folder}' that contain the string '{args.filter}' in their name. Please specify a valid path to the folder with the nii files and/or a valid filter string.")
 
+    n_elements_to_flush = int(0.05 * len(nii_files_list)) if len(nii_files_list) >= 20 else 2
     if args.debug :
         print(f"Find {len(nii_files_list)} nii files to convert in the specified dataset folder '{args.dataset_folder}'.")
-        n_elements_to_print = int(0.05 * len(nii_files_list)) if len(nii_files_list) >= 20 else 2
 
     # ***************************************
     # (OPTIONAL) Load labels
@@ -226,31 +226,31 @@ def nii_to_hdf5_func(args) -> None:
                 channel_squared_sum += np.sum(sample ** 2)
                 total_voxels += sample.shape[0] * sample.shape[1] * sample.shape[2]
 
-            # Print debug information
-            if args.debug and (i % n_elements_to_print == 0 or i == len(nii_files_list) - 1) :
-                print(f"Processing file {i + 1} / {len(nii_files_list)}\t({round((i + 1) / len(nii_files_list) * 100, 2)}%)")
+            if i % n_elements_to_flush == 0 or i == len(nii_files_list) - 1 :
+                # Print debug information
+                if args.debug : print(f"Processing file {i + 1} / {len(nii_files_list)}\t({round((i + 1) / len(nii_files_list) * 100, 2)}%)")
 
-        if args.debug : print(f"Conversion completed successfully. hdf5 file saved at '{path_dataset_file}'.")
+    if args.debug : print(f"Conversion completed successfully. hdf5 file saved at '{path_dataset_file}'.")
 
-        # ***************************************
-        # (OPTIONAL) Post-processing after the conversion
+    # ***************************************
+    # (OPTIONAL) Post-processing after the conversion
 
-        # Save the dataset_info_csv dataframe as a csv file in the same folder as the hdf5 file
-        if labels_dict is not None :
-            dataset_info_csv.to_csv(path_dataset_info_csv, index = False)
-            if args.debug : print(f"Dataset info csv file saved at '{path_dataset_info_csv}'.")
+    # Save the dataset_info_csv dataframe as a csv file in the same folder as the hdf5 file
+    if labels_dict is not None :
+        dataset_info_csv.to_csv(path_dataset_info_csv, index = False)
+        if args.debug : print(f"Dataset info csv file saved at '{path_dataset_info_csv}'.")
 
 
-        # Compute mean and std of the dataset and save them in npy files in the same folder as the hdf5 file
-        if args.compute_stats :
-            # Compute mean
-            mean = channel_sum / total_voxels
-            np.save(os.path.join(output_folder, "dataset_mean.npy"), mean)
-            
-            # Compute std
-            std = np.sqrt((channel_squared_sum / total_voxels) - (mean ** 2))
-            np.save(os.path.join(output_folder, "dataset_std.npy"), std)
+    # Compute mean and std of the dataset and save them in npy files in the same folder as the hdf5 file
+    if args.compute_stats :
+        # Compute mean
+        mean = channel_sum / total_voxels
+        np.save(os.path.join(output_folder, "dataset_mean.npy"), mean)
+        
+        # Compute std
+        std = np.sqrt((channel_squared_sum / total_voxels) - (mean ** 2))
+        np.save(os.path.join(output_folder, "dataset_std.npy"), std)
 
-            if args.debug : print(f"Dataset mean and std computed and saved at '{output_folder}'. Mean: {mean}, Std: {std}.")
+        if args.debug : print(f"Dataset mean and std computed and saved at '{output_folder}'. Mean: {mean}, Std: {std}.")
 
 
