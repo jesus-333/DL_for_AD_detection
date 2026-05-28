@@ -81,6 +81,7 @@ class vav(torch.nn.Module) :
         x : torch.tensor
             Input tensor of shape B x X x Y x Z, where B is the batch size, X, Y and Z are the dimensions of the input volume.
             The input tensor follow the NifTi convention, where the first dimension (X) corresponds to the sagittal direction, the second dimension (Y) corresponds to the coronal direction and the third dimension (Z) corresponds to the axial direction.
+            (TODO CHECK IF THE ORDER IS CORRECT. Even if it is wrong, It will not affect the final model output due to input permutation... it will only caused a mismatch between the name of the vit module and which direction is effectively processed by that module)
 
         Returns
         -------
@@ -90,8 +91,8 @@ class vav(torch.nn.Module) :
 
         # Compute the embeddings for each direction using the corresponding ViT. The input x is expected to be a dictionary with keys 'axial', 'sagittal' and 'coronal', each containing a tensor of shape B x C x H x W, where B is the batch size, C is the number of channels, H and W are the height and width of the slices in that direction.
         embeddings_axial    = self.vit_axial(x)
-        embeddings_sagittal = self.vit_sagittal(x)
-        embeddings_coronal  = self.vit_coronal(x)
+        embeddings_sagittal = self.vit_sagittal(x.permute(0, 2, 1, 3))  # Permute the input tensor to have the sagittal slices along the sequence dimension for the sagittal ViT.
+        embeddings_coronal  = self.vit_coronal(x.permute(0, 3, 1, 2))  # Permute the input tensor to have the coronal slices along the sequence dimension for the coronal ViT.
 
         if self.analyze_directions_independently :
             # Process the embeddings for each direction with the corresponding transformer encoder to produce a single embedding for the whole volume for that direction. 
