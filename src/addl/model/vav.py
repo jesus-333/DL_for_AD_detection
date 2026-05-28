@@ -177,7 +177,8 @@ class vit_encoder(torch.nn.Module) :
         batch_size, num_slices, height, width = x.shape
         
         # Reshape tensor x to have shape (B*S) x 1 x H x W. This way we can pass all the slices through the ViT at once exploiting the batch dimension, instead of iterating over the slices and passing them one by one through the ViT, which would be more inefficient.
-        x = x.view(-1, 1, height, width)
+        # The contiguous() function is used to ensure that the tensor is stored in a contiguous block of memory, which is required for the view() function to work correctly. The view() function is then used to reshape the tensor to the desired shape.
+        x = x.contiguous().view(-1, 1, height, width)
 
         # Compute the embeddings for all slices at once
         embeddings = self.vit(x)
