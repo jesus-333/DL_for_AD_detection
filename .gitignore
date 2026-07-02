@@ -16,6 +16,7 @@ scripts_sh/**/*.toml
 scripts_sh/**/*.txt
 scripts_sh/**/**/*.toml
 scripts_python/**/*.toml
+!scripts_python/training_FL/ADNI_vgg_fedavg_with_wandb/config/template/*.toml
 dist/
 config/test_code/
 config/test_code_FL/
