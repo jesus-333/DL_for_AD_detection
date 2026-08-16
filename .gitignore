@@ -30,3 +30,4 @@ scripts_sh_V2/config/training_hpc
 scripts_sh_V2/output
 /src/model/references
 /scripts_sh_V2/config/debug
+/scripts_python/plot/plot_bias_demnet.py

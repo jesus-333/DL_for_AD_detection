@@ -14,7 +14,7 @@ echo "====================================="
 path_src="./"
 
 # Config files paths.
-model_name="demnet"
+model_name="vav"
 optimizer="AdamW"
 lr_scheduler="ExponentialLR"
 
@@ -27,11 +27,9 @@ lr_scheduler="ExponentialLR"
 
 # Data paths and names.
 # Remember that to modify the dataset you have ALSO to modify the data path inside the dataset.toml
-path_data="data/ADNI_MRI_Normalized_middle_slice/" 
-name_tensor_file="dataset_tensor___176_resize.pt"
-name_tensor_file="dataset_tensor___176_resize.pt"
+path_data="data/3D_MRI_data_for_test/" 
 path_to_idx_files="${path_data}CENT_idx_${seed}/"
-percentage_data_used_for_training=0.8
+percentage_data_used_for_training=0.9
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script variables (equivalent to the slurm variables section of the 0_launch_sbatch_cent).
@@ -49,7 +47,7 @@ path_dataset_config="./scripts_sh_V2/config/dataset.toml"
 path_model_training_config="./scripts_sh_V2/config/training.toml"
 path_optimizer_config="./scripts_sh_V2/config/optimizer_${optimizer}.toml"
 path_lr_scheduler_config="./scripts_sh_V2/config/lr_sched_${lr_scheduler}.toml"
-path_model_config="./scripts_sh_V2/config/model_${model_name}_tiny.toml"
+path_model_config="./scripts_sh_V2/config/model_${model_name}.toml"
 
 mkdir -p ./scripts_sh_V2/config/debug/${job_name}/
 

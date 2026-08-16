@@ -51,3 +51,4 @@ npy-to-pt 	= "addl.cli:npy_to_pt"
 get-hdf5-dataset-length = "addl.cli:get_hdf5_dataset_length"
 
 wandb-get-run-status = "addl.cli:wandb_get_run_status"
+wandb-download-project-runs-metrics = "addl.cli:wandb_download_project_runs_metrics"
