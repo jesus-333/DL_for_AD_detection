@@ -14,9 +14,9 @@ echo "====================================="
 path_src="./"
 
 # Config files paths.
-model_name="vit"
+model_name="vav"
 optimizer="AdamW"
-lr_scheduler="CosineAnnealingWarmRestarts"
+lr_scheduler="ExponentialLR"
 
 # Remember that for demnet you have to set use_rgb_input to false inside dataset.toml
 # Also if you have problem with NUM_CLASSES and MERGE_AD_CLASS remember to read the note you write in demnet.sh, at the end of `Prepare data` section.
@@ -26,27 +26,35 @@ lr_scheduler="CosineAnnealingWarmRestarts"
 # IF you do not want to use any LR scheduler you have to add the optional flag --no-use_scheduler\ directly inside the script.
 
 # Data paths and names.
-# Remember that to modify the dataset you have to modify the data path INSIDE the dataset.toml
-# path_data="data/ADNI_MRI_Normalized_middle_slice/" 
+# path_data="data/ADNI_MRI_Normalized_middle_slice/" 		 # Folder with 2D images saved on a single tensor
 # name_tensor_file="dataset_tensor___176_resize.pt"
+
+path_data="${SCRATCH}ADNI_MRI_NORMALIZED_DECOMPRESSED/"  # Folder with 3D MRI Volume saved on HDF5
+name_hdf5_file="dataset_minmax.h5"
+
 path_to_idx_files="${path_data}CENT_idx_${seed}/"
+
+# Note 
+# (OLD) Remember that to modify the dataset you have to modify the data path INSIDE the dataset.toml
+# (NEW) I add a "python ./scripts_python/training/update_dataset_config.py\" after copying the config file so the new dataset config will be updated
+# 		I add that part because HDF5 file are stored in ${SCRATCH} and toml file do not resolve environment variables.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Slurm variables.
 
 # Sbatch settings
-partition="gpu" # l40s, hopper, gpu
+partition="hopper" # l40s, hopper, gpu
 qos="normal" # besteffort, iris-hopper, normal
-mem="10G"
-time="28:13:00"
-output="./scripts_sh_V2/output/${model_name}/out_%x_%j.txt"
-error="./scripts_sh_V2/output/${model_name}/err_%x_%j.txt"
+mem="80G"
+time="05:30:00"
+output="./scripts_sh_V2/output/${model_name}/out_%j_%x.txt"
+error="./scripts_sh_V2/output/${model_name}/err_%j_%x.txt"
 
 # Script that will be launched with sbatch. Selected based on the model name.
 script_name="./scripts_sh_V2/${model_name}_cent.sh"
 
 # Job name (modify as needed)
-job_name="grokking_${model_name}_${seed}"
+job_name="debug_${model_name}_${seed}"
 
 if [ $partition = "l40s" ] ; then
 	qos="besteffort"
@@ -71,8 +79,8 @@ path_lr_scheduler_config="./scripts_sh_V2/config/lr_sched_${lr_scheduler}.toml"
 
 # Path for model config (file to copy)
 # path_model_config="./scripts_sh_V2/config/model_${model_name}_micro.toml"
-path_model_config="./scripts_sh_V2/config/model_${model_name}_tiny.toml"
-# path_model_config="./scripts_sh_V2/config/model_${model_name}.toml"
+# path_model_config="./scripts_sh_V2/config/model_${model_name}_tiny.toml"
+path_model_config="./scripts_sh_V2/config/model_${model_name}.toml"
 
 # Create the folder for the config files
 # TODO Create a variable and use it also for the path
@@ -91,6 +99,12 @@ cp ${path_model_training_config} ${new_path_training_config}
 cp ${path_optimizer_config} ${new_path_optimizer_config}
 cp ${path_lr_scheduler_config} ${new_path_lr_scheduler_config}
 cp ${path_model_config} ${new_path_model_config}
+
+# Minor update dataset config
+python ./scripts_python/training/update_dataset_config.py\
+	--path_dataset_config=${new_path_dataset_config}\
+	--path_data=${path_data}\
+	--name_hdf5_file=${name_hdf5_file}\
 
 # Print seed and paths
 # TODO finish this section
