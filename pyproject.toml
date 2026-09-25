@@ -25,6 +25,7 @@ authors = [
 description = "A project focused on the analysis of Alzheimer's disease (AD) detection through Deep Learning (DL)"
 dependencies = [
     "flwr[simulation]",
+	"h5py",
 	"numpy",
 	"matplotlib",
 	"nibabel",

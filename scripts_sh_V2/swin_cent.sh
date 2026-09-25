@@ -86,6 +86,7 @@ srun python ./scripts_python/training/update_training_config.py\
 	--no-fl_training\
 	--no-vgg_training\
 	--swin_training\
+	--no-use_scheduler\
 
 srun python ./scripts_python/training/swin_transformer_centralized_V2.py\
 	--path_src="${path_src}"\

@@ -1,8 +1,8 @@
 # General training parameters
 # Optimizer and lr scheduler have their own separate config files.
 # The lr is set inside 
-batch_size = 2
-epochs = 5
+batch_size = 128
+epochs = 50000
 use_scheduler = true
 device = "mps"
 epoch_to_save_model = -1
@@ -18,8 +18,9 @@ notes = ""
 log_freq = 1
 debug = false
 entity = "alberto_zancanaro_academic"
-project_name = "VAV_Experiment"
-name_training_run = "test_backup"
+project_name = "ViT_Grokking_Experiment"
+# name_training_run = "NO BATCH NORM - decay 1e-1 - Batch 64 - Betas 0.98 - Micro Size - lr 5e-4"
+name_training_run = "decay 3e-1 - Batch 128 - Betas 0.98 - Tiny Size - lr 1e-3"
 log_model_artifact = false
 model_artifact_name = "model"
 
@@ -28,6 +29,9 @@ vgg_training = false
 use_pretrained_vgg = false
 use_vgg_normalization_values = true
 vgg_training_mode = 1
+
+# ViT training
+vit_training = false
 
 # Swin parameters (i.e. used only if swin_training is true)
 swin_training = false

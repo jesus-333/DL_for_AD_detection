@@ -53,6 +53,7 @@ PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${SLURM_JOB_I
 # Path to data
 # PATH_DATA="data/ADNI_axial_3D_z_${input_channels}_size_${input_size}_int/" 
 PATH_DATA="data/ADNI_axial_middle_slice/" 
+PATH_DATA="data/ADNI_MRI_Normalized_middle_slice/" 
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
 path_to_save_idx_file="${PATH_DATA}FL_idx_${SLURM_JOB_ID}/"
 # path_to_save_idx_file="${PATH_DATA}EXPERIMENT_3_CLIENTS_V2/"
@@ -98,7 +99,7 @@ input_size=176
 
 # Wandb Setting
 project_name="demnet_FL_V2_all_classes_SUBJ_div"
-project_name="DEBUG_DEMNET"
+project_name="demnet_FL_random_PAPER"
 
 # FL settings (Training)
 num_clients=-1

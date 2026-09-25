@@ -72,7 +72,8 @@ class MRI_dataset_HDF5(torch.utils.data.Dataset) :
 
     def __getitem__(self, idx):
         # Each DataLoader worker gets its own handle
-        if self.hdf5_file is None : self.hdf5_file = h5py.File(self.path_data, "r", swmr = True)
+        # if self.hdf5_file is None : self.hdf5_file = h5py.File(self.path_data, "r", swmr = True)
+        if self.hdf5_file is None : self.hdf5_file = h5py.File(self.path_data, "r")
         
         # (OPTIONAL) If idx_to_use is not None, get idx_to_use[idx] instead of idx.
         if self.idx_to_use is not None : idx = self.idx_to_use[idx]

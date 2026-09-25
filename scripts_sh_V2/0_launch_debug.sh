@@ -27,6 +27,10 @@ lr_scheduler="ExponentialLR"
 
 # Data paths and names.
 # Remember that to modify the dataset you have ALSO to modify the data path inside the dataset.toml
+path_data="${SCRATCH}ADNI_MRI_NORMALIZED_DECOMPRESSED/" 
+path_data="data/ADNI_MRI_Normalized_middle_slice/" 
+name_tensor_file="dataset_tensor___176_resize.pt"
+name_hdf5_file="dataset_minmax.h5"
 path_data="data/3D_MRI_data_for_test/" 
 path_to_idx_files="${path_data}CENT_idx_${seed}/"
 percentage_data_used_for_training=0.9
@@ -51,11 +55,25 @@ path_model_config="./scripts_sh_V2/config/model_${model_name}.toml"
 
 mkdir -p ./scripts_sh_V2/config/debug/${job_name}/
 
-cp ${path_dataset_config} ./scripts_sh_V2/config/debug/${job_name}/dataset.toml
-cp ${path_model_training_config} ./scripts_sh_V2/config/debug/${job_name}/training.toml
-cp ${path_optimizer_config} ./scripts_sh_V2/config/debug/${job_name}/optimizer.toml
-cp ${path_lr_scheduler_config} ./scripts_sh_V2/config/debug/${job_name}/lr_scheduler.toml
-cp ${path_model_config} ./scripts_sh_V2/config/debug/${job_name}/model.toml
+# New locations for the config file
+new_path_dataset_config="./scripts_sh_V2/config/debug/${job_name}/dataset.toml"
+new_path_training_config="./scripts_sh_V2/config/debug/${job_name}/training.toml"
+new_path_optimizer_config="./scripts_sh_V2/config/debug/${job_name}/optimizer.toml"
+new_path_lr_scheduler_config="./scripts_sh_V2/config/debug/${job_name}/lr_scheduler".toml
+new_path_model_config="./scripts_sh_V2/config/debug/${job_name}/model.toml"
+
+# Copy config in the new path
+cp ${path_dataset_config} ${new_path_dataset_config}
+cp ${path_model_training_config} ${new_path_training_config}
+cp ${path_optimizer_config} ${new_path_optimizer_config}
+cp ${path_lr_scheduler_config} ${new_path_lr_scheduler_config}
+cp ${path_model_config} ${new_path_model_config}
+
+# Minor update dataset config
+python ./scripts_python/training/update_dataset_config.py\
+	--path_dataset_config=${new_path_dataset_config}\
+	--path_data=${path_data}\
+	--name_hdf5_file=${name_hdf5_file}\
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Submit job
