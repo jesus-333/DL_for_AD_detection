@@ -7,9 +7,9 @@ name_tensor_file = "dataset_tensor___176_resize.pt"
 name_hdf5_file = "dataset.h5"
 
 # Split settings
-percentage_train = 0.9
+percentage_train = 0.5
 percentage_test = 0.0
-percentage_validation = 0.1
+percentage_validation = 0.5
 
 # Labels seettings
 filter_AD_data = false

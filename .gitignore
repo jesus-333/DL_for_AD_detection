@@ -31,3 +31,4 @@ scripts_sh_V2/output
 /src/model/references
 /scripts_sh_V2/config/debug
 /scripts_python/plot/plot_bias_demnet.py
+/scripts_python/plot
