@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 epochs = 100
-starting_lr = 1e-4
+starting_lr = 1e-3
 
 # Parameter of ExponentialLR
 gamma_exp = 0.97
@@ -22,8 +22,8 @@ T_max = 12
 eta_min = 1e-4
 
 # Parameters of CosineAnnealingWarmRestarts
-T_0 = 12
-T_mult = 1
+T_0 = 2
+T_mult = 2
 eta_min = 1e-4
 
 # Parameters of CyclicLR
@@ -63,22 +63,22 @@ lrs_exp = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
 optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
 lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = T_max, eta_min = eta_min)
 lrs_cos = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
-list_lrs_to_plot.append(lrs_cos)
-name_lrs_to_plot.append('CosineAnnealingLR')
+# list_lrs_to_plot.append(lrs_cos)
+# name_lrs_to_plot.append('CosineAnnealingLR')
 
 # Simulate CosineAnnealingWarmRestarts
 optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
 lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0 = T_0, T_mult = T_mult, eta_min = eta_min)
 lrs_cos_warm = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
-# list_lrs_to_plot.append(lrs_cos_warm)
-# name_lrs_to_plot.append('CosineAnnealingWarmRestarts')
+list_lrs_to_plot.append(lrs_cos_warm)
+name_lrs_to_plot.append('CosineAnnealingWarmRestarts')
 
 # Simulate CyclicLR
 optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
 lr_scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr = base_lr, max_lr = max_lr, gamma = gamma, step_size_up = step_size_up, step_size_down = step_size_down, mode = mode)
 lrs_cyc = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
-list_lrs_to_plot.append(lrs_cyc)
-name_lrs_to_plot.append('CyclicLR')
+# list_lrs_to_plot.append(lrs_cyc)
+# name_lrs_to_plot.append('CyclicLR')
 
 # optimizer = torch.optim.AdamW(model.parameters(), lr = starting_lr)
 # lr_scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr = base_lr, max_lr = 0.003, gamma = gamma, step_size_up = step_size_up, step_size_down = step_size_down, mode = mode)
@@ -94,8 +94,8 @@ schedulers_list = [
 ]
 lr_scheduler = torch.optim.lr_scheduler.ChainedScheduler(schedulers_list, optimizer)
 lrs_chained_1 = simulate_lr_scheduler(lr_scheduler, optimizer, epochs)
-list_lrs_to_plot.append(lrs_chained_1)
-name_lrs_to_plot.append('ExponentialLR + CosineAnnealingLR')
+# list_lrs_to_plot.append(lrs_chained_1)
+# name_lrs_to_plot.append('ExponentialLR + CosineAnnealingLR')
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Plot the learning rates

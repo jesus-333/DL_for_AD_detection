@@ -28,8 +28,12 @@ lr_scheduler="ExponentialLR"
 # Data paths and names.
 # Remember that to modify the dataset you have ALSO to modify the data path inside the dataset.toml
 path_data="${SCRATCH}ADNI_MRI_NORMALIZED_DECOMPRESSED/" 
+path_data="data/ADNI_MRI_Normalized_middle_slice/" 
+name_tensor_file="dataset_tensor___176_resize.pt"
 name_hdf5_file="dataset_minmax.h5"
+path_data="data/3D_MRI_data_for_test/" 
 path_to_idx_files="${path_data}CENT_idx_${seed}/"
+percentage_data_used_for_training=0.9
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script variables (equivalent to the slurm variables section of the 0_launch_sbatch_cent).

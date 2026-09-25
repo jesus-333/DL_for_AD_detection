@@ -96,12 +96,11 @@ def compute_specificity_binary(true_label, predict_label):
     cm = confusion_matrix(true_label, predict_label)
     
     # Get True Negative and False positive
-    TN = cm[1, 1]
-    FP = cm[1, 0]
-    
-    # Compute specificity
-    specificity = TN / (TN + FP)
+    TN = cm[0, 0]
+    FP = cm[0, 1]
 
+    # Compute specificity
+    specificity = TN / (TN + FP) if (TN + FP) > 0 else 0.0
     return specificity
 
 def compute_multiclass_confusion_matrix(true_label, predict_label):

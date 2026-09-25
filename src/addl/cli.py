@@ -150,7 +150,7 @@ def wandb_get_run_status() -> None :
     Given entity, project, and run id return the status of the current run (if exist) and print it in the terminal.
     """
 
-    from .cli_scripts import wandb_interactions
+    from .cli_scripts import wandb_scripts
 
     # ***************************************
     # Command-line arguments parsing
@@ -164,5 +164,26 @@ def wandb_get_run_status() -> None :
     # ***************************************
 
     # Call the function that implements the cli command
-    wandb_interactions.get_run_status(args)
+    wandb_scripts.get_run_status(args)
+
+def wandb_download_project_runs_metrics() -> None :
+    """
+
+    """
+
+    from .cli_scripts import wandb_scripts
+
+    # ***************************************
+    # Command-line arguments parsing
+
+    parser = argparse.ArgumentParser(prog = "wandb-get-run-status", description = "Given entity and project download all the metrics for all the runs of that project and save them in a json file")
+    parser.add_argument("--entity"   , default = None, required = True , help = "The entity of the run. This is the name of the user or team that owns the run.")
+    parser.add_argument("--project"  , default = None, required = True , help = "The project of the run. This is the name of the project that contains the run.")
+    parser.add_argument("--path_save", default = None, required = False, help = "The path where the json file with the metrics will be saved. If not specified, the json file will be saved in the current working directory with the name 'wandb_metrics.json'.")
+    args = parser.parse_args()
+
+    # ***************************************
+
+    # Call the function that implements the cli command
+    wandb_scripts.download_project_runs_metrics(args)
     
