@@ -7,8 +7,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=25G
-#SBATCH --time=0-07:50:00
+#SBATCH --mem=50G
+#SBATCH --time=1-00:00:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
 #SBATCH --output=./scripts_sh/train_scripts_paper/output/std_output_%x_%j.txt
@@ -75,26 +75,25 @@ rescale_factor=4095
 
 # Training settings
 batch_size=192
-epochs=10
+epochs=5
 device="cuda"
 epoch_to_save_model=-1
-path_to_save_model="model_weights/VGG_ADNI_FL_paper_Random_Split/exp_lr_SGD_${SLURM_JOB_ID}"
+path_to_save_model="model_weights/VGG_ADNI_FL_subject_aware_Split/exp_lr_SGD_${SLURM_JOB_ID}"
 vgg_training_mode=0 # See set_training_mode method in the VGG class for more details on the training modes (vgg_nets.py file)
 vgg_version=16
 
 # Optimizer config
 lr=1e-3
-name_optimizer='AdamW'
-beta_low=0.9
-beta_high=0.999
-eps=1e-8
+name_optimizer='SGD'
+momentum=0.9
 weight_decay=1e-5
+dampening=0
 
 # Lr scheduler settings
 gamma=0.95
 
 # Information about data used for model_config
-input_channels=3
+input_channels=1
 input_size=176
 
 # FL settings (Training)
@@ -109,7 +108,7 @@ num_gpus=1
 max_gpu_allowed=1
 
 # Wandb Setting
-project_name="VGG_FL_random_partioning_PAPER"
+project_name="VGG_FL_subject_aware_PAPER"
 name_training_run="${num_clients}_clients"
 
 # Always check use_vgg_normalization_values and use_rgb_input, use_pretrained_vgg
@@ -126,7 +125,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Prepare data
 
-	srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations.py\
+	srun python ./scripts_python/data_manipulation/create_idx_files_for_federated_simulations_2.py\
 		--path_data=${PATH_DATA}\
 		--name_tensor_file=${NAME_TENSOR_FILE}\
 		--path_to_save=${path_to_save_idx_file}\
@@ -134,7 +133,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--num_clients=${num_clients}\
 		--seed=${seed}\
 		--no-use_cross_fold_validation\
-		--keep_labels_proportion\
+		--keep_samples_proportion\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Reset config files (Note that this reset only the config for the client side)
@@ -183,7 +182,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--no-apply_rescale\
 		--rescale_factor=${rescale_factor}\
 		--use_normalization\
-		--use_rgb_input\
+		--no-use_rgb_input\
 		--load_data_in_memory\
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -222,11 +221,10 @@ for repetition in $(seq 1 $n_repetitions); do
 		--path_optimizer_config="${PATH_OPTIMIZER_CONFIG}"\
 		--name="${name_optimizer}"\
 		--lr=${lr}\
-		--betas ${beta_low} $beta_high\
-		--eps=${eps}\
+		--momentum=${momentum}\
 		--weight_decay=${weight_decay}\
-		--no-amsgrad\
-		--no-maximize\
+		--dampening=${dampening}\
+		# --nestorov\
 
 	# Update learning rate scheduler config
 	srun python ./scripts_python/training/update_lr_scheduler.py\
@@ -262,6 +260,8 @@ for repetition in $(seq 1 $n_repetitions); do
 	srun flwr run ./scripts_python/training_FL/ADNI_vgg_fedavg_with_wandb/\
 		--federation-config "options.num-supernodes=${num_clients} options.backend.client-resources.num-cpus=${num_cpus} options.backend.init_args.num_cpus=${max_cpu_allowed} options.backend.client-resources.num-gpus=${num_gpus} options.backend.init_args.num_gpus=${max_gpu_allowed}"\
 		--run-config "path_dataset_config=\"${PATH_DATASET_CONFIG}\" path_model_config=\"${PATH_MODEL_CONFIG_SAVE}\" path_server_config=\"${PATH_SERVER_CONFIG}\" path_training_config=\"${PATH_TRAINING_CONFIG}\""\
+	
+	# Since VGG weights are 0.5GB each I moved to ${SCRATCH} partition to avoid filling all the disk quota
+	mv -v "${path_to_save_model}" "${SCRATCH}/paper_backup/"
 
 done # End of the for loop for repetitions
-
