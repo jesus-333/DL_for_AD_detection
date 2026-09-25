@@ -1,7 +1,7 @@
 # General training parameters
 # Optimizer and lr scheduler have their own separate config files.
 # The lr is set inside 
-batch_size = 128
+batch_size = 2
 epochs = 5
 use_scheduler = true
 device = "mps"
