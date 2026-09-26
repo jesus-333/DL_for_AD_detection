@@ -11,8 +11,8 @@
 #SBATCH --time=0-06:55:00
 #SBATCH --mail-user=alberto.zancanaro@uni.lu
 #SBATCH --mail-type=end,fail 
-#SBATCH --output=./scripts_sh/train_scripts_paper/output/std_output_%x_%j.txt
-#SBATCH --error=./scripts_sh/train_scripts_paper/output/other_output_%x_%j.txt
+#SBATCH --output=./scripts_sh/train_scripts_submission/partial_leakage/output/std_output_%x_%j.txt
+#SBATCH --error=./scripts_sh/train_scripts_submission/partial_leakage/output/other_output_%x_%j.txt
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # This training used
@@ -68,7 +68,7 @@ path_to_save_idx_file="${PATH_DATA}FL_idx_partial_leakage_${SLURM_JOB_ID}/"
 percentage_data_used_for_training=0.9
 seed=${SLURM_JOB_ID}
 # seed=2627151565
-n_repetitions=5
+n_repetitions=1
 
 # Dataset settings for each client
 merge_AD_class=0
@@ -106,6 +106,7 @@ input_size=176
 # FL settings (Training)
 num_clients=20
 num_rounds=100
+rounds_to_save_model=5
 fraction_fit=1
 
 # FL settings (Hardware)
@@ -115,7 +116,7 @@ num_gpus=1
 max_gpu_allowed=1
 
 # Wandb Setting
-project_name="demnet_FL_subject_aware_PAPER"
+project_name="demnet_FL_partial_leak_PAPER"
 name_training_run="${num_clients}_clients"
 
 # Always check use_vgg_normalization and use_rgb_input, use_pretrained_vgg
@@ -165,6 +166,7 @@ for repetition in $(seq 1 $n_repetitions); do
 	# 	echo "INVALID VALUE FOR merge_AD_class in the shell script"
 	# 	num_classes=-1
 	# fi
+	
 	num_classes=3
 	echo "NUM CLASSES ${num_classes}"
 
@@ -200,6 +202,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--path_server_config="${PATH_SERVER_CONFIG}"\
 		--num_rounds=${num_rounds}\
 		--num_clients=${num_clients}\
+		--rounds_to_save_model={rounds_to_save_model}\
 		--fraction_fit=${fraction_fit}\
 		--fraction_evaluate=1.0\
 		--path_idx_server_data=${path_to_save_idx_file}\
