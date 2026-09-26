@@ -61,7 +61,7 @@ else : sys.path.append('./')
 import os
 import toml
 
-from src.training.support_training import check_optimizer_config
+from src.addl.training.support_training import check_optimizer_config
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

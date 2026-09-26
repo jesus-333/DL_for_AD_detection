@@ -22,7 +22,7 @@ Note that this script can create clients with a very different number of samples
 import argparse
 
 parser = argparse.ArgumentParser(description = 'Compute indices files for federated simulations from a dataset tensor file.')
-parser.add_argument('--n_sammples'                       , type = int  , default = None, help = 'Number of samples in the dataset. Used only if name_tensor_file is not provided.')
+parser.add_argument('--n_samples'                        , type = int  , default = None, help = 'Number of samples in the dataset. Used only if name_tensor_file is not provided.')
 parser.add_argument('--path_data'                        , type = str  , default = None, help = 'Path to the folder with the data. If not provided, it will use the value defined in this script.')
 parser.add_argument('--name_tensor_file'                 , type = str  , default = None, help = 'Name of the tensor file with the dataset. If not provided, it will use the value defined in this script.')
 parser.add_argument('--path_to_save'                     , type = str  , default = None, help = 'Path to the folder where the dataset will be saved. If not specified it will use the value defined in this script. If the folder does not exist it will be created.')
@@ -71,7 +71,7 @@ keep_samples_proportion = True
 
 # Check if arguments are passed through the command line
 # If the arguments are passed through the command line, they will overwrite the ones set inside the script
-if args.n_sammples is not None                        : n_samples = args.n_sammples
+if args.n_samples is not None                         : n_samples = args.n_samples
 if args.path_data is not None                         : path_data = args.path_data
 if args.name_tensor_file is not None                  : name_tensor_file = args.name_tensor_file
 if args.path_to_save is not None                      : path_to_save = args.path_to_save

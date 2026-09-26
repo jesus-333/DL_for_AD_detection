@@ -20,6 +20,7 @@ parser = argparse.ArgumentParser(description = 'Update the training configuratio
 parser.add_argument('--path_dataset_config'  , type = str  , default = './config/dataset.toml', help = 'Path to the toml file with the learning rate scheduler config. Default is ./config/dataset.toml')
 parser.add_argument('--path_data'            , type = str  , default = './data/'              , help = 'Path to the folder with the data. Note that this is not the path to a file (as in the case of the training config), but the path to the folder where the data is stored. Default is ./data/.')
 parser.add_argument('--name_tensor_file'     , type = str  , default = 'dataset_tensor.pt'    , help = 'Name of the tensor file with the dataset. This is usefull only if the data are stored in a single tensor file. Default is dataset_tensor.pt.')
+parser.add_argument('--name_hdf5_file'       , type = str  , default = 'dataset.h5'           , help = 'Name of the HDF5 file with the dataset.')
 parser.add_argument('--path_idx_folder'      , type = str  , default = None                   , help = 'Path to the folder where the indices are stored. Used only in FL. Default is None.')
 parser.add_argument('--merge_AD_class'       , type = int  , default = 0                      , help = 'Merge the AD class with the CN class. Default is 0 (do not merge). For the other options see the training script.')
 parser.add_argument('--percentage_train'     , type = float, default = 0.7                    , help = 'Percentage of the dataset to use for training. Default is 0.7.')
@@ -53,6 +54,7 @@ dataset_config['path_dataset_config'] = args.path_dataset_config
 # Save path to data folder and name of the tensor file
 dataset_config['path_data'] = args.path_data
 dataset_config['name_tensor_file'] = args.name_tensor_file
+dataset_config['name_hdf5_file'] = args.name_hdf5_file
 
 # Path to index folder (used only in FL)
 if args.path_idx_folder is not None :
