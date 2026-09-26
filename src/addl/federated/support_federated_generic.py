@@ -38,9 +38,9 @@ def split_data_for_clients(data, percentage_split_per_client : list, seed : int 
     
     # Get indices for each client
     if keep_labels_proportion :
-        idx_list = support_dataset.get_idx_to_split_data_V2(len(data), percentage_split_per_client, seed)
+        idx_list = support_dataset.get_idx_to_split_data_V3(labels, percentage_split_per_client, seed)
     else :
-        idx_list = support_dataset.get_idx_to_split_data_V3(len(data), percentage_split_per_client, seed)
+        idx_list = support_dataset.get_idx_to_split_data_V2(len(data), percentage_split_per_client, seed)
     
     # Variables to store data (and labels) for each client
     data_per_client = []
