@@ -99,6 +99,3 @@ for i in range(n_clients):
 assert set(subj_list_per_sample[idx_array_val_sa_split]) <= sa_set
 assert set(subj_list_per_sample[idx_array_val_random_split]) <= rnd_set
 
-
-
-
