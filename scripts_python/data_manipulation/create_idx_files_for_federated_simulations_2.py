@@ -26,7 +26,7 @@ parser.add_argument('--n_samples'                        , type = int  , default
 parser.add_argument('--path_data'                        , type = str  , default = None, help = 'Path to the folder with the data. If not provided, it will use the value defined in this script.')
 parser.add_argument('--name_tensor_file'                 , type = str  , default = None, help = 'Name of the tensor file with the dataset. If not provided, it will use the value defined in this script.')
 parser.add_argument('--path_to_save'                     , type = str  , default = None, help = 'Path to the folder where the dataset will be saved. If not specified it will use the value defined in this script. If the folder does not exist it will be created.')
-parser.add_argument('--percentage_data_used_for_training', type = float, default = None, help = 'Percentage of subjects to use for training (the rest will be used for validation). If not specified it will use the value defined in this script.')
+parser.add_argument('--percentage_data_used_for_training', type = float, default = None, help = 'Percentage of data to use for training (the rest will be used for validation). If not specified it will use the value defined in this script.')
 parser.add_argument('--num_clients'                      , type = int  , default = None, help = 'Number of clients to simulate. If not specified it will use the value defined in this script.')
 parser.add_argument('--seed'                             , type = int  , default = None, help = 'Random seed for reproducibility. It must be a positive integer. If not specified it will use the value defined in this script.')
 parser.add_argument('--n_folds'                          , type = int  , default = None, help = 'Number of folds for cross fold validation. If not specified it will use the value defined in this script.')
@@ -157,13 +157,13 @@ def create_train_val_split(subj_list : list, sample_per_subj : dict, min_sample_
 
 def divide_subj_per_client_uniformly(subj_list : list, num_clients : int) -> tuple :
     """
-    Divide the subjects uniformly between the clients. 
+    Divide the subjects uniformly between the clients.
     Each client will have roughly the same number of subjects, but not necessarily the same number of samples (since different subjects can have a different number of samples).
     """
     
     # Divide the subjects uniformly between the clients
-    np.random.shuffle(list_subj_train)
-    subj_per_client = np.array_split(list_subj_train, num_clients)
+    np.random.shuffle(subj_list)
+    subj_per_client = np.array_split(subj_list, num_clients)
 
     # Count the number of samples for each client
     samples_per_client = np.zeros(num_clients, dtype = int)
