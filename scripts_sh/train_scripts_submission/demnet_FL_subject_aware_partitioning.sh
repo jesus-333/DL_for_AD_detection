@@ -113,7 +113,7 @@ num_gpus=1
 max_gpu_allowed=1
 
 # Wandb Setting
-project_name="demnet_FL_subject_aware_PAPER"
+project_name="demnet_FL_subject_aware_PAPER_2"
 name_training_run="${num_clients}_clients"
 
 # Always check use_vgg_normalization and use_rgb_input, use_pretrained_vgg

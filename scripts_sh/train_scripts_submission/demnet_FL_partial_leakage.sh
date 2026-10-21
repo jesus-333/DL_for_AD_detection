@@ -2,8 +2,8 @@
 
 #SBATCH --job-name="train_demnet_FL_V2_ADNI_exp_lr"
 #SBATCH --nodes=1
-#SBATCH --partition=hopper
-#SBATCH --qos=iris-hopper
+#SBATCH --partition=gpu
+#SBATCH --qos=normal
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
@@ -68,7 +68,7 @@ path_to_save_idx_file="${PATH_DATA}FL_idx_partial_leakage_${SLURM_JOB_ID}/"
 percentage_data_used_for_training=0.9
 seed=${SLURM_JOB_ID}
 # seed=2627151565
-n_repetitions=1
+n_repetitions=4
 
 # Dataset settings for each client
 merge_AD_class=0
@@ -104,7 +104,7 @@ input_channels=1
 input_size=176
 
 # FL settings (Training)
-num_clients=20
+num_clients=5
 num_rounds=100
 rounds_to_save_model=5
 fraction_fit=1
@@ -202,7 +202,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--path_server_config="${PATH_SERVER_CONFIG}"\
 		--num_rounds=${num_rounds}\
 		--num_clients=${num_clients}\
-		--rounds_to_save_model={rounds_to_save_model}\
+		--rounds_to_save_model=${rounds_to_save_model}\
 		--fraction_fit=${fraction_fit}\
 		--fraction_evaluate=1.0\
 		--path_idx_server_data=${path_to_save_idx_file}\
@@ -212,7 +212,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--entity="alberto_zancanaro_academic"\
 		--model_artifact_name="demnet_z_${input_channels}"\
 		--name_training_run=${name_training_run}
-		--no-log_model_artifact\
+		--log_model_artifact\
 		--log_freq=1\
 		--metrics_to_log_from_clients="accuracy_train accuracy_validation"\
 		--metrics_plot_backend="wandb"\
@@ -258,7 +258,7 @@ for repetition in $(seq 1 $n_repetitions); do
 		--use_scheduler\
 		--measure_metrics_during_training\
 		--fl_training\
-		--use_weights_with_lower_validation_error\
+		--no-use_weights_with_lower_validation_error\
 		--print_var\
 		--no-wandb_training\
 
