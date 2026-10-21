@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import pandas as pd
 import wandb
 
@@ -90,6 +91,11 @@ def download_project_runs_metrics(args : argparse.Namespace) -> None :
         path_save = "./wandb_metrics.json"
     else :
         path_save = args.path_save
+
+        # Check if the path_save is a valid path (i.e. the directory exists)
+        if not os.path.isdir(os.path.dirname(path_save)) :
+            print(f"The specified path '{path_save}' does not exist and it will be created.")
+            os.makedirs(os.path.dirname(path_save), exist_ok = True)
 
     # ***************************************
     # Downalod metrics
