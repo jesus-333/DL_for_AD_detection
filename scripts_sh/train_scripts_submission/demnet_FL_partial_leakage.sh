@@ -50,25 +50,18 @@ PATH_SRC="./"
 
 # Paths to config files
 PATH_CONFIG_FOLDER="scripts_python/training_FL/ADNI_demnet_fedavg_with_wandb_V2/config/"
-PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset_${SLURM_JOB_ID}.toml"
 PATH_MODEL_CONFIG_TEMPLATE="${PATH_CONFIG_FOLDER}template/model.toml"
-PATH_MODEL_CONFIG_SAVE="${PATH_CONFIG_FOLDER}model_${SLURM_JOB_ID}.toml"
-PATH_SERVER_CONFIG="${PATH_CONFIG_FOLDER}server_${SLURM_JOB_ID}.toml"
-PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training_${SLURM_JOB_ID}.toml"
-PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_config_${SLURM_JOB_ID}.toml"
-PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${SLURM_JOB_ID}.toml"
 
 # Path to data
 PATH_DATA="data/ADNI_MRI_Normalized_middle_slice/"  # Note that the normalized dataset has only 3 classes : AD, CN and MCI
 NAME_TENSOR_FILE="dataset_tensor___176_resize.pt"
-path_to_save_idx_file="${PATH_DATA}FL_idx_partial_leakage_${SLURM_JOB_ID}/"
 # N.B. The file should be already saved with value alreay normalized between 0 and 1. 
 
 # Data preparation settings
 percentage_data_used_for_training=0.9
 seed=${SLURM_JOB_ID}
 # seed=2627151565
-n_repetitions=4
+n_repetitions=5
 
 # Dataset settings for each client
 merge_AD_class=0
@@ -86,7 +79,6 @@ batch_size=192
 epochs=10
 device="cuda"
 epoch_to_save_model=-1
-path_to_save_model="model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_${SLURM_JOB_ID}"
 
 # Optimizer config
 lr=1e-3
@@ -130,6 +122,22 @@ for repetition in $(seq 1 $n_repetitions); do
 	echo "====================================="
 	echo "REPETITION ${repetition} / ${n_repetitions}"
 	echo "====================================="
+
+	# Tag and seed unique for each repetition. All the files created in this repetition (configs, idx files) contain the tag, so a repetition never overwrites another one.
+	# The seed is a hash of the tag (reproducible from job id and repetition, and no collision between different jobs with close ids).
+	run_tag="${SLURM_JOB_ID}_${repetition}"
+	seed=$(python -c "import hashlib; print(int(hashlib.sha256('${run_tag}'.encode()).hexdigest(), 16) % (2**31 - 1) + 1)")
+	echo "RUN TAG ${run_tag} - SEED ${seed}"
+
+	# Paths with the tag of this repetition
+	PATH_DATASET_CONFIG="${PATH_CONFIG_FOLDER}dataset_${run_tag}.toml"
+	PATH_MODEL_CONFIG_SAVE="${PATH_CONFIG_FOLDER}model_${run_tag}.toml"
+	PATH_SERVER_CONFIG="${PATH_CONFIG_FOLDER}server_${run_tag}.toml"
+	PATH_TRAINING_CONFIG="${PATH_CONFIG_FOLDER}training_${run_tag}.toml"
+	PATH_OPTIMIZER_CONFIG="${PATH_CONFIG_FOLDER}optimizer_config_${run_tag}.toml"
+	PATH_LR_SCHEDULER_CONFIG="${PATH_CONFIG_FOLDER}lr_scheduler_config_${run_tag}.toml"
+	path_to_save_idx_file="${PATH_DATA}FL_idx_partial_leakage_${run_tag}/"
+	path_to_save_model="model_weights/demnet_ADNI_FL_V2/exp_lr_SGD_${run_tag}"
 
 	# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	# Prepare data
