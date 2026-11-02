@@ -75,6 +75,17 @@ parser.add_argument('--debug'                , default = False, action = "store_
 parser.add_argument('--no-log_model_artifact', dest ='log_model_artifact', action = 'store_false', help = 'If passed, no model will be logged as a wandb artifact. Only metrics will be uploaded.')
 parser.add_argument('--no-debug'             , dest ='feature'           , action = 'store_false')
 # *******************************
+# Arguments for long (resumable) trainings. For all of them the default (None) means "keep the value in the config (if present)". See check_training_config in support_training.py for the default values used by the train function.
+parser.add_argument('--start_epoch'             , type = int, default = None, help = 'Epoch from which the training starts if no checkpoint is found (e.g. the epochs already done by the run loaded with path_past_weights). Default is None (keep config value).')
+parser.add_argument('--path_to_save_snapshot'   , type = str, default = None, help = 'Folder where the model saved every epoch_to_save_model epochs is saved. Default is None (keep config value, or use path_to_save_model).')
+parser.add_argument('--stop_file_path'          , type = str, default = None, help = 'If the file at this path exists, the training stops at the end of the current epoch. Default is None (keep config value).')
+parser.add_argument('--wandb_watch_log_freq'    , type = int, default = None, help = 'Value of the log_freq argument of wandb.watch (in batches). Default is None (keep config value).')
+parser.add_argument('--wandb_watch_log'         , type = str, default = None, choices = ['all', 'gradients', 'parameters', 'none'], help = 'Value of the log argument of wandb.watch. Use "none" to disable wandb.watch. Default is None (keep config value).')
+parser.add_argument('--resume_from_backup'      , default = None, action = "store_true", help = 'If passed, the training is resumed from the last valid checkpoint found in path_to_save_model (created by backup_model_every_epoch). Requires backup_model_every_epoch. Default is None (keep config value).')
+parser.add_argument('--wandb_watch_log_graph'   , default = None, action = "store_true", help = 'If passed, wandb.watch also logs the computational graph. Default is None (keep config value).')
+parser.add_argument('--no-resume_from_backup'   , dest = 'resume_from_backup'   , action = 'store_false')
+parser.add_argument('--no-wandb_watch_log_graph', dest = 'wandb_watch_log_graph', action = 'store_false')
+# *******************************
 # Arguments for Federated Learning only
 parser.add_argument('--use_weights_with_lower_validation_error'   , default = False, action = "store_true" , help = "This value is used only during FL training. If True, each client will send to the central server the weights that achieve the lowest validation error, if False the weights at the end of training will be sent. Default is False.")
 parser.add_argument('--no-use_weights_with_lower_validation_error', dest ='use_weights_with_lower_validation_error', action = 'store_false')
@@ -244,6 +255,17 @@ else :
     training_config['lr_scheduler_config'] = None
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Long (resumable) trainings
+# Only the arguments explicitly passed are written in the config. Note that None values are not saved in toml files.
+
+if args.resume_from_backup is not None : training_config['resume_from_backup'] = args.resume_from_backup
+if args.start_epoch is not None :
+    if args.start_epoch < 0 : raise ValueError(f"start_epoch must be >= 0. Current value: {args.start_epoch}")
+    training_config['start_epoch'] = args.start_epoch
+if args.path_to_save_snapshot is not None : training_config['path_to_save_snapshot'] = args.path_to_save_snapshot
+if args.stop_file_path is not None        : training_config['stop_file_path'] = args.stop_file_path
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Wandb training
 # Check and update config only if wand is training is not False
@@ -328,6 +350,11 @@ if args.wandb_training is True :
 
     # Debug flag
     training_config['debug'] = args.debug
+
+    # wandb.watch settings (only if explicitly passed)
+    if args.wandb_watch_log is not None       : training_config['wandb_watch_log'] = args.wandb_watch_log
+    if args.wandb_watch_log_freq is not None  : training_config['wandb_watch_log_freq'] = args.wandb_watch_log_freq
+    if args.wandb_watch_log_graph is not None : training_config['wandb_watch_log_graph'] = args.wandb_watch_log_graph
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Update the training config for Federated Learning

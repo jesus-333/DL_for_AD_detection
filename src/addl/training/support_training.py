@@ -19,30 +19,81 @@ import torch
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Function used during training
 
-def backup_every_epoch(path_to_save : str, epoch : int, model, optimizer = None, lr_scheduler = None) :
+def atomic_torch_save(obj, path : str) :
+    """
+    Save obj with torch.save in an atomic way, i.e. the file at path is either the old complete file or the new complete file, never a half-written one.
+    The object is first written to a temporary file in the same folder and then renamed with os.replace (atomic on POSIX file systems when source and destination are in the same folder).
+    If the process is killed during the write, only the temporary file is corrupted. The temporary file is overwritten at the next save.
+    """
+    path_tmp = path + '.tmp'
+    torch.save(obj, path_tmp)
+    os.replace(path_tmp, path)
+
+def backup_every_epoch(path_to_save : str, epoch : int, model, optimizer = None, lr_scheduler = None, training_state : dict = None) :
     """
     Function used to backup the model every epoch (and eventually the optimizer and the lr scheduler).
     The model will be saved in the folder specified by path_to_save_model. For even epoch will be saved as "model_backup_A.pth", for odd epoch will be saved as "model_backup_B.pth".
 
     The reason behind this function is simply to have a "backup of the backup". Training the model on an hpc it happens to me that the training was interrupted during the saving of the model, corrupting the file.
     Having two files (last epoch and previous epoch) ensures that at least one of the two files will be correct and can be used to restart the training from the last epoch. This is especially useful for long trainings, where you have to divide the training in several runs.
+    All the files are now also written atomically (see atomic_torch_save), so a file is never left half-written.
+
+    If training_state is not None, a single file called "checkpoint_backup_A.pth" (or "checkpoint_backup_B.pth") is also saved.
+    This file contains everything needed to resume the training (see load_latest_checkpoint) : model, optimizer and lr scheduler state dicts, plus the content of training_state (e.g. the epoch and the best validation loss).
+    Keeping everything in a single file guarantees that model, optimizer and epoch are always consistent with each other.
     """
 
     suffix = '_backup_A' if epoch % 2 == 0 else '_backup_B'
-    
+
     # Save the model
     path_to_save_model = os.path.join(path_to_save, f'model{suffix}.pth')
-    torch.save(model.state_dict(), path_to_save_model)
+    atomic_torch_save(model.state_dict(), path_to_save_model)
 
     # (OPTIONAL) Save the optimizer
     if optimizer is not None :
         path_to_save_optimizer = os.path.join(path_to_save, f'optimizer{suffix}.pth')
-        torch.save(optimizer.state_dict(), path_to_save_optimizer)
+        atomic_torch_save(optimizer.state_dict(), path_to_save_optimizer)
 
     # (OPTIONAL) Save the lr scheduler
     if lr_scheduler is not None :
         path_to_save_lr_scheduler = os.path.join(path_to_save, f'lr_scheduler{suffix}.pth')
-        torch.save(lr_scheduler.state_dict(), path_to_save_lr_scheduler)
+        atomic_torch_save(lr_scheduler.state_dict(), path_to_save_lr_scheduler)
+
+    # (OPTIONAL) Save the full training state in a single file
+    if training_state is not None :
+        checkpoint = dict(training_state)
+        checkpoint['model_state_dict']        = model.state_dict()
+        checkpoint['optimizer_state_dict']    = optimizer.state_dict() if optimizer is not None else None
+        checkpoint['lr_scheduler_state_dict'] = lr_scheduler.state_dict() if lr_scheduler is not None else None
+        atomic_torch_save(checkpoint, os.path.join(path_to_save, f'checkpoint{suffix}.pth'))
+
+def load_latest_checkpoint(path_to_save : str, device = 'cpu') :
+    """
+    Load the most recent valid checkpoint created by backup_every_epoch (i.e. "checkpoint_backup_A.pth" or "checkpoint_backup_B.pth").
+    Both files are loaded (if they exist) and the one with the highest epoch is returned. A file that cannot be loaded (e.g. corrupted) is skipped with a warning.
+
+    Returns
+    -------
+    checkpoint : dict or None
+        The checkpoint with the highest epoch, or None if no valid checkpoint is found.
+    """
+    latest_checkpoint = None
+
+    for suffix in ['_backup_A', '_backup_B'] :
+        path_checkpoint = os.path.join(path_to_save, f'checkpoint{suffix}.pth')
+        if not os.path.isfile(path_checkpoint) : continue
+
+        try :
+            checkpoint = torch.load(path_checkpoint, map_location = device, weights_only = False)
+        except Exception as e :
+            print(f'Warning: impossible to load the checkpoint {path_checkpoint}. The file will be ignored. Error : {e}')
+            continue
+
+        if latest_checkpoint is None or checkpoint['epoch'] > latest_checkpoint['epoch'] :
+            latest_checkpoint = checkpoint
+            latest_checkpoint['path'] = path_checkpoint
+
+    return latest_checkpoint
 
 def update_log_dict_metrics(metrics_dict, log_dict, label = None) :
     """
@@ -129,6 +180,29 @@ def check_training_config(config : dict) :
         print('This values set to True print the metrics and the loss during training, and other information before the start of the training')
         config['print_var'] = True
 
+    if 'backup_model_every_epoch' not in config :
+        print('Warning: the training configuration does not contain the key "backup_model_every_epoch". False will be used as default value')
+        config['backup_model_every_epoch'] = False
+
+    # *******************************
+    # Long training settings (resume, snapshots, stop file)
+    # All these settings are optional and the default values keep the old behaviour of the train function.
+
+    if 'resume_from_backup' not in config : config['resume_from_backup'] = False
+
+    if config['resume_from_backup'] and not config['backup_model_every_epoch'] :
+        raise ValueError('resume_from_backup is True but backup_model_every_epoch is False. The checkpoints used to resume the training are created only if backup_model_every_epoch is True')
+
+    # Epoch from which the training starts if no checkpoint is found (e.g. the number of epochs already done by the run you load with path_past_weights).
+    if 'start_epoch' not in config : config['start_epoch'] = 0
+    if config['start_epoch'] < 0 : raise ValueError(f"start_epoch must be >= 0. Current value: {config['start_epoch']}")
+
+    # Folder where the model saved every epoch_to_save_model epochs is saved. If not specified, path_to_save_model is used (old behaviour).
+    if 'path_to_save_snapshot' not in config or config['path_to_save_snapshot'] is None : config['path_to_save_snapshot'] = config['path_to_save_model']
+
+    # If the file at this path exists, the training stops (cleanly) at the end of the current epoch.
+    if 'stop_file_path' not in config : config['stop_file_path'] = None
+
     if 'seed' not in config :
         seed = np.random.randint(0, 2**32 - 1)
         print(f'Warning: the training configuration does not contain the seed. A random integer ({seed}) will be used as default value')
@@ -161,6 +235,15 @@ def check_training_config(config : dict) :
         if config['log_freq'] <= 0 :
             print(f'Invalid log frequency value: {config["log_freq"]}. 1 will be used as default value')
             config['log_freq'] = 1
+
+        # Settings for wandb.watch. Defaults keep the old behaviour (log = "all", log_freq = log_freq, log_graph = True).
+        # Note that log = "all" with a small log_freq logs the histograms of all parameters and gradients very often and the local wandb folder can become huge in long trainings.
+        # Use wandb_watch_log = "none" to disable wandb.watch.
+        if 'wandb_watch_log' not in config : config['wandb_watch_log'] = 'all'
+        if config['wandb_watch_log'] not in ['all', 'gradients', 'parameters', 'none'] :
+            raise ValueError(f"wandb_watch_log must be one of 'all', 'gradients', 'parameters', 'none'. Current value: {config['wandb_watch_log']}")
+        if 'wandb_watch_log_freq' not in config or config['wandb_watch_log_freq'] <= 0 : config['wandb_watch_log_freq'] = config['log_freq']
+        if 'wandb_watch_log_graph' not in config : config['wandb_watch_log_graph'] = True
 
         if 'name_training_run' not in config :
             print('Warning: the training configuration does not contain the key "name_training_run". None will be used as default value')

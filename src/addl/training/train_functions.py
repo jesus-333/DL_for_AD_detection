@@ -98,8 +98,19 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     # Move model to training device
     model.to(training_config['device'])
     
+    # (OPTIONAL) If resume_from_backup is True, look for a checkpoint created by a previous execution of this same training (e.g. a slurm job that was preempted and requeued).
+    # If a valid checkpoint is found, it has priority over path_past_weights/path_past_optimizer (that are used only for the first launch of a continuation).
+    checkpoint = None
+    if training_config['resume_from_backup'] :
+        checkpoint = support_training.load_latest_checkpoint(training_config['path_to_save_model'], training_config['device'])
+        if checkpoint is None and training_config['print_var'] : print(f"No valid checkpoint found in {training_config['path_to_save_model']}. The training starts from epoch {training_config['start_epoch']}")
+
     # (OPTIONAL) Load past model weights if the training is a continuation of a past training.
-    if 'path_past_weights' in training_config :
+    # Note that a None value is not saved in toml files, so usually the key is simply missing when no past weights are used.
+    if checkpoint is not None :
+        model.load_state_dict(checkpoint['model_state_dict'])
+        if training_config['print_var'] : print(f"Model weights loaded from {checkpoint['path']} (epoch {checkpoint['epoch']})")
+    elif training_config.get('path_past_weights') is not None :
         model_state_dict = torch.load(training_config['path_past_weights'], map_location = training_config['device'])
         model.load_state_dict(model_state_dict)
         if training_config['print_var'] : print("Model weights loaded from {}".format(training_config['path_past_weights']))
@@ -107,19 +118,22 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     # Create loss function
     # TODO Add option for other loss function
     loss_function = torch.nn.CrossEntropyLoss()
-    
+
     # Get optimizer
     optimizer = support_training.get_optimizer(training_config['optimizer_config'], model)
 
     # (OPTIONAL) Load past optimizer state dict if the training is a continuation of a past training.
-    if 'path_past_optimizer' in training_config :
+    if checkpoint is not None :
+        if checkpoint['optimizer_state_dict'] is not None : optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    elif training_config.get('path_past_optimizer') is not None :
         optimizer_state_dict = torch.load(training_config['path_past_optimizer'], map_location = training_config['device']) # CHECK IF I HAVE TO ADD DEVICE
-        optimizer.load_state_dict(optimizer_state_dict) 
+        optimizer.load_state_dict(optimizer_state_dict)
         if training_config['print_var'] : print("Optimizer state dict loaded from {}".format(training_config['path_past_optimizer']))
 
     # (OPTIONAL) Setup lr scheduler
     if training_config['use_scheduler'] :
         lr_scheduler = support_training.get_lr_scheduler(training_config['lr_scheduler_config'], optimizer)
+        if checkpoint is not None and checkpoint['lr_scheduler_state_dict'] is not None : lr_scheduler.load_state_dict(checkpoint['lr_scheduler_state_dict'])
     else:
         lr_scheduler = None
 
@@ -127,12 +141,23 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
 
     # Create a folder (if not exist already) to store temporary file during training
     os.makedirs(training_config['path_to_save_model'], exist_ok = True)
+    os.makedirs(training_config['path_to_save_snapshot'], exist_ok = True)
 
     # (OPTIONAL) If wandb is installed, tell wandb to track the model parameters
-    if training_config['wandb_training']: wandb.watch(model, criterion = loss_function, log = "all", log_freq = training_config['log_freq'], log_graph = True)
+    if training_config['wandb_training'] and training_config['wandb_watch_log'] != 'none' :
+        wandb.watch(model, criterion = loss_function, log = training_config['wandb_watch_log'], log_freq = training_config['wandb_watch_log_freq'], log_graph = training_config['wandb_watch_log_graph'])
 
     # Variable to track best losses
     best_loss_val = sys.maxsize # Best total loss for the validation data
+
+    # Epoch from which the training starts.
+    # The epoch counter is global, i.e. if the training is resumed from a checkpoint at epoch n, the training restart from epoch n + 1 and stops at training_config['epochs'].
+    if checkpoint is not None :
+        start_epoch   = checkpoint['epoch'] + 1
+        best_loss_val = checkpoint['best_loss_val']
+    else :
+        start_epoch = training_config['start_epoch']
+    del checkpoint # Free memory (the checkpoint contains a copy of the model and optimizer state)
 
     # Dictionaries used to saved information during training and load them on wandb.
     # Note that this due Dictionaries serves different from purposes.
@@ -145,7 +170,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     if training_config['print_var'] : print("Start training")
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    for epoch in range(training_config['epochs']):
+    for epoch in range(start_epoch, training_config['epochs']):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # (MANDATORY) Training epoch
 
@@ -154,30 +179,13 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
                                           training_config['device'], log_dict, training_config['print_var']
                                           )
 
-        # Save the model every n epochs (i.e. created checkpoint called model_n.pth)
-        # N.b. When the variable epoch is n the model is trained for n + 1 epochs when arrive at this instructions.
-        if (epoch + 1) % training_config['epoch_to_save_model'] == 0 and training_config['epoch_to_save_model'] > 0:
-
-            # Save model
-            torch.save(model.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], "model_{}.pth".format(epoch + 1)))
-
-            # Save optimizer state dict (useful if you want to continue the training from a specific checkpoint)
-            torch.save(optimizer.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], "optimizer_{}.pth".format(epoch + 1)))
-
-        # Save the model for backup every epoch of the function is enabled.
-        # Note that this is different from the checkpoint saved every n epochs because the file created will be overwritten at each epoch.
-        # This could be useful if you want to hava a backup of the model during training and the model is quite large (so creating many checkpoints could be a problem)
-        # Read the docstring of the function backup_every_epoch for more information about the file created and the path where it is saved.
-        if training_config['backup_model_every_epoch'] : support_training.backup_every_epoch(training_config['path_to_save_model'], epoch, model, optimizer, lr_scheduler)
-
-        if epoch == 0 : # If it is the first epoch create the list for the specific metric
-            computed_metrics_during_training["train_loss"] = [train_loss]
-        else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
-            computed_metrics_during_training["train_loss"].append(train_loss)
+        computed_metrics_during_training.setdefault("train_loss", []).append(train_loss)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # (OPTIONAL) Validation epoch
+        # Note that the validation is done BEFORE the backups, so the best validation loss saved in the checkpoint is always up to date.
 
+        validation_loss = None
         if validation_loader is not None:
 
             validation_loss = validation_epoch_function(model, validation_loader, loss_function,
@@ -189,15 +197,12 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
                 best_loss_val = validation_loss
 
                 # Save model
-                torch.save(model.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], 'model_BEST.pth'))
+                support_training.atomic_torch_save(model.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], 'model_BEST.pth'))
 
                 # Save optimizer state dict (useful if you want to continue the training from the best model)
-                torch.save(optimizer.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], 'optimizer_BEST.pth'))
+                support_training.atomic_torch_save(optimizer.state_dict(), '{}/{}'.format(training_config['path_to_save_model'], 'optimizer_BEST.pth'))
 
-            if epoch == 0 : # If it is the first epoch create the list for the specific metric
-                computed_metrics_during_training["validation_loss"] = [validation_loss]
-            else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
-                computed_metrics_during_training["validation_loss"].append(validation_loss)
+            computed_metrics_during_training.setdefault("validation_loss", []).append(validation_loss)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # (OPTIONAL) Optional steps during the training
@@ -211,12 +216,8 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
 
             # Save metrics
             for metric in train_metrics_dict :
-                if epoch == 0 : # If it is the first epoch create the list for the specific metric
-                    computed_metrics_during_training[f"{metric}_train"] = [train_metrics_dict[metric]]
-                    if validation_loader is not None : computed_metrics_during_training[f"{metric}_validation"] = [validation_metrics_dict[metric]]
-                else : # In all other cases append the metrics computed in the current epoch to the relative dictionary
-                    computed_metrics_during_training[f"{metric}_train"].append(train_metrics_dict[metric])
-                    if validation_loader is not None : computed_metrics_during_training[f"{metric}_validation"].append(validation_metrics_dict[metric])
+                computed_metrics_during_training.setdefault(f"{metric}_train", []).append(train_metrics_dict[metric])
+                if validation_loader is not None : computed_metrics_during_training.setdefault(f"{metric}_validation", []).append(validation_metrics_dict[metric])
         
         # Save learning rate
         if training_config['wandb_training']: log_dict['learning_rate'] = optimizer.param_groups[0]['lr']
@@ -227,6 +228,29 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
 
             # Update scheduler
             lr_scheduler.step()
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Save model (snapshots and backup)
+        # Note that this is done AFTER the lr scheduler step, so the saved optimizer/scheduler state is exactly the one needed for the next epoch.
+
+        # Save the model every n epochs (i.e. created checkpoint called model_n.pth)
+        # N.b. When the variable epoch is n the model is trained for n + 1 epochs when arrive at this instructions.
+        if (epoch + 1) % training_config['epoch_to_save_model'] == 0 and training_config['epoch_to_save_model'] > 0:
+
+            # Save model
+            torch.save(model.state_dict(), '{}/{}'.format(training_config['path_to_save_snapshot'], "model_{}.pth".format(epoch + 1)))
+
+            # Save optimizer state dict (useful if you want to continue the training from a specific checkpoint)
+            torch.save(optimizer.state_dict(), '{}/{}'.format(training_config['path_to_save_snapshot'], "optimizer_{}.pth".format(epoch + 1)))
+
+        # Save the model for backup every epoch of the function is enabled.
+        # Note that this is different from the checkpoint saved every n epochs because the file created will be overwritten at each epoch.
+        # This could be useful if you want to hava a backup of the model during training and the model is quite large (so creating many checkpoints could be a problem)
+        # If resume_from_backup is True, a full checkpoint (model, optimizer, lr scheduler, epoch and best validation loss) is also saved, so the training can be resumed from this epoch.
+        # Read the docstring of the function backup_every_epoch for more information about the file created and the path where it is saved.
+        if training_config['backup_model_every_epoch'] :
+            training_state = dict(epoch = epoch, best_loss_val = best_loss_val) if training_config['resume_from_backup'] else None
+            support_training.backup_every_epoch(training_config['path_to_save_model'], epoch, model, optimizer, lr_scheduler, training_state)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # (OPTIONAL) Print loss. The spaces were added to make the print more aligned and more readable.
@@ -243,7 +267,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
             # Metrics
             if training_config['measure_metrics_during_training']:
                 print("\t Accuracy (TRAIN)  = {}".format(train_metrics_dict['accuracy']))
-                print("\t Accuracy (VALID)  = {}".format(validation_metrics_dict['accuracy']))
+                if validation_loader is not None : print("\t Accuracy (VALID)  = {}".format(validation_metrics_dict['accuracy']))
 
             if training_config['debug'] :
                 print_debug = getattr(model, "print_debug", None)
@@ -256,8 +280,10 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
         # (OPTIONAL) Log data on wandb
         if training_config['wandb_training']:
             # Update the log with the epoch losses
+            # The epoch is logged explicitly so it can be used as x-axis in wandb (the wandb step is not reliable when a run is resumed several times).
+            log_dict['epoch'] = epoch
             log_dict['train_loss'] = train_loss
-            log_dict['validation_loss'] = validation_loss
+            if validation_loader is not None : log_dict['validation_loss'] = validation_loss
 
             # Save the metrics in the log
             if training_config['measure_metrics_during_training']:
@@ -266,11 +292,17 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
 
             # Add the model to the artifact
             if (epoch + 1) % training_config['epoch_to_save_model'] == 0 and training_config['log_model_artifact']:
-                model_file_path = '{}/{}'.format(training_config['path_to_save_model'], "model_{}.pth".format(epoch + 1))
+                model_file_path = '{}/{}'.format(training_config['path_to_save_snapshot'], "model_{}.pth".format(epoch + 1))
                 wandb_model_artifact.add_file(model_file_path)
                 wandb.save(model_file_path)
             
             wandb.log(log_dict)
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # (OPTIONAL) Stop file. If the file exists, the training stops here (after the backup and the log of the current epoch).
+        if training_config['stop_file_path'] is not None and os.path.exists(training_config['stop_file_path']) :
+            print(f"Stop file found at {training_config['stop_file_path']}. Training stopped at epoch {epoch}")
+            break
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # End training cycle
@@ -344,6 +376,13 @@ def wandb_train(config : dict, model, train_dataset, validation_dataset = None) 
 
         # Check if run is already running
         # if run.state == "running" : #     raise ValueError(f"A run with the same id ({id}) is already running. Please change the seed in the training_config to have a different id")
+
+        # For resumable trainings use the epoch (logged explicitly in train) as x-axis for all the metrics.
+        # When a run is resumed, wandb continues from its last internal step, so the step is not necessarily equal to the epoch
+        # (e.g. a continuation that starts from start_epoch > 0, or an epoch trained but not logged because the job was preempted between the backup and wandb.log).
+        if training_config.get('resume_from_backup', False) :
+            run.define_metric('epoch')
+            run.define_metric('*', step_metric = 'epoch')
 
         # Setup artifact to save model
         model_artifact_name = training_config['model_artifact_name'] + '_trained'
