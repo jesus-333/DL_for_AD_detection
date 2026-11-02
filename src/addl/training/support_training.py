@@ -24,6 +24,13 @@ def atomic_torch_save(obj, path : str) :
     Save obj with torch.save in an atomic way, i.e. the file at path is either the old complete file or the new complete file, never a half-written one.
     The object is first written to a temporary file in the same folder and then renamed with os.replace (atomic on POSIX file systems when source and destination are in the same folder).
     If the process is killed during the write, only the temporary file is corrupted. The temporary file is overwritten at the next save.
+
+    Parameters
+    ----------
+    obj : object
+        Object to save (e.g. a state dict). Any object accepted by :func:`torch.save`.
+    path : str
+        Path of the file to create (or overwrite).
     """
     path_tmp = path + '.tmp'
     torch.save(obj, path_tmp)
@@ -39,8 +46,23 @@ def backup_every_epoch(path_to_save : str, epoch : int, model, optimizer = None,
     All the files are now also written atomically (see atomic_torch_save), so a file is never left half-written.
 
     If training_state is not None, a single file called "checkpoint_backup_A.pth" (or "checkpoint_backup_B.pth") is also saved.
-    This file contains everything needed to resume the training (see load_latest_checkpoint) : model, optimizer and lr scheduler state dicts, plus the content of training_state (e.g. the epoch and the best validation loss).
+    This file contains everything needed to resume the training (see :func:`load_latest_checkpoint`) : model, optimizer and lr scheduler state dicts, plus the content of training_state (e.g. the epoch and the best validation loss).
     Keeping everything in a single file guarantees that model, optimizer and epoch are always consistent with each other.
+
+    Parameters
+    ----------
+    path_to_save : str
+        Folder where the backup files are saved.
+    epoch : int
+        Current epoch. Used to select the suffix of the files (A for even epochs, B for odd epochs).
+    model : torch.nn.Module
+        Model to save.
+    optimizer : torch.optim.Optimizer, optional
+        Optimizer to save. If None, the optimizer is not saved. Default is None.
+    lr_scheduler : torch.optim.lr_scheduler.LRScheduler, optional
+        Learning rate scheduler to save. If None, the lr scheduler is not saved. Default is None.
+    training_state : dict, optional
+        Additional information needed to resume the training (e.g. {'epoch' : 10, 'best_loss_val' : 0.3}). If None, the checkpoint file is not created. Default is None.
     """
 
     suffix = '_backup_A' if epoch % 2 == 0 else '_backup_B'
@@ -69,14 +91,23 @@ def backup_every_epoch(path_to_save : str, epoch : int, model, optimizer = None,
 
 def load_latest_checkpoint(path_to_save : str, device = 'cpu') :
     """
-    Load the most recent valid checkpoint created by backup_every_epoch (i.e. "checkpoint_backup_A.pth" or "checkpoint_backup_B.pth").
+    Load the most recent valid checkpoint created by :func:`backup_every_epoch` (i.e. "checkpoint_backup_A.pth" or "checkpoint_backup_B.pth").
     Both files are loaded (if they exist) and the one with the highest epoch is returned. A file that cannot be loaded (e.g. corrupted) is skipped with a warning.
+
+    Parameters
+    ----------
+    path_to_save : str
+        Folder where the checkpoint files are saved (i.e. the path_to_save_model of the training config).
+    device : str or torch.device, optional
+        Device where the tensors of the checkpoint are loaded. Default is 'cpu'.
 
     Returns
     -------
     checkpoint : dict or None
         The checkpoint with the highest epoch, or None if no valid checkpoint is found.
+        The keys are model_state_dict, optimizer_state_dict, lr_scheduler_state_dict, path (path of the loaded file) and the keys of the training_state passed to :func:`backup_every_epoch`.
     """
+
     latest_checkpoint = None
 
     for suffix in ['_backup_A', '_backup_B'] :

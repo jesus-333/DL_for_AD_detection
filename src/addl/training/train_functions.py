@@ -70,6 +70,19 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
             Notes to add to the wandb training run. This parameter is used only if wandb_training is set to True. If not specified, None will be used as default value.
         - debug : bool
             This key is not used in the training functions. It is only useful if you want to quickly filter the training run in wandb. If not specified, False will be used as default value.
+        - backup_model_every_epoch : bool
+            If True, a backup of the model (and optimizer) is saved at the end of each epoch, alternating between two files (A/B). See :func:`~addl.training.support_training.backup_every_epoch`. If not specified, False will be used as default value.
+        - resume_from_backup : bool
+            If True, the training is resumed from the newest valid checkpoint in path_to_save_model (if any), restoring model, optimizer, lr scheduler, epoch and best validation loss.
+            Requires backup_model_every_epoch. If a checkpoint is found, path_past_weights and path_past_optimizer are ignored. If not specified, False will be used as default value.
+        - start_epoch : int
+            Epoch from which the training starts if no checkpoint is found (e.g. the number of epochs already done by the run loaded with path_past_weights). The epoch counter is global, i.e. the training stops at epochs. If not specified, 0 will be used as default value.
+        - path_to_save_snapshot : str
+            Folder where the model and optimizer saved every epoch_to_save_model epochs are saved. If not specified, path_to_save_model will be used as default value.
+        - stop_file_path : str
+            If the file at this path exists, the training stops at the end of the current epoch (after the backup and the wandb log). If not specified, no stop file is used.
+        - wandb_watch_log, wandb_watch_log_freq, wandb_watch_log_graph : str, int, bool
+            Arguments of wandb.watch (log, log_freq, log_graph). Use wandb_watch_log = "none" to disable wandb.watch. If not specified, "all", log_freq and True will be used (i.e. the old behaviour).
     model : torch.nn.Module
         Model to train
     train_dataset : torch.utils.data.Dataset
@@ -98,6 +111,9 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     # Move model to training device
     model.to(training_config['device'])
     
+    # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    # (OPTIONAL) Resume from checkpoint or load past weights
+
     # (OPTIONAL) If resume_from_backup is True, look for a checkpoint created by a previous execution of this same training (e.g. a slurm job that was preempted and requeued).
     # If a valid checkpoint is found, it has priority over path_past_weights/path_past_optimizer (that are used only for the first launch of a continuation).
     checkpoint = None
@@ -150,6 +166,7 @@ def train(training_config : dict, model, train_dataset, validation_dataset = Non
     # Variable to track best losses
     best_loss_val = sys.maxsize # Best total loss for the validation data
 
+    # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     # Epoch from which the training starts.
     # The epoch counter is global, i.e. if the training is resumed from a checkpoint at epoch n, the training restart from epoch n + 1 and stops at training_config['epochs'].
     if checkpoint is not None :

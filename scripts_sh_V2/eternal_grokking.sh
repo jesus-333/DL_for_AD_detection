@@ -14,10 +14,11 @@
 #
 # <model> is demnet or vit.
 #
-# Files of a run (job_name = eternal_<model>_<seed>) :
-#   scripts_sh_V2/config/training_hpc/<job_name>/   frozen configs, frozen code (code/), idx files (idx/), STOP file    (home, small)
-#   model_weights/grokking/<job_name>/               backups A/B (used to resume) and model_BEST.pth                    (home, small)
-#   ${SCRATCH}/grokking/<job_name>/                  snapshots every snapshot_every epochs and local wandb files        (scratch)
+# Files of a run (job_name = eternal_<model>_<seed>). Each model has its own folders and its own wandb project.
+#   scripts_sh_V2/config/training_hpc/grokking/<model>/<job_name>/   frozen configs, frozen code (code/), idx files (idx/), STOP/FINISHED files  (home, small)
+#   model_weights/grokking/<model>/<job_name>/                       backups A/B (used to resume) and model_BEST.pth                            (home, small)
+#   ${SCRATCH}/grokking/<model>/<job_name>/                          snapshots every snapshot_every epochs and local wandb files                (scratch)
+#   scripts_sh_V2/output/grokking/<model>/                           slurm stdout and stderr
 # The list of all the runs of a model is in scripts_sh_V2/config/seed_list_grokking/<model>.txt (one seed per line).
 
 set -e
@@ -47,9 +48,6 @@ percentage_train=0.5         # The rest is used for validation (subject-aware sp
 percentage_validation=0.5
 merge_AD_class=0
 
-# Wandb
-project_name="ViT_Grokking_Experiment"
-
 # Slurm
 partition="gpu"             # l40s, hopper, gpu
 qos="besteffort"            # besteffort, iris-hopper, normal
@@ -67,11 +65,13 @@ if [ "${model_name}" = "demnet" ] ; then
 	python_script="scripts_python/training/demnet_centralized_V2.py"
 	conda_env="jesus_hpc_2"
 	model_flags="--no-vit_training"
+	project_name="DemNet_Grokking_Experiment"   # wandb project
 elif [ "${model_name}" = "vit" ] ; then
 	template_model_config="./scripts_sh_V2/config/model_vit_tiny.toml"
 	python_script="scripts_python/training/vit_transformer_centralized_V2.py"
 	conda_env="jesus-hpc"
 	model_flags="--vit_training"
+	project_name="ViT_Grokking_Experiment"      # wandb project
 else
 	echo "Invalid model name: '${model_name}'. Possible values: demnet, vit"
 	exit 1
@@ -83,7 +83,7 @@ if [ -z "${SCRATCH}" ] ; then
 fi
 
 path_seed_list="./scripts_sh_V2/config/seed_list_grokking/${model_name}.txt"
-path_output="./scripts_sh_V2/output/grokking/"
+path_output="./scripts_sh_V2/output/grokking/${model_name}/"
 mkdir -p "${path_output}"
 touch "${path_seed_list}"
 
@@ -94,9 +94,9 @@ touch "${path_seed_list}"
 set_run_paths() {
 	seed=$1
 	job_name="eternal_${model_name}_${seed}"
-	path_run_config="./scripts_sh_V2/config/training_hpc/${job_name}/"
-	path_run_weights="./model_weights/grokking/${job_name}/"
-	path_run_scratch="${SCRATCH%/}/grokking/${job_name}/"
+	path_run_config="./scripts_sh_V2/config/training_hpc/grokking/${model_name}/${job_name}/"
+	path_run_weights="./model_weights/grokking/${model_name}/${job_name}/"
+	path_run_scratch="${SCRATCH%/}/grokking/${model_name}/${job_name}/"
 }
 
 # Return 0 if a job with the given name is in the queue (running, pending or requeued)
